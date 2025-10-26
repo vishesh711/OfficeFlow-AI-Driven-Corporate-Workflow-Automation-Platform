@@ -85,7 +85,7 @@ async function startWorkflowEngine() {
     app.get('/health/ready', healthService.readinessHandler());
 
     // API routes
-    app.use('/api/v1', createWorkflowEngineRoutes(engineService));
+    app.use('/api', createWorkflowEngineRoutes(engineService));
 
     // Root endpoint
     app.get('/', (req, res) => {

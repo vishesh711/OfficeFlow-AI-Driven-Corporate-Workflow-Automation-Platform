@@ -1,0 +1,46 @@
+{
+  "name": "@officeflow/slack-service",
+  "version": "1.0.0",
+  "description": "Slack service for OfficeFlow platform with Bot API integration and team communication",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@officeflow/types": "workspace:*",
+    "@officeflow/shared": "workspace:*",
+    "@officeflow/kafka": "workspace:*",
+    "@officeflow/database": "workspace:*",
+    "express": "^4.18.2",
+    "@slack/web-api": "^6.10.0",
+    "@slack/bolt": "^3.14.0",
+    "joi": "^17.11.0",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/uuid": "^9.0.7",
+    "@types/cors": "^2.8.17",
+    "@types/jest": "^29.5.8",
+    "typescript": "^5.2.2",
+    "ts-node": "^10.9.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "eslint": "^8.54.0",
+    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/parser": "^6.12.0"
+  },
+  "keywords": ["slack", "bot", "team-communication", "channels", "officeflow"],
+  "author": "OfficeFlow Team",
+  "license": "MIT"
+}

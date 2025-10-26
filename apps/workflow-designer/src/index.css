@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-secondary-100 text-secondary-900 hover:bg-secondary-200;
+  }
+  
+  .btn-outline {
+    @apply btn border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+}
+
+/* React Flow specific styles */
+.react-flow__node {
+  @apply border-2 border-gray-200 rounded-lg bg-white shadow-sm;
+}
+
+.react-flow__node.selected {
+  @apply border-primary-500;
+}
+
+.react-flow__handle {
+  @apply w-3 h-3 border-2 border-gray-400 bg-white;
+}
+
+.react-flow__handle.react-flow__handle-top,
+.react-flow__handle.react-flow__handle-bottom {
+  @apply left-1/2 transform -translate-x-1/2;
+}
+
+.react-flow__handle.react-flow__handle-left,
+.react-flow__handle.react-flow__handle-right {
+  @apply top-1/2 transform -translate-y-1/2;
+}
+
+.react-flow__edge-path {
+  @apply stroke-gray-400;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  @apply stroke-primary-500;
+}
+
+.react-flow__controls {
+  @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+}
+
+.react-flow__minimap {
+  @apply bg-white border border-gray-200 rounded-lg;
+}

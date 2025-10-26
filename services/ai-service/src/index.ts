@@ -16,10 +16,10 @@ async function createAIService() {
   // Load configuration
   const appConfig = createAppConfig(SERVICE_NAME);
   const aiConfig = createAIServiceConfig();
-  
+
   // Create logger
   const logger = createLogger(appConfig.observability.logging);
-  
+
   // Initialize services
   const llmService = new LLMService(aiConfig, logger);
   const aiNodeExecutor = new AINodeExecutor(llmService, logger);
@@ -39,7 +39,7 @@ async function createAIService() {
   app.get('/health', async (req, res) => {
     try {
       const isHealthy = await llmService.validateConnection();
-      
+
       res.status(isHealthy ? 200 : 503).json({
         status: isHealthy ? 'healthy' : 'unhealthy',
         service: SERVICE_NAME,
@@ -61,7 +61,7 @@ async function createAIService() {
   app.post('/execute', async (req, res) => {
     try {
       const input: NodeInput = req.body;
-      
+
       if (!input || !input.nodeId || !input.organizationId) {
         return res.status(400).json({
           error: 'Invalid node input',
@@ -70,11 +70,11 @@ async function createAIService() {
       }
 
       const result = await aiNodeExecutor.execute(input);
-      
+
       res.json(result);
     } catch (error) {
       logger.error('Node execution failed', { error, body: req.body });
-      
+
       res.status(500).json({
         error: 'Node execution failed',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -100,7 +100,7 @@ async function createAIService() {
   app.post('/content/welcome-message', async (req, res) => {
     try {
       const { organizationId, employee, company, options } = req.body;
-      
+
       if (!organizationId || !employee || !company) {
         return res.status(400).json({
           error: 'Missing required fields',
@@ -114,7 +114,7 @@ async function createAIService() {
         company,
         options
       );
-      
+
       res.json(result);
     } catch (error) {
       logger.error('Welcome message generation failed', { error, body: req.body });
@@ -128,7 +128,7 @@ async function createAIService() {
   app.post('/content/role-specific', async (req, res) => {
     try {
       const { organizationId, employee, company, options } = req.body;
-      
+
       if (!organizationId || !employee || !company) {
         return res.status(400).json({
           error: 'Missing required fields',
@@ -142,7 +142,7 @@ async function createAIService() {
         company,
         options
       );
-      
+
       res.json(result);
     } catch (error) {
       logger.error('Role-specific content generation failed', { error, body: req.body });
@@ -156,7 +156,7 @@ async function createAIService() {
   app.post('/content/summarize', async (req, res) => {
     try {
       const { organizationId, document, options } = req.body;
-      
+
       if (!organizationId || !document) {
         return res.status(400).json({
           error: 'Missing required fields',
@@ -169,7 +169,7 @@ async function createAIService() {
         document,
         options
       );
-      
+
       res.json(result);
     } catch (error) {
       logger.error('Document summarization failed', { error, body: req.body });
@@ -183,7 +183,7 @@ async function createAIService() {
   app.post('/content/sentiment', async (req, res) => {
     try {
       const { organizationId, text, options } = req.body;
-      
+
       if (!organizationId || !text) {
         return res.status(400).json({
           error: 'Missing required fields',
@@ -196,7 +196,7 @@ async function createAIService() {
         text,
         options
       );
-      
+
       res.json(result);
     } catch (error) {
       logger.error('Sentiment analysis failed', { error, body: req.body });
@@ -210,7 +210,7 @@ async function createAIService() {
   app.post('/content/custom', async (req, res) => {
     try {
       const { organizationId, prompt, data, options } = req.body;
-      
+
       if (!organizationId || !prompt) {
         return res.status(400).json({
           error: 'Missing required fields',
@@ -224,7 +224,7 @@ async function createAIService() {
         data || {},
         options || {}
       );
-      
+
       res.json(result);
     } catch (error) {
       logger.error('Custom content generation failed', { error, body: req.body });
@@ -240,7 +240,7 @@ async function createAIService() {
     try {
       const { organizationId } = req.params;
       const { startDate, endDate } = req.query;
-      
+
       let timeRange;
       if (startDate && endDate) {
         timeRange = {
@@ -264,15 +264,15 @@ async function createAIService() {
     try {
       const { organizationId } = req.params;
       const { format = 'json' } = req.query;
-      
+
       const exportData = llmService.getCostTracker().exportMetrics(
         organizationId,
         format as 'json' | 'csv'
       );
-      
+
       const contentType = format === 'csv' ? 'text/csv' : 'application/json';
       const filename = `ai-costs-${organizationId}-${new Date().toISOString().split('T')[0]}.${format}`;
-      
+
       res.setHeader('Content-Type', contentType);
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.send(exportData);
@@ -304,14 +304,14 @@ async function createAIService() {
     try {
       const { templateId } = req.params;
       const template = llmService.getTemplateManager().getTemplate(templateId);
-      
+
       if (!template) {
         return res.status(404).json({
           error: 'Template not found',
           message: `Template with ID ${templateId} not found`,
         });
       }
-      
+
       res.json(template);
     } catch (error) {
       logger.error('Failed to get template', { error, params: req.params });
@@ -325,7 +325,7 @@ async function createAIService() {
   // Error handling middleware
   app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     logger.error('Unhandled error', { error, url: req.url, method: req.method });
-    
+
     res.status(500).json({
       error: 'Internal server error',
       message: 'An unexpected error occurred',

@@ -2,6 +2,22 @@
 
 An event-driven workflow automation platform designed to streamline corporate HR and IT processes through intelligent orchestration.
 
+## Quick Start
+
+Get up and running quickly with our automated run scripts:
+
+```bash
+# For Unix/Linux/macOS
+./run.sh setup    # Install, build, and test everything
+./run.sh dev      # Start all services in development mode
+
+# For Windows
+run.bat setup     # Install, build, and test everything
+run.bat dev       # Start all services in development mode
+```
+
+📖 **See [RUN_SCRIPTS.md](./RUN_SCRIPTS.md) for detailed usage instructions**
+
 ## Overview
 
 OfficeFlow transforms manual, error-prone HR/IT processes into automated, compliant workflows using:

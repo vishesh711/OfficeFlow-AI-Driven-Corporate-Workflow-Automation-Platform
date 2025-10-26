@@ -164,6 +164,54 @@ Standard events that trigger workflows:
 - `employee.transfer`: Role/department changes
 - `employee.update`: Profile modifications
 
+## Deployment
+
+### Local Development
+```bash
+# Docker Compose (recommended for local development)
+docker-compose up -d
+
+# Access services
+# - Frontend: http://localhost:8080
+# - API: http://localhost:3000
+# - Auth: http://localhost:3001
+```
+
+### Production Deployment
+
+The platform supports enterprise-grade deployment with multiple strategies:
+
+#### Kubernetes Deployment
+```bash
+# Quick deployment to staging
+./scripts/k8s-deploy.sh --namespace officeflow-staging
+
+# Production deployment with blue-green strategy
+./scripts/deploy.sh --strategy blue-green --environment production
+
+# Canary deployment for gradual rollouts
+./scripts/deploy.sh --strategy canary --environment production
+```
+
+#### Container Security
+```bash
+# Build and scan all containers
+./scripts/docker-build-push.sh --local-only
+./scripts/docker-security-scan.sh
+
+# Multi-architecture builds for production
+./scripts/docker-build-push.sh --multi-arch --registry ghcr.io
+```
+
+#### CI/CD Pipeline
+Comprehensive GitHub Actions workflows provide:
+- **Continuous Integration**: Automated testing, linting, security scanning
+- **Continuous Deployment**: Multi-environment deployment with rollback
+- **Security Scanning**: Daily vulnerability and compliance checks
+- **Performance Testing**: Load testing and performance monitoring
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment documentation.
+
 ## Configuration
 
 The platform uses a hierarchical configuration system:
@@ -179,6 +227,7 @@ Key configuration areas:
 - External service integrations
 - Authentication settings
 - Observability configuration
+- Deployment environments (dev/staging/production)
 
 ## Monitoring and Observability
 
@@ -212,9 +261,20 @@ Security features include:
 
 [License information to be added]
 
+## Documentation
+
+📚 **[Complete Documentation](docs/README.md)** - Comprehensive guides and references
+
+### Quick Links
+- **[Getting Started](GETTING_STARTED.md)** - Quick start guide
+- **[Deployment Guide](DEPLOYMENT.md)** - Production deployment
+- **[Observability](docs/OBSERVABILITY.md)** - Monitoring and logging
+- **[Feature Specs](.kiro/specs/)** - Detailed specifications
+
 ## Support
 
 For questions and support:
-- Documentation: [Link to docs]
-- Issues: [Link to issue tracker]
-- Discussions: [Link to discussions]
+- **Documentation**: [docs/](docs/) directory
+- **Issues**: GitHub Issues for bug reports
+- **Discussions**: GitHub Discussions for questions
+- **Security**: security@officeflow.com

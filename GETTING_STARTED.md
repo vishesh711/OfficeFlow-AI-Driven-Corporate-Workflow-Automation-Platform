@@ -193,18 +193,80 @@ ENCRYPTION_KEY=your_32_character_key_here
 3. Update `turbo.json` configuration
 4. Add npm scripts to service `package.json`
 
+## 🐳 Docker & Kubernetes Deployment
+
+### Local Docker Development
+```bash
+# Start all services with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f [service-name]
+
+# Stop services
+docker-compose down
+```
+
+### Production Deployment
+
+#### Quick Kubernetes Deployment
+```bash
+# Deploy to staging
+./scripts/k8s-deploy.sh --namespace officeflow-staging
+
+# Deploy to production
+./scripts/k8s-deploy.sh --namespace officeflow --context production
+```
+
+#### Advanced Deployment Strategies
+```bash
+# Blue-green deployment (zero downtime)
+./scripts/deploy.sh --strategy blue-green --environment production
+
+# Canary deployment (gradual rollout)
+./scripts/deploy.sh --strategy canary --environment production
+
+# Rolling update (default)
+./scripts/deploy.sh --strategy rolling --environment staging
+```
+
+#### Container Security & Building
+```bash
+# Build and scan all containers
+./scripts/docker-build-push.sh --local-only
+./scripts/docker-security-scan.sh
+
+# Build for registry with multi-arch support
+./scripts/docker-build-push.sh --registry ghcr.io --prefix your-org/officeflow --multi-arch
+```
+
+### CI/CD Pipeline
+
+The platform includes comprehensive GitHub Actions workflows:
+
+- **Continuous Integration**: Automated testing, linting, security scanning
+- **Continuous Deployment**: Multi-environment deployment with rollback
+- **Security Scanning**: Daily vulnerability and compliance checks
+- **Performance Testing**: Load testing and performance monitoring
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment documentation.
+
 ## 🚀 Next Steps
 
 1. **Explore the Services**: Check out each service's README
 2. **Review the Architecture**: Read the main README.md
 3. **Check the Specs**: Look at `.kiro/specs/` for feature specifications
-4. **Start Building**: Create your first workflow!
+4. **Deploy to Kubernetes**: Follow the deployment guide
+5. **Set up CI/CD**: Configure GitHub Actions workflows
+6. **Start Building**: Create your first workflow!
 
 ## 📚 Documentation
 
 - [Run Scripts Guide](./RUN_SCRIPTS.md) - Detailed script documentation
 - [Project README](./README.md) - Architecture and overview
+- [Deployment Guide](./DEPLOYMENT.md) - Complete deployment documentation
 - [Feature Specs](./.kiro/specs/) - Detailed feature specifications
+- [Observability Guide](./docs/OBSERVABILITY.md) - Monitoring and logging
 
 ---
 

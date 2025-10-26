@@ -2,6 +2,7 @@
   "name": "@officeflow/workflow-designer",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "React-based visual workflow designer for OfficeFlow platform",
   "scripts": {
     "dev": "vite",

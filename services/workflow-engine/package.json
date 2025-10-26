@@ -17,6 +17,7 @@
     "@officeflow/kafka": "file:../../packages/kafka",
     "@officeflow/shared": "file:../../packages/shared",
     "@officeflow/config": "file:../../packages/config",
+    "@officeflow/observability": "file:../../packages/observability",
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",

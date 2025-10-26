@@ -6,7 +6,9 @@ import {
   Settings, 
   User,
   Menu,
-  X
+  X,
+  Activity,
+  Shield
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -18,6 +20,8 @@ interface LayoutProps {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Workflows', href: '/workflows', icon: GitBranch },
+  { name: 'Monitoring', href: '/monitoring', icon: Activity },
+  { name: 'Admin', href: '/admin', icon: Shield },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 

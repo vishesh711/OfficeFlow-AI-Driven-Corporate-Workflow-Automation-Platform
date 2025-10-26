@@ -12,22 +12,46 @@ import {
   EmployeeRepositoryImpl,
   db 
 } from '@officeflow/database';
+import { 
+  initializeObservability,
+  commonHealthChecks,
+  errorHandlingMiddleware 
+} from '@officeflow/observability';
 import { WorkflowEngineService } from './services/workflow-engine-service';
 import { createWorkflowEngineRoutes } from './api/routes';
 import { config } from './config/config';
 
 async function startWorkflowEngine() {
-  console.log('Starting OfficeFlow Workflow Engine...');
+  // Initialize observability
+  const { logger, healthService, middleware } = initializeObservability({
+    serviceName: 'workflow-engine',
+    serviceVersion: '1.0.0',
+    logLevel: process.env.LOG_LEVEL || 'info',
+  });
+
+  logger.info('Starting OfficeFlow Workflow Engine...');
 
   try {
     // Initialize database connection
     await db.connect();
-    console.log('Database connection established');
+    logger.info('Database connection established');
 
     // Initialize repositories
     const workflowRepo = new WorkflowRepositoryImpl();
     const workflowRunRepo = new WorkflowRunRepositoryImpl();
     const employeeRepo = new EmployeeRepositoryImpl();
+
+    // Add health checks
+    healthService.addCheck(commonHealthChecks.database(async () => {
+      try {
+        await db.query('SELECT 1');
+        return true;
+      } catch {
+        return false;
+      }
+    }));
+
+    healthService.addCheck(commonHealthChecks.memory(500)); // 500MB threshold
 
     // Initialize workflow engine service
     const engineService = new WorkflowEngineService(
@@ -39,6 +63,7 @@ async function startWorkflowEngine() {
 
     // Start the engine service
     await engineService.start();
+    logger.info('Workflow engine service started');
 
     // Create Express app
     const app = express();
@@ -51,11 +76,13 @@ async function startWorkflowEngine() {
     app.use(express.json({ limit: '10mb' }));
     app.use(express.urlencoded({ extended: true }));
 
-    // Request logging
-    app.use((req, res, next) => {
-      console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-      next();
-    });
+    // Observability middleware
+    app.use(...middleware);
+
+    // Health check endpoints
+    app.get('/health', healthService.healthHandler());
+    app.get('/health/live', healthService.livenessHandler());
+    app.get('/health/ready', healthService.readinessHandler());
 
     // API routes
     app.use('/api/v1', createWorkflowEngineRoutes(engineService));
@@ -71,13 +98,7 @@ async function startWorkflowEngine() {
     });
 
     // Error handling middleware
-    app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-      console.error('Unhandled error:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
-      });
-    });
+    app.use(errorHandlingMiddleware(logger));
 
     // 404 handler
     app.use((req, res) => {
@@ -89,29 +110,35 @@ async function startWorkflowEngine() {
 
     // Start HTTP server
     const server = app.listen(port, () => {
-      console.log(`Workflow Engine HTTP server listening on port ${port}`);
-      console.log(`Health check: http://localhost:${port}/api/v1/health`);
+      logger.info('Workflow Engine HTTP server started', {
+        port,
+        healthEndpoints: {
+          health: `http://localhost:${port}/health`,
+          liveness: `http://localhost:${port}/health/live`,
+          readiness: `http://localhost:${port}/health/ready`,
+        },
+      });
     });
 
     // Graceful shutdown
     const shutdown = async (signal: string) => {
-      console.log(`Received ${signal}, shutting down gracefully...`);
+      logger.info(`Received ${signal}, shutting down gracefully...`);
       
       server.close(async () => {
         try {
           await engineService.stop();
           await db.disconnect();
-          console.log('Workflow Engine shut down successfully');
+          logger.info('Workflow Engine shut down successfully');
           process.exit(0);
         } catch (error) {
-          console.error('Error during shutdown:', error);
+          logger.error('Error during shutdown', error instanceof Error ? error : new Error(String(error)));
           process.exit(1);
         }
       });
 
       // Force shutdown after 30 seconds
       setTimeout(() => {
-        console.error('Force shutdown after timeout');
+        logger.error('Force shutdown after timeout');
         process.exit(1);
       }, 30000);
     };
@@ -122,19 +149,21 @@ async function startWorkflowEngine() {
 
     // Handle uncaught exceptions
     process.on('uncaughtException', (error) => {
-      console.error('Uncaught exception:', error);
+      logger.fatal('Uncaught exception', error);
       shutdown('uncaughtException');
     });
 
     process.on('unhandledRejection', (reason, promise) => {
-      console.error('Unhandled rejection at:', promise, 'reason:', reason);
+      logger.fatal('Unhandled rejection', reason instanceof Error ? reason : new Error(String(reason)), {
+        promise: String(promise),
+      });
       shutdown('unhandledRejection');
     });
 
-    console.log('OfficeFlow Workflow Engine started successfully');
+    logger.info('OfficeFlow Workflow Engine started successfully');
 
   } catch (error) {
-    console.error('Failed to start Workflow Engine:', error);
+    logger.fatal('Failed to start Workflow Engine', error instanceof Error ? error : new Error(String(error)));
     process.exit(1);
   }
 }

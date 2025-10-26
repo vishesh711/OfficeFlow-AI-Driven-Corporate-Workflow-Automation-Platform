@@ -34,7 +34,7 @@ export interface ErrorDetails {
 
 export interface ValidationResult {
   isValid: boolean;
-  errors: string[];
+  errors: Array<{ field?: string; message: string }> | string[];
 }
 
 export interface ExecutionMetadata {

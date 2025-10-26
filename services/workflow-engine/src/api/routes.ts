@@ -127,9 +127,9 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
   router.get('/monitoring/runs', async (req: Request, res: Response) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
       
-      const runs = await workflowRunRepo.findMany({ limit, offset });
+      // Use findAll with limit option
+      const runs = await workflowRunRepo.findAll({}, { limit });
       const total = await workflowRunRepo.count();
       
       res.json({

@@ -1,0 +1,27 @@
+{
+  "name": "@officeflow/kafka",
+  "version": "1.0.0",
+  "description": "Kafka infrastructure and utilities for OfficeFlow platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "setup-topics": "node scripts/setup.js"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.4.5"
+  },
+  "files": [
+    "dist"
+  ]
+}

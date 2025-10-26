@@ -1,15 +1,15 @@
 import { v4 as uuidv4 } from 'uuid';
-import { KafkaProducer } from '@officeflow/kafka';
+import { OfficeFlowProducer } from '@officeflow/kafka';
 import { WebhookPayload, NormalizedLifecycleEvent, WebhookConfig, WebhookDeliveryAttempt } from '../types/webhook-types';
 import { EventTransformer } from './event-transformer';
 import { SignatureVerifier } from '../utils/signature-verifier';
 import { logger } from '../utils/logger';
 
 export class WebhookService {
-  private kafkaProducer: KafkaProducer;
+  private kafkaProducer: OfficeFlowProducer;
   private webhookConfigs: Map<string, WebhookConfig> = new Map();
 
-  constructor(kafkaProducer: KafkaProducer) {
+  constructor(kafkaProducer: OfficeFlowProducer) {
     this.kafkaProducer = kafkaProducer;
   }
 

@@ -2,6 +2,7 @@
  * Auth Service main entry point
  */
 
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';

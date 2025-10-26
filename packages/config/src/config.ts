@@ -116,8 +116,13 @@ export function createDatabaseConfig(): DatabaseConfig {
   // Support both URL and individual connection parameters
   const url = process.env.DATABASE_URL || process.env.DB_URL;
   
+  let constructedUrl;
+  if (!url && process.env.DB_USER) {
+    constructedUrl = `postgresql://${getEnv('DB_USER')}:${getEnv('DB_PASSWORD')}@${getEnv('DB_HOST')}:${getEnvAsNumber('DB_PORT', 5432)}/${getEnv('DB_NAME')}`;
+  }
+  
   const config = {
-    url: url || `postgresql://${getEnv('DB_USER')}:${getEnv('DB_PASSWORD')}@${getEnv('DB_HOST')}:${getEnvAsNumber('DB_PORT', 5432)}/${getEnv('DB_NAME')}`,
+    url: url || constructedUrl,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT ? getEnvAsNumber('DB_PORT') : undefined,
     database: process.env.DB_NAME,
@@ -136,7 +141,7 @@ export function createRedisConfig(): RedisConfig {
   const config = {
     host: getEnv('REDIS_HOST'),
     port: getEnvAsNumber('REDIS_PORT', 6379),
-    password: process.env.REDIS_PASSWORD,
+    password: process.env.REDIS_PASSWORD || undefined,
     db: getEnvAsNumber('REDIS_DB', 0),
     keyPrefix: getEnv('REDIS_KEY_PREFIX', 'officeflow:'),
     maxRetriesPerRequest: getEnvAsNumber('REDIS_MAX_RETRIES', 3),
@@ -152,7 +157,7 @@ export function createKafkaConfig(): KafkaConfig {
     clientId: getEnv('KAFKA_CLIENT_ID'),
     groupId: getEnv('KAFKA_GROUP_ID'),
     ssl: getEnvAsBoolean('KAFKA_SSL', false),
-    sasl: process.env.KAFKA_SASL_MECHANISM ? {
+    sasl: process.env.KAFKA_SASL_MECHANISM && process.env.KAFKA_SASL_MECHANISM.trim() ? {
       mechanism: getEnv('KAFKA_SASL_MECHANISM') as any,
       username: getEnv('KAFKA_SASL_USERNAME'),
       password: getEnv('KAFKA_SASL_PASSWORD'),
@@ -199,7 +204,7 @@ export function createObservabilityConfig(serviceName: string): ObservabilityCon
       format: getEnv('LOG_FORMAT', 'json'),
       enableConsole: getEnvAsBoolean('LOG_ENABLE_CONSOLE', true),
       enableFile: getEnvAsBoolean('LOG_ENABLE_FILE', false),
-      filePath: process.env.LOG_FILE_PATH,
+      filePath: process.env.LOG_FILE_PATH && process.env.LOG_FILE_PATH.trim() ? process.env.LOG_FILE_PATH : undefined,
     },
     metrics: {
       enabled: getEnvAsBoolean('METRICS_ENABLED', true),
@@ -209,7 +214,7 @@ export function createObservabilityConfig(serviceName: string): ObservabilityCon
     tracing: {
       enabled: getEnvAsBoolean('TRACING_ENABLED', true),
       serviceName,
-      jaegerEndpoint: process.env.JAEGER_ENDPOINT,
+      jaegerEndpoint: process.env.JAEGER_ENDPOINT && process.env.JAEGER_ENDPOINT.trim() ? process.env.JAEGER_ENDPOINT : undefined,
       sampleRate: getEnvAsNumber('TRACING_SAMPLE_RATE', 0.1),
     },
   };

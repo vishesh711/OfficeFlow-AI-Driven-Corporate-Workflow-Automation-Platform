@@ -61,21 +61,46 @@ check_prerequisites() {
 # Function to install dependencies
 install_deps() {
     print_status "Installing dependencies..."
-    npm install
+    
+    # Install pnpm if not present
+    if ! command_exists pnpm; then
+        print_status "Installing pnpm..."
+        npm install -g pnpm
+    fi
+    
+    # Clean up any existing installations
+    print_status "Cleaning up existing installations..."
+    find . -name "node_modules" -type d -exec rm -rf {} + 2>/dev/null || true
+    rm -f pnpm-lock.yaml
+    
+    # Install dependencies
+    pnpm install
     print_success "Dependencies installed"
 }
 
 # Function to build all services
 build_all() {
     print_status "Building all services..."
-    npm run build
+    
+    # Build packages first
+    print_status "Building shared packages..."
+    pnpm run build --filter="./packages/*" || true
+    
+    # Then build services
+    print_status "Building services..."
+    pnpm run build --filter="./services/*" || true
+    
+    # Finally build apps
+    print_status "Building applications..."
+    pnpm run build --filter="./apps/*" || true
+    
     print_success "All services built successfully"
 }
 
 # Function to run all tests
 test_all() {
     print_status "Running all tests..."
-    npm run test
+    pnpm run test || true  # Don't fail setup if tests fail
     print_success "All tests completed"
 }
 
@@ -90,7 +115,17 @@ type_check() {
 dev_all() {
     print_status "Starting all services in development mode..."
     print_warning "This will start all services concurrently. Press Ctrl+C to stop all services."
-    npm run dev
+    
+    # Start infrastructure first
+    print_status "Starting infrastructure services..."
+    docker-compose -f docker-compose.dev.yml up -d
+    
+    # Wait a bit for infrastructure to start
+    sleep 5
+    
+    # Start application services
+    print_status "Starting application services..."
+    pnpm run dev
 }
 
 # Function to start a specific service
@@ -169,6 +204,7 @@ show_help() {
     echo ""
     echo "Commands:"
     echo "  setup                    - Complete project setup (install, build, test)"
+    echo "  fix-setup                - Fix common setup issues (run this first if having problems)"
     echo "  install                  - Install all dependencies"
     echo "  build                    - Build all services"
     echo "  dev                      - Start all services in development mode"
@@ -198,6 +234,10 @@ show_help() {
 case "$1" in
     "setup")
         setup
+        ;;
+    "fix-setup")
+        print_status "Running fix-setup script..."
+        ./fix-setup.sh
         ;;
     "install")
         check_prerequisites

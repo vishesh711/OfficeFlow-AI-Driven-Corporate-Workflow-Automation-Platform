@@ -1,5 +1,5 @@
 import * as cron from 'node-cron';
-import { KafkaProducer } from '@officeflow/kafka';
+import { OfficeFlowProducer } from '@officeflow/kafka';
 import { BaseHRMSAdapter } from '../adapters/base-hrms-adapter';
 import { WorkdayAdapter } from '../adapters/workday-adapter';
 import { SuccessFactorsAdapter } from '../adapters/successfactors-adapter';
@@ -11,9 +11,9 @@ import { logger } from '../utils/logger';
 export class AdapterManager {
   private adapters: Map<string, BaseHRMSAdapter> = new Map();
   private pollingJobs: Map<string, cron.ScheduledTask> = new Map();
-  private kafkaProducer: KafkaProducer;
+  private kafkaProducer: OfficeFlowProducer;
 
-  constructor(kafkaProducer: KafkaProducer) {
+  constructor(kafkaProducer: OfficeFlowProducer) {
     this.kafkaProducer = kafkaProducer;
   }
 

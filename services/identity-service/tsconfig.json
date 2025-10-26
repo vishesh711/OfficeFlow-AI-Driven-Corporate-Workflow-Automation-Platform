@@ -6,8 +6,9 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "typeRoots": ["./src/types", "./node_modules/@types"]
+    "isolatedModules": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["src/**/*", "src/types/**/*"],
+  "include": ["src/**/*", "src/types/**/*", "src/__tests__/types/**/*", "src/__tests__/mocks/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

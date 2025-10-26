@@ -155,6 +155,44 @@ export class CredentialManager {
     return new Date(Date.now() + bufferMs) >= tokens.expiresAt;
   }
 
+  async refreshTokensIfNeeded(
+    organizationId: string,
+    provider: IdentityProvider,
+    tokens: OAuth2Token
+  ): Promise<OAuth2Token> {
+    try {
+      // If token is not expiring soon, return as is
+      if (!this.isTokenExpiringSoon(tokens)) {
+        return tokens;
+      }
+
+      // If no refresh token available, return expired tokens
+      if (!tokens.refreshToken) {
+        this.logger.warn('Token expiring but no refresh token available', {
+          organizationId,
+          provider
+        });
+        return tokens;
+      }
+
+      // For now, return the same tokens - in a real implementation,
+      // this would call the OAuth2 provider to refresh the tokens
+      this.logger.info('Token refresh would be performed here', {
+        organizationId,
+        provider
+      });
+
+      return tokens;
+    } catch (error) {
+      this.logger.error('Failed to refresh tokens', {
+        organizationId,
+        provider,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
   private encryptTokens(tokens: OAuth2Token): OAuth2Token {
     return {
       ...tokens,

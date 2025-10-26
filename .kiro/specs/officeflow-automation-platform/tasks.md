@@ -107,22 +107,22 @@
     - Add integration with central audit service
     - _Requirements: 3.5, 5.1, 5.4_
 
-  - [ ]* 5.4 Create tests for Identity Service
+  - [x] 5.4 Create tests for Identity Service
     - Mock external identity provider APIs for testing
     - Test account provisioning and deprovisioning flows
     - Verify OAuth2 token handling and refresh logic
     - Test error scenarios and retry behavior
     - _Requirements: 3.1, 3.4_
 
-- [ ] 6. Build AI Service for content generation
-  - [ ] 6.1 Implement LLM integration framework
+- [x] 6. Build AI Service for content generation
+  - [x] 6.1 Implement LLM integration framework
     - Create OpenAI API client with proper error handling
     - Implement prompt template management and variable substitution
     - Add response parsing and validation logic
     - Create cost tracking and usage monitoring
     - _Requirements: 4.1, 4.4_
 
-  - [ ] 6.2 Create personalized content generation
+  - [x] 6.2 Create personalized content generation
     - Implement welcome message generation using employee profile data
     - Create role-specific content templates and customization
     - Add sentiment analysis for feedback processing

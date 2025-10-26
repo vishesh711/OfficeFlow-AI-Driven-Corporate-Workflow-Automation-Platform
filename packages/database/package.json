@@ -11,6 +11,8 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
     "test": "jest --runInBand",
+    "test:unit": "jest --config=jest.unit.config.js",
+    "test:integration": "jest --config=jest.config.js",
     "test:watch": "jest --watch --runInBand",
     "test:coverage": "jest --coverage --runInBand",
     "migrate": "node dist/migrations/migrate.js",

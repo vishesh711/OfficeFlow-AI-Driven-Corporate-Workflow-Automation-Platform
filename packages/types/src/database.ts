@@ -193,6 +193,7 @@ export interface WorkflowRunRepository extends Repository<WorkflowRunEntity> {
   findByEmployee(employeeId: UUID): Promise<WorkflowRunEntity[]>;
   findByStatus(status: WorkflowRunStatus): Promise<WorkflowRunEntity[]>;
   findActiveRuns(): Promise<WorkflowRunEntity[]>;
+  updateStatus(runId: UUID, status: WorkflowRunStatus, errorDetails?: any): Promise<WorkflowRunEntity | null>;
 }
 
 export interface NodeRunRepository extends Repository<NodeRunEntity> {

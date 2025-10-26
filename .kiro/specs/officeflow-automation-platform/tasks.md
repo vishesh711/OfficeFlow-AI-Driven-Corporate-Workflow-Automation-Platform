@@ -43,42 +43,42 @@
     - Implement dead letter queue handling for failed messages
     - _Requirements: 2.4, 7.4, 7.5_
 
-  - [ ]* 3.3 Create integration tests for event streaming
+  - [x] 3.3 Create integration tests for event streaming
     - Test message production and consumption flows
     - Verify partition assignment and consumer group behavior
     - Test dead letter queue processing
     - _Requirements: 2.1, 7.4_
 
-- [ ] 4. Build core Workflow Engine service
-  - [ ] 4.1 Implement workflow loading and DAG parsing
+- [-] 4. Build core Workflow Engine service
+  - [x] 4.1 Implement workflow loading and DAG parsing
     - Create workflow definition parser that validates JSON structure
     - Implement topological sorting algorithm for node execution order
     - Add cycle detection and dependency validation
     - Create workflow version management and activation logic
     - _Requirements: 2.2, 1.3, 2.1_
 
-  - [ ] 4.2 Implement workflow execution orchestration
+  - [x] 4.2 Implement workflow execution orchestration
     - Create workflow run state machine with proper state transitions
     - Implement node dispatching logic with Kafka message publishing
     - Add execution context management and parameter passing
     - Create workflow pause, resume, and cancellation functionality
     - _Requirements: 2.3, 2.4, 7.1, 7.3_
 
-  - [ ] 4.3 Add Redis-based state management
+  - [x] 4.3 Add Redis-based state management
     - Implement Redis connection and cluster configuration
     - Create state persistence for active workflow runs
     - Add distributed locking for concurrent execution prevention
     - Implement retry scheduling with Redis sorted sets
     - _Requirements: 6.4, 7.3, 2.3_
 
-  - [ ] 4.4 Implement error handling and retry logic
+  - [x] 4.4 Implement error handling and retry logic
     - Create exponential backoff retry mechanism with jitter
     - Implement compensation flow execution for failed workflows
     - Add circuit breaker pattern for external service calls
     - Create comprehensive error logging and alerting
     - _Requirements: 2.5, 7.1, 7.2, 7.4_
 
-  - [ ]* 4.5 Write comprehensive tests for Workflow Engine
+  - [x] 4.5 Write comprehensive tests for Workflow Engine
     - Create unit tests for DAG parsing and execution logic
     - Test state management and Redis operations
     - Verify error handling and retry mechanisms

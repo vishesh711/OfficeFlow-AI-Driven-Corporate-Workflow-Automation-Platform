@@ -33,8 +33,19 @@ export class WorkflowRepositoryImpl
   /**
    * Find workflows by event trigger
    */
-  async findByEventTrigger(eventTrigger: string): Promise<WorkflowEntity[]> {
-    return this.findAll({ event_trigger: eventTrigger });
+  async findByEventTrigger(eventTrigger: string): Promise<WorkflowEntity[]>;
+  async findByEventTrigger(orgId: UUID, eventTrigger: string): Promise<WorkflowEntity[]>;
+  async findByEventTrigger(eventTriggerOrOrgId: string | UUID, eventTrigger?: string): Promise<WorkflowEntity[]> {
+    if (eventTrigger) {
+      // Two parameter version: findByEventTrigger(orgId, eventTrigger)
+      return this.findAll({ 
+        org_id: eventTriggerOrOrgId,
+        event_trigger: eventTrigger 
+      });
+    } else {
+      // One parameter version: findByEventTrigger(eventTrigger)
+      return this.findAll({ event_trigger: eventTriggerOrOrgId });
+    }
   }
 
   /**

@@ -10,6 +10,10 @@
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
+    "test": "jest --runInBand",
+    "test:integration": "jest --config=jest.integration.config.js --runInBand",
+    "test:watch": "jest --watch --runInBand",
+    "test:coverage": "jest --coverage --runInBand",
     "setup-topics": "node scripts/setup.js"
   },
   "dependencies": {
@@ -17,8 +21,11 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
     "@types/uuid": "^9.0.7",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
     "typescript": "^5.4.5"
   },
   "files": [

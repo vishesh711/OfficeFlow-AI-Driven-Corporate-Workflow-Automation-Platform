@@ -1,15 +1,14 @@
-# @officeflow/kafka
+# OfficeFlow Kafka Package
 
-Kafka infrastructure and utilities for the OfficeFlow platform. This package provides event streaming capabilities with producer/consumer utilities, topic management, dead letter queue handling, and distributed tracing support.
+This package provides Kafka infrastructure and utilities for the OfficeFlow platform, including producers, consumers, and dead letter queue handling.
 
 ## Features
 
-- **Topic Management**: Automated topic creation with proper partitioning and retention policies
-- **Producer Utilities**: Reusable Kafka producer with serialization, error handling, and correlation ID tracking
-- **Consumer Base Class**: Automatic offset management, retry logic, and dead letter queue handling
-- **Dead Letter Queue**: Failed message handling with automatic retry and quarantine mechanisms
-- **Correlation Tracking**: Distributed tracing support for message flows across services
-- **Consumer Groups**: Pre-configured consumer groups for each microservice
+- **OfficeFlowProducer**: High-level producer with message serialization and error handling
+- **OfficeFlowConsumer**: Consumer with automatic retry logic and DLQ support
+- **DLQHandler**: Dead letter queue processing with reprocessing and quarantine capabilities
+- **TopicManager**: Topic creation and management utilities
+- **CorrelationTracker**: Distributed tracing support
 
 ## Installation
 
@@ -17,24 +16,9 @@ Kafka infrastructure and utilities for the OfficeFlow platform. This package pro
 npm install @officeflow/kafka
 ```
 
-## Quick Start
+## Usage
 
-### Setting up Topics
-
-```typescript
-import { TopicManager, defaultKafkaConfig } from '@officeflow/kafka';
-
-const topicManager = new TopicManager({
-  clientId: 'officeflow-setup',
-  brokers: ['localhost:9092'],
-});
-
-await topicManager.connect();
-await topicManager.createAllTopics();
-await topicManager.disconnect();
-```
-
-### Producer Usage
+### Producer
 
 ```typescript
 import { OfficeFlowProducer } from '@officeflow/kafka';
@@ -46,60 +30,59 @@ const producer = new OfficeFlowProducer({
 
 await producer.connect();
 
-// Send a lifecycle event
+// Send a single message
+await producer.sendMessage('employee.onboard', {
+  type: 'employee.onboard',
+  payload: {
+    employeeId: 'emp-123',
+    name: 'John Doe',
+    department: 'Engineering'
+  },
+  metadata: {
+    source: 'hr-system',
+    organizationId: 'org-456'
+  }
+});
+
+// Send to organization-specific topic
 await producer.sendToOrganizationTopic(
   'employee.onboard',
-  'org-123',
-  {
-    type: 'employee.onboard',
-    payload: {
-      employeeId: 'emp-456',
-      name: 'John Doe',
-      department: 'Engineering',
-    },
-    metadata: {
-      source: 'hrms-adapter',
-      employeeId: 'emp-456',
-    },
-  }
+  'org-456',
+  message
 );
-
-await producer.disconnect();
 ```
 
-### Consumer Usage
+### Consumer
 
 ```typescript
-import { OfficeFlowConsumer, MessageHandler } from '@officeflow/kafka';
+import { OfficeFlowConsumer } from '@officeflow/kafka';
 
 const consumer = new OfficeFlowConsumer(
   {
-    clientId: 'workflow-engine',
+    clientId: 'my-service',
     brokers: ['localhost:9092'],
   },
   {
-    groupId: 'workflow-engine',
+    groupId: 'my-consumer-group',
   }
 );
 
 // Register message handlers
-const onboardHandler: MessageHandler = async (message, context) => {
-  console.log('Processing onboard event:', message.payload);
-  // Process the employee onboarding workflow
-};
-
-consumer.registerHandler('employee.onboard', onboardHandler);
+consumer.registerHandler('employee.onboard', async (message, context) => {
+  console.log('Processing onboarding:', message.payload);
+  // Process the message
+});
 
 await consumer.connect();
 await consumer.subscribe({
-  topics: ['employee.onboard.*'],
+  topics: ['employee.onboard.org-456'],
   fromBeginning: false,
 });
 
 await consumer.run();
 ```
 
-### Dead Letter Queue Handling
+### DLQ Handler
 
 ```typescript
 import { DLQHandler } from '@officeflow/kafka';
@@ -107,154 +90,232 @@ import { DLQHandler } from '@officeflow/kafka';
 const dlqHandler = new DLQHandler({
   clientId: 'dlq-processor',
   brokers: ['localhost:9092'],
+}, {
+  maxReprocessAttempts: 3,
+  reprocessDelayMs: 60000,
+  quarantineAfterAttempts: 5,
 });
 
 await dlqHandler.start();
-// DLQ handler will automatically process failed messages
 ```
 
-### Correlation Tracking
+## Testing
 
-```typescript
-import { CorrelationTracker } from '@officeflow/kafka';
+This package includes both unit tests and integration tests.
 
-const tracker = CorrelationTracker.getInstance();
+### Unit Tests
 
-// Create a new correlation context
-const context = tracker.createContext({
-  organizationId: 'org-123',
-  employeeId: 'emp-456',
-  workflowRunId: 'run-789',
-});
+Unit tests use mocked Kafka clients and can be run without external dependencies:
 
-// Record trace events
-tracker.recordEvent(
-  context.correlationId,
-  'workflow-engine',
-  'start-workflow',
-  'started'
-);
-
-// Create child context for nested operations
-const childContext = tracker.createChildContext(
-  context.correlationId,
-  { nodeRunId: 'node-run-123' }
-);
+```bash
+npm test
 ```
 
-## Topic Structure
+### Integration Tests
 
-The platform uses a structured topic naming convention:
+Integration tests require a running Kafka cluster. Follow these steps to run them:
 
-### Lifecycle Events
-- `employee.onboard.{org_id}`
-- `employee.exit.{org_id}`
-- `employee.transfer.{org_id}`
-- `employee.update.{org_id}`
+#### Prerequisites
 
-### Workflow Control
-- `workflow.run.request`
-- `workflow.run.pause`
-- `workflow.run.resume`
-- `workflow.run.cancel`
+1. **Docker and Docker Compose** (recommended approach)
+2. **Local Kafka installation** (alternative)
 
-### Node Execution
-- `node.execute.request`
-- `node.execute.result`
-- `node.execute.retry`
+#### Option 1: Using Docker Compose (Recommended)
 
-### Integration Events
-- `identity.provision.request`
-- `identity.provision.result`
-- `email.send.request`
-- `email.send.result`
-- `calendar.schedule.request`
-- `calendar.schedule.result`
+1. Create a `docker-compose.yml` file in the project root:
 
-### Observability
-- `audit.events`
-- `metrics.events`
+```yaml
+version: '3.8'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
 
-### Dead Letter Queues
-- `dlq.{original_topic_name}`
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+```
 
-## Consumer Groups
+2. Start the Kafka cluster:
 
-Pre-configured consumer groups for each microservice:
+```bash
+docker-compose up -d
+```
 
-- `workflow-engine`: Processes lifecycle events and workflow control messages
-- `identity-service`: Handles identity provisioning requests
-- `email-service`: Processes email sending requests
-- `calendar-service`: Handles calendar scheduling requests
-- `slack-service`: Processes Slack integration requests
-- `document-service`: Handles document operations
-- `ai-service`: Processes AI content generation requests
-- `audit-service`: Records audit events and compliance data
+3. Wait for Kafka to be ready (usually 30-60 seconds), then run the integration tests:
+
+```bash
+npm run test:integration
+```
+
+4. Stop the cluster when done:
+
+```bash
+docker-compose down
+```
+
+#### Option 2: Local Kafka Installation
+
+1. Download and install Apache Kafka from [https://kafka.apache.org/downloads](https://kafka.apache.org/downloads)
+
+2. Start Zookeeper:
+
+```bash
+bin/zookeeper-server-start.sh config/zookeeper.properties
+```
+
+3. Start Kafka:
+
+```bash
+bin/kafka-server-start.sh config/server.properties
+```
+
+4. Run the integration tests:
+
+```bash
+npm run test:integration
+```
+
+#### Environment Variables
+
+You can customize the Kafka connection for tests using environment variables:
+
+```bash
+export KAFKA_BROKERS=localhost:9092,localhost:9093,localhost:9094
+npm run test:integration
+```
+
+### Test Coverage
+
+Run tests with coverage reporting:
+
+```bash
+npm run test:coverage
+```
 
 ## Configuration
 
-### Environment Variables
-
-```bash
-KAFKA_BROKERS=localhost:9092,localhost:9093,localhost:9094
-DEMO_ORG_ID=demo-org-123
-```
-
-### Kafka Configuration
+### Kafka Cluster Configuration
 
 ```typescript
-const config: KafkaClusterConfig = {
-  clientId: 'my-service',
-  brokers: ['localhost:9092'],
-  connectionTimeout: 3000,
-  requestTimeout: 30000,
-  retry: {
-    initialRetryTime: 100,
-    retries: 8,
-  },
-  ssl: false, // Set to true for SSL connections
-  sasl: {     // Optional SASL authentication
-    mechanism: 'plain',
-    username: 'user',
-    password: 'pass',
-  },
-};
+interface KafkaClusterConfig {
+  clientId: string;
+  brokers: string[];
+  connectionTimeout?: number;
+  requestTimeout?: number;
+  retry?: {
+    initialRetryTime?: number;
+    retries?: number;
+  };
+  ssl?: boolean | tls.ConnectionOptions;
+  sasl?: SASLOptions;
+}
 ```
 
-## Scripts
+### Consumer Group Configuration
 
-### Setup Topics
-
-```bash
-npm run setup-topics
+```typescript
+interface ConsumerGroupConfig {
+  groupId: string;
+  sessionTimeout?: number;
+  rebalanceTimeout?: number;
+  heartbeatInterval?: number;
+  maxBytesPerPartition?: number;
+  minBytes?: number;
+  maxBytes?: number;
+  maxWaitTimeInMs?: number;
+}
 ```
 
-This script will:
-1. Connect to the Kafka cluster
-2. Create all platform topics with proper configuration
-3. Set up consumer groups
-4. Create demo organization topics if `DEMO_ORG_ID` is set
+### Producer Options
+
+```typescript
+interface ProducerOptions {
+  enableIdempotence?: boolean;
+  maxInFlightRequests?: number;
+  transactionTimeout?: number;
+  retry?: {
+    initialRetryTime?: number;
+    retries?: number;
+  };
+}
+```
+
+## Message Format
+
+All messages follow the OfficeFlow message format:
+
+```typescript
+interface OfficeFlowMessage<T = any> {
+  id: string;
+  type: string;
+  metadata: {
+    correlationId: string;
+    timestamp: Date;
+    source: string;
+    version: string;
+    organizationId?: string;
+    employeeId?: string;
+  };
+  payload: T;
+}
+```
+
+## Topic Naming Convention
+
+- **Lifecycle Events**: `employee.{event}.{org_id}` (e.g., `employee.onboard.org-123`)
+- **Node Execution**: `node.execute.{org_id}`
+- **Dead Letter Queues**: `dlq.{original_topic}`
+- **Manual Review**: `manual.review.queue`
+- **Quarantine**: `quarantine.queue`
 
 ## Error Handling
 
-The package includes comprehensive error handling:
+The package implements comprehensive error handling:
 
-- **Retry Logic**: Exponential backoff with configurable retry attempts
-- **Dead Letter Queues**: Failed messages are automatically routed to DLQ topics
+- **Automatic Retries**: Configurable retry logic with exponential backoff
+- **Dead Letter Queues**: Failed messages are routed to DLQ topics
 - **Circuit Breakers**: Automatic failure detection for external services
-- **Correlation Tracking**: Full distributed tracing support
+- **Correlation Tracking**: Distributed tracing support for debugging
 
-## Requirements Satisfied
+## Performance Considerations
 
-This implementation satisfies the following requirements from the OfficeFlow specification:
+- **Partitioning**: Messages are partitioned by `organizationId` for tenant isolation
+- **Batching**: Producer supports batch message sending for better throughput
+- **Connection Pooling**: Efficient connection management and reuse
+- **Backpressure**: Built-in backpressure handling to prevent memory issues
 
-- **Requirement 2.1**: Event-driven workflow execution with Kafka message processing
-- **Requirement 2.2**: Workflow orchestration with proper event handling
-- **Requirement 2.4**: Retry logic and error handling for failed operations
-- **Requirement 6.3**: Scalable event streaming with proper partitioning
-- **Requirement 7.4**: Dead letter queue handling for failed messages
-- **Requirement 7.5**: Message durability and reliability guarantees
+## Monitoring
+
+The package provides metrics and logging for monitoring:
+
+- **Structured Logging**: JSON logs with correlation IDs
+- **Metrics**: Producer/consumer metrics for monitoring
+- **Health Checks**: Connection health monitoring
+- **DLQ Statistics**: Dead letter queue processing metrics
+
+## Contributing
+
+1. Run unit tests: `npm test`
+2. Run integration tests: `npm run test:integration` (requires Kafka)
+3. Check types: `npm run type-check`
+4. Lint code: `npm run lint`
+5. Build package: `npm run build`
 
 ## License
 
-Private - OfficeFlow Platform
+MIT

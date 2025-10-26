@@ -1,5 +1,4 @@
 import { useCallback } from 'react'
-import { useReactFlow } from 'reactflow'
 import { 
   User, 
   Mail, 
@@ -7,7 +6,6 @@ import {
   MessageSquare, 
   FileText, 
   Brain,
-  Play,
   GitBranch,
   Clock,
   Zap

@@ -276,7 +276,7 @@ function detectCycles(nodes: Node[], edges: Edge[]): string[][] {
   return cycles
 }
 
-function findReachableNodes(nodes: Node[], edges: Edge[], triggerNodes: Node[]): Set<string> {
+function findReachableNodes(_nodes: Node[], edges: Edge[], triggerNodes: Node[]): Set<string> {
   const reachable = new Set<string>()
   const queue = [...triggerNodes.map(n => n.id)]
 

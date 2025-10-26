@@ -5,11 +5,7 @@ import ReactFlow, {
   Background,
   Controls,
   MiniMap,
-  useNodesState,
-  useEdgesState,
-  addEdge,
   Connection,
-  Edge,
   Node,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
@@ -20,7 +16,7 @@ import { WorkflowToolbar } from '@/components/WorkflowToolbar'
 import { NodeSidebar } from '@/components/NodeSidebar'
 import { PropertiesPanel } from '@/components/PropertiesPanel'
 import { nodeTypes } from '@/components/nodes'
-import { Save, Play, ArrowLeft, Template, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Save, Play, ArrowLeft, FileText, AlertTriangle, CheckCircle } from 'lucide-react'
 import { TemplateGallery } from '@/components/TemplateGallery'
 import { ValidationPanel } from '@/components/ValidationPanel'
 import { WorkflowTemplate } from '@/lib/templates'
@@ -47,6 +43,8 @@ export function WorkflowDesigner() {
     setLoading,
     reset,
     loadWorkflowDefinition,
+    getWorkflowDefinition,
+    setDirty,
   } = useWorkflowStore()
 
   const [showTemplateGallery, setShowTemplateGallery] = useState(false)
@@ -94,6 +92,38 @@ export function WorkflowDesigner() {
     return () => reset()
   }, [reset])
 
+  const handleSave = useCallback(async () => {
+    if (!currentWorkflow && !nodes.length) return
+
+    // Validate workflow before saving
+    if (!validationResult.isValid) {
+      const errorMessages = validationResult.errors.map(e => e.message)
+      alert(`Workflow validation failed:\n${errorMessages.join('\n')}`)
+      setShowValidationPanel(true)
+      return
+    }
+
+    const workflowData = {
+      name: currentWorkflow?.name || 'Untitled Workflow',
+      description: currentWorkflow?.description || '',
+      eventTrigger: currentWorkflow?.eventTrigger || 'employee.onboard',
+      version: currentWorkflow?.version || 1,
+      isActive: currentWorkflow?.isActive || false,
+      definition: getWorkflowDefinition(),
+    }
+
+    try {
+      setLoading(true)
+      await saveWorkflowMutation.mutateAsync(workflowData)
+      setDirty(false)
+    } catch (error) {
+      console.error('Failed to save workflow:', error)
+      alert('Failed to save workflow. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }, [currentWorkflow, nodes, validationResult, getWorkflowDefinition, saveWorkflowMutation, setLoading, setDirty])
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -133,51 +163,6 @@ export function WorkflowDesigner() {
     setCurrentWorkflow(newWorkflow as any)
     loadWorkflowDefinition(template.definition)
   }, [setCurrentWorkflow, loadWorkflowDefinition])
-
-
-
-  const handleSave = useCallback(async () => {
-    if (!currentWorkflow && !nodes.length) return
-
-    // Validate workflow before saving
-    if (!validationResult.isValid) {
-      const errorMessages = validationResult.errors.map(e => e.message)
-      alert(`Workflow validation failed:\n${errorMessages.join('\n')}`)
-      setShowValidationPanel(true)
-      return
-    }
-
-    const workflowData = {
-      name: currentWorkflow?.name || 'Untitled Workflow',
-      description: currentWorkflow?.description || '',
-      eventTrigger: currentWorkflow?.eventTrigger || 'employee.onboard',
-      version: (currentWorkflow?.version || 0) + 1,
-      isActive: currentWorkflow?.isActive ?? false,
-      definition: {
-        nodes: nodes.map(node => ({
-          id: node.id,
-          type: node.type,
-          position: node.position,
-          data: node.data,
-        })),
-        edges: edges.map(edge => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          sourceHandle: edge.sourceHandle,
-          targetHandle: edge.targetHandle,
-          data: edge.data,
-        })),
-      },
-    }
-
-    setLoading(true)
-    try {
-      await saveWorkflowMutation.mutateAsync(workflowData)
-    } finally {
-      setLoading(false)
-    }
-  }, [currentWorkflow, nodes, edges, saveWorkflowMutation, setLoading, validationResult])
 
   const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     selectNode(node.id)
@@ -352,7 +337,7 @@ export function WorkflowDesigner() {
               onClick={() => setShowTemplateGallery(true)}
               className="btn btn-outline"
             >
-              <Template className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-2" />
               Templates
             </button>
           )}

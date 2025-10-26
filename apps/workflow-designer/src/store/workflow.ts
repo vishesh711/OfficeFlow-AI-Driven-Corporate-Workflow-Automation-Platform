@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { Node, Edge, Connection, addEdge, applyNodeChanges, applyEdgeChanges } from 'reactflow'
-import type { NodeChanges, EdgeChanges } from 'reactflow'
+import type { NodeChange, EdgeChange } from 'reactflow'
 import { Workflow, WorkflowDefinition } from '@/lib/api'
 
 export interface WorkflowStore {
@@ -21,8 +21,8 @@ export interface WorkflowStore {
   setCurrentWorkflow: (workflow: Workflow | null) => void
   setNodes: (nodes: Node[]) => void
   setEdges: (edges: Edge[]) => void
-  onNodesChange: (changes: NodeChanges) => void
-  onEdgesChange: (changes: EdgeChanges) => void
+  onNodesChange: (changes: NodeChange[]) => void
+  onEdgesChange: (changes: EdgeChange[]) => void
   onConnect: (connection: Connection) => void
   addNode: (node: Node) => void
   updateNode: (nodeId: string, data: any) => void
@@ -133,7 +133,7 @@ export const useWorkflowStore = create<WorkflowStore>()(
         return {
           nodes: nodes.map((node) => ({
             id: node.id,
-            type: node.type,
+            type: node.type || 'default',
             position: node.position,
             data: node.data,
           })),
@@ -141,8 +141,8 @@ export const useWorkflowStore = create<WorkflowStore>()(
             id: edge.id,
             source: edge.source,
             target: edge.target,
-            sourceHandle: edge.sourceHandle,
-            targetHandle: edge.targetHandle,
+            sourceHandle: edge.sourceHandle || undefined,
+            targetHandle: edge.targetHandle || undefined,
             data: edge.data,
           })),
         }

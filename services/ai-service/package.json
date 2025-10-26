@@ -13,10 +13,10 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@officeflow/types": "workspace:*",
-    "@officeflow/shared": "workspace:*",
-    "@officeflow/config": "workspace:*",
-    "@officeflow/kafka": "workspace:*",
+    "@officeflow/types": "file:../../packages/types",
+    "@officeflow/shared": "file:../../packages/shared",
+    "@officeflow/config": "file:../../packages/config",
+    "@officeflow/kafka": "file:../../packages/kafka",
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",

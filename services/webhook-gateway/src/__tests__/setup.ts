@@ -12,7 +12,7 @@ process.env.LOG_LEVEL = 'error';
 
 // Mock external dependencies
 jest.mock('@officeflow/kafka', () => ({
-  KafkaProducer: jest.fn().mockImplementation(() => ({
+  OfficeFlowProducer: jest.fn().mockImplementation(() => ({
     connect: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
     send: jest.fn().mockResolvedValue(undefined),

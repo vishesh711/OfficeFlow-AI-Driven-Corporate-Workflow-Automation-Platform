@@ -13,10 +13,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@officeflow/types": "workspace:*",
-    "@officeflow/shared": "workspace:*",
-    "@officeflow/kafka": "workspace:*",
-    "@officeflow/database": "workspace:*",
+    "@officeflow/types": "file:../../packages/types",
+    "@officeflow/shared": "file:../../packages/shared",
+    "@officeflow/kafka": "file:../../packages/kafka",
+    "@officeflow/database": "file:../../packages/database",
     "express": "^4.18.2",
     "@slack/web-api": "^6.10.0",
     "@slack/bolt": "^3.14.0",

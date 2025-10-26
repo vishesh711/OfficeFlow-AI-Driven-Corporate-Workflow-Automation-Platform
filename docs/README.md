@@ -9,6 +9,28 @@ Welcome to the OfficeFlow Platform documentation. This directory contains compre
 - **[Project README](../README.md)** - Platform overview and architecture
 - **[Run Scripts Guide](../RUN_SCRIPTS.md)** - Detailed script documentation
 
+### Architecture Documentation
+- **[Server-Side Documentation](./SERVER_SIDE.md)** - Backend services, APIs, and infrastructure
+  - Microservices architecture
+  - Service deployment and configuration
+  - Database and caching
+  - Security and monitoring
+  - Performance optimization
+
+- **[Client-Side Documentation](./CLIENT_SIDE.md)** - Frontend applications and user interfaces
+  - React applications
+  - Component library
+  - State management
+  - UI/UX guidelines
+  - Testing and deployment
+
+- **[Requirements & Specifications](./REQUIREMENTS.md)** - System requirements and compliance
+  - Hardware and software requirements
+  - Performance specifications
+  - Security requirements
+  - Compliance standards
+  - Testing requirements
+
 ### Deployment & Operations
 - **[Deployment Guide](../DEPLOYMENT.md)** - Complete deployment documentation
   - Docker containerization

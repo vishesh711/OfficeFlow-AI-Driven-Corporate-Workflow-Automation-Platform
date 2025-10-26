@@ -5,8 +5,26 @@ import { resolve } from 'path';
  * Load environment variables from .env files
  */
 export function loadEnvironment(envPath?: string): void {
+  // Find workspace root by looking for package.json with workspaces
+  let workspaceRoot = process.cwd();
+  while (workspaceRoot !== '/') {
+    try {
+      const packageJsonPath = resolve(workspaceRoot, 'package.json');
+      const packageJson = require(packageJsonPath);
+      if (packageJson.workspaces) {
+        break;
+      }
+    } catch (e) {
+      // Continue searching
+    }
+    workspaceRoot = resolve(workspaceRoot, '..');
+  }
+
   const paths = [
     envPath,
+    resolve(workspaceRoot, '.env.local'),
+    resolve(workspaceRoot, `.env.${process.env.NODE_ENV}`),
+    resolve(workspaceRoot, '.env'),
     resolve(process.cwd(), '.env.local'),
     resolve(process.cwd(), `.env.${process.env.NODE_ENV}`),
     resolve(process.cwd(), '.env'),

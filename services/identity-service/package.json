@@ -25,7 +25,7 @@
     "node-cron": "^3.0.3",
     "googleapis": "^128.0.0",
     "@azure/msal-node": "^2.6.0",
-    "okta-sdk-nodejs": "^7.0.1",
+    "@okta/okta-sdk-nodejs": "^7.0.1",
     "pg": "^8.11.3"
   },
   "devDependencies": {

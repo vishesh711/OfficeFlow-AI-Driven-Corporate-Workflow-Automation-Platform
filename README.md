@@ -4,19 +4,23 @@ An event-driven workflow automation platform designed to streamline corporate HR
 
 ## Quick Start
 
-Get up and running quickly with our automated run scripts:
+🚀 **[Quick Start Guide](QUICK_START.md)** - Get running in 5 minutes!
 
+### One-Command Setup (Recommended)
 ```bash
-# For Unix/Linux/macOS
-./run.sh setup    # Install, build, and test everything
-./run.sh dev      # Start all services in development mode
-
-# For Windows
-run.bat setup     # Install, build, and test everything
-run.bat dev       # Start all services in development mode
+# This does everything automatically
+./just-run.sh
 ```
 
-📖 **See [RUN_SCRIPTS.md](./RUN_SCRIPTS.md) for detailed usage instructions**
+### Manual Setup
+```bash
+# Step by step
+pnpm install --no-frozen-lockfile
+docker-compose -f docker-compose.dev.yml up -d
+pnpm run dev
+```
+
+📖 **See [QUICK_START.md](QUICK_START.md) for troubleshooting and detailed instructions**
 
 ## Overview
 

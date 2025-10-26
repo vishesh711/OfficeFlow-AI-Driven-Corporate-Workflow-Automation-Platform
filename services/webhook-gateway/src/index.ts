@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { KafkaProducer } from '@officeflow/kafka';
+import { OfficeFlowProducer } from '@officeflow/kafka';
 import { WebhookService } from './services/webhook-service';
 import { AdapterManager } from './services/adapter-manager';
 import { createWebhookRoutes } from './api/webhook-routes';
@@ -10,13 +10,13 @@ import { logger } from './utils/logger';
 
 class WebhookGatewayServer {
   private app: express.Application;
-  private kafkaProducer: KafkaProducer;
+  private kafkaProducer: OfficeFlowProducer;
   private webhookService: WebhookService;
   private adapterManager: AdapterManager;
 
   constructor() {
     this.app = express();
-    this.kafkaProducer = new KafkaProducer({
+    this.kafkaProducer = new OfficeFlowProducer({
       clientId: webhookConfig.kafkaClientId,
       brokers: webhookConfig.kafkaBrokers.split(','),
     });

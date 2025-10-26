@@ -1,0 +1,40 @@
+{
+  "name": "@officeflow/workflow-engine",
+  "version": "1.0.0",
+  "description": "Core workflow orchestration service",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@officeflow/types": "file:../../packages/types",
+    "@officeflow/database": "file:../../packages/database",
+    "@officeflow/kafka": "file:../../packages/kafka",
+    "@officeflow/shared": "file:../../packages/shared",
+    "@officeflow/config": "file:../../packages/config",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "uuid": "^9.0.1",
+    "ioredis": "^5.3.2",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/compression": "^1.7.5",
+    "@types/uuid": "^9.0.7",
+    "@types/node": "^20.0.0",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.7.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.11",
+    "typescript": "^5.4.5"
+  }
+}

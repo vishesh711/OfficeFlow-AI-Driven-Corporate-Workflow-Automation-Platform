@@ -72,10 +72,11 @@ router.post('/send', upload.array('attachments', 10), async (req: Request, res: 
       error: result.error,
     });
   } catch (error) {
-    logger.error('Email send API error', { error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Email send API error', { error: errorMessage });
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: errorMessage,
     });
   }
 });
@@ -99,10 +100,11 @@ router.post('/templates', async (req: Request, res: Response) => {
       template,
     });
   } catch (error) {
-    logger.error('Template creation API error', { error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Template creation API error', { error: errorMessage });
     res.status(400).json({
       success: false,
-      error: error.message,
+      error: errorMessage,
     });
   }
 });
@@ -118,10 +120,11 @@ router.get('/templates/:organizationId', async (req: Request, res: Response) => 
       templates,
     });
   } catch (error) {
-    logger.error('Get templates API error', { error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Get templates API error', { error: errorMessage });
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: errorMessage,
     });
   }
 });
@@ -144,10 +147,11 @@ router.get('/templates/:organizationId/:templateId', async (req: Request, res: R
       template,
     });
   } catch (error) {
-    logger.error('Get template API error', { error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Get template API error', { error: errorMessage });
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: errorMessage,
     });
   }
 });
@@ -170,10 +174,11 @@ router.put('/templates/:templateId', async (req: Request, res: Response) => {
       template,
     });
   } catch (error) {
-    logger.error('Template update API error', { error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Template update API error', { error: errorMessage });
     res.status(400).json({
       success: false,
-      error: error.message,
+      error: errorMessage,
     });
   }
 });
@@ -189,10 +194,11 @@ router.delete('/templates/:templateId', async (req: Request, res: Response) => {
       message: 'Template deleted successfully',
     });
   } catch (error) {
-    logger.error('Template deletion API error', { error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Template deletion API error', { error: errorMessage });
     res.status(400).json({
       success: false,
-      error: error.message,
+      error: errorMessage,
     });
   }
 });
@@ -215,10 +221,11 @@ router.get('/status/:messageId', async (req: Request, res: Response) => {
       status,
     });
   } catch (error) {
-    logger.error('Get delivery status API error', { error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Get delivery status API error', { error: errorMessage });
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: errorMessage,
     });
   }
 });
@@ -247,10 +254,11 @@ router.get('/metrics/:organizationId', async (req: Request, res: Response) => {
       metrics,
     });
   } catch (error) {
-    logger.error('Get metrics API error', { error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Get metrics API error', { error: errorMessage });
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: errorMessage,
     });
   }
 });
@@ -267,10 +275,11 @@ router.get('/health', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({
       success: false,
       status: 'unhealthy',
-      error: error.message,
+      error: errorMessage,
       timestamp: new Date().toISOString(),
     });
   }

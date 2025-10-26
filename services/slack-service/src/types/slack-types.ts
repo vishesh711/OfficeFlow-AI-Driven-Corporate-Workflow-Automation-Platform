@@ -139,7 +139,7 @@ export interface SlackAttachment {
   thumbUrl?: string;
   footer?: string;
   footerIcon?: string;
-  ts?: number;
+  ts?: string;
 }
 
 export interface SendMessageRequest {

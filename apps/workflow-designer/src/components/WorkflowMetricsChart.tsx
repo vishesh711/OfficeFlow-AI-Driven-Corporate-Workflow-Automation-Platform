@@ -1,5 +1,4 @@
 import { WorkflowMetrics } from '../lib/api'
-import { WorkflowMetrics } from '../lib/api'
 
 interface WorkflowMetricsChartProps {
   metrics: WorkflowMetrics

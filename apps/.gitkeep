@@ -1,0 +1,4 @@
+# Apps directory
+# This directory will contain frontend applications:
+# - workflow-designer (React app for creating workflows)
+# - admin-dashboard (React app for monitoring and management)

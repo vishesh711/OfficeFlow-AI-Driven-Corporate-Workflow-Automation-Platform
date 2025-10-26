@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noEmitOnError": true,
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "rootDir": ".",
+    "outDir": "./dist",
+    "paths": {
+      "@officeflow/shared/*": ["./packages/shared/src/*"],
+      "@officeflow/types/*": ["./packages/types/src/*"],
+      "@officeflow/config/*": ["./packages/config/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "packages/*/src/**/*",
+    "services/*/src/**/*",
+    "apps/*/src/**/*"
+  ],
+  "exclude": ["node_modules", "dist", ".next"]
+}

@@ -1,0 +1,11 @@
+# Services directory
+# This directory will contain backend microservices:
+# - workflow-engine
+# - identity-service
+# - email-service
+# - calendar-service
+# - slack-service
+# - document-service
+# - ai-service
+# - webhook-gateway
+# - scheduler-service

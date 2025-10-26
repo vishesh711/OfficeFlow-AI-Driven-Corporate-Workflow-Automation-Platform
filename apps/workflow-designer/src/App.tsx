@@ -1,34 +1,23 @@
 import { Routes, Route } from 'react-router-dom'
-
-// Simple test components
-function SimpleDashboard() {
-  return (
-    <div style={{ padding: '20px' }}>
-      <h1>Dashboard</h1>
-      <p>This is a simple dashboard test.</p>
-    </div>
-  )
-}
+import { Layout } from '@/components/Layout'
+import { Dashboard } from '@/pages/Dashboard'
+import { WorkflowList } from '@/pages/WorkflowList'
+import { WorkflowDesigner } from '@/pages/WorkflowDesigner'
+import { MonitoringDashboard } from '@/pages/MonitoringDashboard'
+import { AdminDashboard } from '@/pages/AdminDashboard'
 
 function App() {
   return (
-    <div>
-      <div className="test-sidebar">
-        <nav>
-          <h2>OfficeFlow</h2>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li><a href="/" style={{ display: 'block', padding: '8px 0' }}>Dashboard</a></li>
-            <li><a href="/workflows" style={{ display: 'block', padding: '8px 0' }}>Workflows</a></li>
-          </ul>
-        </nav>
-      </div>
-      <div className="test-content">
-        <Routes>
-          <Route path="/" element={<SimpleDashboard />} />
-          <Route path="/workflows" element={<div>Workflows Page</div>} />
-        </Routes>
-      </div>
-    </div>
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/workflows" element={<WorkflowList />} />
+        <Route path="/workflows/new" element={<WorkflowDesigner />} />
+        <Route path="/workflows/:id" element={<WorkflowDesigner />} />
+        <Route path="/monitoring" element={<MonitoringDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Routes>
+    </Layout>
   )
 }
 

@@ -4,23 +4,147 @@ An event-driven workflow automation platform designed to streamline corporate HR
 
 ## Quick Start
 
-🚀 **[Quick Start Guide](QUICK_START.md)** - Get running in 5 minutes!
+### Prerequisites
+
+Before running the project, ensure you have:
+
+- **Node.js** 18+ and **pnpm** installed
+- **Docker** and **Docker Compose** installed
+- **Git** installed
+- Ports 3000-3007, 5173, 5432, 6379, 9092, and 9000 available
 
 ### One-Command Setup (Recommended)
+
 ```bash
-# This does everything automatically
+# Clone the repository
+git clone <repository-url>
+cd OfficeFlow-AI-Driven-Corporate-Workflow-Automation-Platform
+
+# Make the script executable and run
+chmod +x just-run.sh
 ./just-run.sh
 ```
 
+This will:
+- Install all dependencies using pnpm
+- Start Docker infrastructure (PostgreSQL, Redis, Kafka, MinIO)
+- Launch all microservices
+- Start the workflow designer frontend
+
 ### Manual Setup
+
+If you prefer step-by-step control:
+
 ```bash
-# Step by step
-pnpm install --no-frozen-lockfile
+# 1. Install dependencies
+pnpm install
+
+# 2. Start infrastructure services
 docker-compose -f docker-compose.dev.yml up -d
+
+# 3. Wait for infrastructure to be ready (30-60 seconds)
+sleep 30
+
+# 4. Start all services
 pnpm run dev
 ```
 
-📖 **See [QUICK_START.md](QUICK_START.md) for troubleshooting and detailed instructions**
+### Environment Configuration
+
+**Important**: Create a `.env.local` file in the root directory with the following variables:
+
+```bash
+# Database
+DATABASE_URL="postgresql://officeflow:officeflow_dev@localhost:5432/officeflow"
+
+# Redis
+REDIS_HOST="localhost"
+
+# Kafka
+KAFKA_BROKERS="localhost:9092"
+
+# AI Service (Required for AI features)
+OPENAI_API_KEY="your_openai_api_key"
+
+# Slack Service (Optional - can be skipped)
+SLACK_BOT_TOKEN="xoxb-your-slack-bot-token"
+SLACK_SIGNING_SECRET="your-slack-signing-secret"
+SLACK_CLIENT_ID="your-slack-client-id"
+SLACK_CLIENT_SECRET="your-slack-client-secret"
+```
+
+**Note**: The Slack service is optional and will be skipped if credentials are not provided.
+
+### Access Points
+
+After successful startup, access the application at:
+
+- **Main Application**: http://localhost:5173
+- **Workflow Engine API**: http://localhost:3000
+- **AI Service API**: http://localhost:3003
+- **MinIO Console**: http://localhost:9000 (admin/password)
+
+### Service Status
+
+Check if services are running properly:
+
+```bash
+# Check workflow engine
+curl http://localhost:3000/health
+
+# Check AI service
+curl http://localhost:3003/health
+
+# Check workflow designer
+curl http://localhost:5173
+```
+
+### Troubleshooting
+
+**Common Issues and Solutions:**
+
+1. **Port Conflicts**
+   - Ensure ports 3000-3008, 5173, 5432, 6379, 9092, and 9000 are available
+   - Check what's using these ports: `lsof -i :PORT_NUMBER`
+
+2. **Docker Issues**
+   ```bash
+   # Restart Docker services
+   docker-compose -f docker-compose.dev.yml down
+   docker-compose -f docker-compose.dev.yml up -d
+   ```
+
+3. **Database Connection Issues**
+   - Ensure PostgreSQL is running: `docker ps | grep postgres`
+   - Check database logs: `docker logs officeflow-postgres`
+
+4. **Kafka Issues**
+   - Ensure Zookeeper and Kafka are running: `docker ps | grep kafka`
+   - Check Kafka logs: `docker logs officeflow-kafka`
+
+5. **Service Startup Failures**
+   - Check service logs: `pnpm run logs --filter="@officeflow/service-name"`
+   - Ensure all environment variables are set in `.env.local`
+
+6. **Frontend Not Loading**
+   - Check if Vite is running on port 5173
+   - Verify no port conflicts
+   - Check browser console for errors
+
+**Clean Restart:**
+
+If you encounter persistent issues:
+
+```bash
+# Stop all services
+pnpm run stop
+
+# Clean Docker containers
+docker-compose -f docker-compose.dev.yml down -v
+
+# Restart everything
+./just-run.sh
+```
 
 ## Overview
 

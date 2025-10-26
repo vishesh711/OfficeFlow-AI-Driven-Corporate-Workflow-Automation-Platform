@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import { Search, X, Copy, Eye, Tag } from 'lucide-react'
 import { workflowTemplates, getTemplatesByCategory, searchTemplates, WorkflowTemplate } from '@/lib/templates'
-import { useWorkflowStore } from '@/store/workflow'
 
 interface TemplateGalleryProps {
   isOpen: boolean

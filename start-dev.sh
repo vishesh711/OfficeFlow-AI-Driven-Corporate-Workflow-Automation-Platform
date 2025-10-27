@@ -33,23 +33,51 @@ docker-compose -f docker-compose.dev.yml up -d
 echo "⏳ Waiting for infrastructure services to be ready..."
 sleep 10
 
+# Get container names dynamically
+POSTGRES_CONTAINER=$(docker ps --filter "ancestor=postgres:15-alpine" --format "{{.Names}}" | head -1)
+REDIS_CONTAINER=$(docker ps --filter "ancestor=redis:7-alpine" --format "{{.Names}}" | head -1)
+KAFKA_CONTAINER=$(docker ps --filter "ancestor=confluentinc/cp-kafka:7.4.0" --format "{{.Names}}" | head -1)
+
 # Check PostgreSQL
-until docker exec officeflow-postgres pg_isready -U officeflow > /dev/null 2>&1; do
-    echo "Waiting for PostgreSQL..."
+echo "Checking PostgreSQL container: $POSTGRES_CONTAINER"
+RETRY_COUNT=0
+MAX_RETRIES=30
+until docker exec "$POSTGRES_CONTAINER" pg_isready -U officeflow > /dev/null 2>&1; do
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+        echo "❌ PostgreSQL failed to start after $MAX_RETRIES attempts"
+        echo "Check logs with: docker logs $POSTGRES_CONTAINER"
+        exit 1
+    fi
+    echo "Waiting for PostgreSQL... (attempt $RETRY_COUNT/$MAX_RETRIES)"
     sleep 2
 done
 echo "✅ PostgreSQL is ready"
 
 # Check Redis
-until docker exec officeflow-redis redis-cli ping > /dev/null 2>&1; do
-    echo "Waiting for Redis..."
+echo "Checking Redis container: $REDIS_CONTAINER"
+RETRY_COUNT=0
+until docker exec "$REDIS_CONTAINER" redis-cli ping > /dev/null 2>&1; do
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+        echo "❌ Redis failed to start after $MAX_RETRIES attempts"
+        exit 1
+    fi
+    echo "Waiting for Redis... (attempt $RETRY_COUNT/$MAX_RETRIES)"
     sleep 2
 done
 echo "✅ Redis is ready"
 
 # Check Kafka
-until docker exec officeflow-kafka kafka-topics.sh --list --bootstrap-server localhost:9092 > /dev/null 2>&1; do
-    echo "Waiting for Kafka..."
+echo "Checking Kafka container: $KAFKA_CONTAINER"
+RETRY_COUNT=0
+until docker exec "$KAFKA_CONTAINER" kafka-topics --list --bootstrap-server localhost:9092 > /dev/null 2>&1; do
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+        echo "❌ Kafka failed to start after $MAX_RETRIES attempts"
+        exit 1
+    fi
+    echo "Waiting for Kafka... (attempt $RETRY_COUNT/$MAX_RETRIES)"
     sleep 2
 done
 echo "✅ Kafka is ready"

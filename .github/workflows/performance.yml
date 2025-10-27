@@ -1,0 +1,441 @@
+name: Performance Testing
+
+on:
+  schedule:
+    # Run performance tests daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  push:
+    branches: [ main ]
+    paths:
+      - 'services/**'
+      - 'apps/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      duration:
+        description: 'Test duration in minutes'
+        required: true
+        default: '10'
+        type: string
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Load testing
+  load-test:
+    name: Load Testing
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - workflow-engine
+          - auth-service
+          - identity-service
+          - ai-service
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Artillery
+        run: npm install -g artillery@latest
+
+      - name: Create load test configuration
+        run: |
+          mkdir -p tests/performance
+          
+          cat > tests/performance/${{ matrix.service }}-load-test.yml << EOF
+          config:
+            target: ${{ github.event.inputs.environment == 'production' && 'https://api.officeflow.com' || 'https://staging-api.officeflow.com' }}
+            phases:
+              - duration: ${{ github.event.inputs.duration || '10' }}m
+                arrivalRate: 10
+                rampTo: 50
+              - duration: 5m
+                arrivalRate: 50
+            processor: "./load-test-processor.js"
+            plugins:
+              metrics-by-endpoint:
+                useOnlyRequestNames: true
+          
+          scenarios:
+            - name: "Health Check"
+              weight: 20
+              flow:
+                - get:
+                    url: "/health"
+                    expect:
+                      - statusCode: 200
+            
+            - name: "API Endpoints"
+              weight: 80
+              flow:
+                - post:
+                    url: "/api/v1/auth/login"
+                    json:
+                      email: "test@example.com"
+                      password: "testpassword"
+                    capture:
+                      - json: "$.token"
+                        as: "authToken"
+                - get:
+                    url: "/api/v1/${{ matrix.service == 'workflow-engine' && 'workflows' || matrix.service == 'auth-service' && 'users' || matrix.service == 'identity-service' && 'identities' || 'ai/models' }}"
+                    headers:
+                      Authorization: "Bearer {{ authToken }}"
+                    expect:
+                      - statusCode: [200, 401]
+          EOF
+
+      - name: Create load test processor
+        run: |
+          cat > tests/performance/load-test-processor.js << 'EOF'
+          module.exports = {
+            setAuthToken: function(requestParams, context, ee, next) {
+              // Set authentication token if available
+              if (process.env.TEST_AUTH_TOKEN) {
+                requestParams.headers = requestParams.headers || {};
+                requestParams.headers.Authorization = `Bearer ${process.env.TEST_AUTH_TOKEN}`;
+              }
+              return next();
+            },
+            
+            logResponse: function(requestParams, response, context, ee, next) {
+              if (response.statusCode >= 400) {
+                console.log(`Error ${response.statusCode}: ${response.body}`);
+              }
+              return next();
+            }
+          };
+          EOF
+
+      - name: Run load test
+        run: |
+          artillery run tests/performance/${{ matrix.service }}-load-test.yml \
+            --output tests/performance/${{ matrix.service }}-results.json
+        env:
+          TEST_AUTH_TOKEN: ${{ secrets.TEST_AUTH_TOKEN }}
+
+      - name: Generate HTML report
+        run: |
+          artillery report tests/performance/${{ matrix.service }}-results.json \
+            --output tests/performance/${{ matrix.service }}-report.html
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results-${{ matrix.service }}
+          path: |
+            tests/performance/${{ matrix.service }}-results.json
+            tests/performance/${{ matrix.service }}-report.html
+
+  # Stress testing
+  stress-test:
+    name: Stress Testing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Create stress test script
+        run: |
+          mkdir -p tests/performance
+          
+          cat > tests/performance/stress-test.js << 'EOF'
+          import http from 'k6/http';
+          import { check, sleep } from 'k6';
+          import { Rate } from 'k6/metrics';
+          
+          const errorRate = new Rate('errors');
+          const BASE_URL = __ENV.BASE_URL || 'https://staging-api.officeflow.com';
+          
+          export let options = {
+            stages: [
+              { duration: '2m', target: 100 }, // Ramp up
+              { duration: '5m', target: 100 }, // Stay at 100 users
+              { duration: '2m', target: 200 }, // Ramp up to 200 users
+              { duration: '5m', target: 200 }, // Stay at 200 users
+              { duration: '2m', target: 300 }, // Ramp up to 300 users
+              { duration: '5m', target: 300 }, // Stay at 300 users
+              { duration: '2m', target: 0 },   // Ramp down
+            ],
+            thresholds: {
+              http_req_duration: ['p(95)<500'], // 95% of requests must complete below 500ms
+              http_req_failed: ['rate<0.1'],   // Error rate must be below 10%
+              errors: ['rate<0.1'],
+            },
+          };
+          
+          export default function() {
+            // Health check
+            let healthResponse = http.get(`${BASE_URL}/health`);
+            let healthCheck = check(healthResponse, {
+              'health check status is 200': (r) => r.status === 200,
+            });
+            errorRate.add(!healthCheck);
+            
+            // API endpoints stress test
+            let apiResponse = http.get(`${BASE_URL}/api/v1/workflows`);
+            let apiCheck = check(apiResponse, {
+              'API status is 200 or 401': (r) => r.status === 200 || r.status === 401,
+              'API response time < 1000ms': (r) => r.timings.duration < 1000,
+            });
+            errorRate.add(!apiCheck);
+            
+            sleep(1);
+          }
+          EOF
+
+      - name: Run stress test
+        run: |
+          k6 run tests/performance/stress-test.js \
+            --out json=tests/performance/stress-results.json
+        env:
+          BASE_URL: ${{ github.event.inputs.environment == 'production' && 'https://api.officeflow.com' || 'https://staging-api.officeflow.com' }}
+
+      - name: Upload stress test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: stress-test-results
+          path: tests/performance/stress-results.json
+
+  # Database performance testing
+  database-performance:
+    name: Database Performance Testing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: officeflow_perf_test
+          POSTGRES_USER: officeflow
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
+
+      - name: Run database migrations
+        run: |
+          pnpm --filter @officeflow/database migrate
+        env:
+          POSTGRES_URL: postgresql://officeflow:test_password@localhost:5432/officeflow_perf_test
+
+      - name: Create performance test data
+        run: |
+          cat > tests/performance/db-perf-test.js << 'EOF'
+          const { Pool } = require('pg');
+          const { performance } = require('perf_hooks');
+          
+          const pool = new Pool({
+            connectionString: process.env.POSTGRES_URL
+          });
+          
+          async function runPerformanceTests() {
+            console.log('Starting database performance tests...');
+            
+            // Test 1: Insert performance
+            const insertStart = performance.now();
+            for (let i = 0; i < 1000; i++) {
+              await pool.query(
+                'INSERT INTO organizations (org_id, name, domain, plan) VALUES ($1, $2, $3, $4)',
+                [`org-${i}`, `Organization ${i}`, `org${i}.example.com`, 'enterprise']
+              );
+            }
+            const insertEnd = performance.now();
+            console.log(`Insert 1000 records: ${insertEnd - insertStart}ms`);
+            
+            // Test 2: Select performance
+            const selectStart = performance.now();
+            for (let i = 0; i < 100; i++) {
+              await pool.query('SELECT * FROM organizations WHERE plan = $1', ['enterprise']);
+            }
+            const selectEnd = performance.now();
+            console.log(`Select queries (100x): ${selectEnd - selectStart}ms`);
+            
+            // Test 3: Complex join performance
+            const joinStart = performance.now();
+            await pool.query(`
+              SELECT o.name, COUNT(w.workflow_id) as workflow_count
+              FROM organizations o
+              LEFT JOIN workflows w ON o.org_id = w.org_id
+              GROUP BY o.org_id, o.name
+              ORDER BY workflow_count DESC
+              LIMIT 50
+            `);
+            const joinEnd = performance.now();
+            console.log(`Complex join query: ${joinEnd - joinStart}ms`);
+            
+            await pool.end();
+          }
+          
+          runPerformanceTests().catch(console.error);
+          EOF
+
+      - name: Run database performance tests
+        run: node tests/performance/db-perf-test.js
+        env:
+          POSTGRES_URL: postgresql://officeflow:test_password@localhost:5432/officeflow_perf_test
+
+  # Frontend performance testing
+  frontend-performance:
+    name: Frontend Performance Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.12.x
+
+      - name: Run Lighthouse CI
+        run: |
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          LHCI_SERVER_BASE_URL: ${{ github.event.inputs.environment == 'production' && 'https://app.officeflow.com' || 'https://staging.officeflow.com' }}
+
+      - name: Upload Lighthouse results
+        uses: actions/upload-artifact@v3
+        with:
+          name: lighthouse-results
+          path: .lighthouseci
+
+  # Performance analysis and reporting
+  performance-analysis:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+    needs: [load-test, stress-test, database-performance, frontend-performance]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate performance report
+        run: |
+          cat > performance-report.md << EOF
+          # Performance Test Report
+          
+          **Date:** $(date)
+          **Environment:** ${{ github.event.inputs.environment || 'staging' }}
+          **Duration:** ${{ github.event.inputs.duration || '10' }} minutes
+          **Commit:** ${{ github.sha }}
+          
+          ## Test Results Summary
+          
+          | Test Type | Status |
+          |-----------|--------|
+          | Load Test | ${{ needs.load-test.result }} |
+          | Stress Test | ${{ needs.stress-test.result }} |
+          | Database Performance | ${{ needs.database-performance.result }} |
+          | Frontend Performance | ${{ needs.frontend-performance.result }} |
+          
+          ## Key Metrics
+          
+          - **Load Test**: Tested with up to 50 concurrent users
+          - **Stress Test**: Tested with up to 300 concurrent users
+          - **Database**: Tested insert/select/join operations
+          - **Frontend**: Lighthouse performance audit
+          
+          ## Recommendations
+          
+          - Monitor response times during peak usage
+          - Consider database query optimization if needed
+          - Review frontend bundle size and loading performance
+          - Set up continuous performance monitoring
+          
+          EOF
+
+      - name: Upload performance report
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-report
+          path: performance-report.md
+
+      - name: Comment on PR with performance summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('performance-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+  # Notify on performance issues
+  notify-performance:
+    name: Notify Performance Issues
+    runs-on: ubuntu-latest
+    needs: [load-test, stress-test, database-performance, frontend-performance]
+    if: failure()
+    steps:
+      - name: Notify team of performance issues
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#performance'
+          text: |
+            ⚠️ Performance test failures detected!
+            
+            Repository: ${{ github.repository }}
+            Environment: ${{ github.event.inputs.environment || 'staging' }}
+            Commit: ${{ github.sha }}
+            
+            Please review the performance test results and investigate any regressions.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.PERFORMANCE_SLACK_WEBHOOK_URL }}

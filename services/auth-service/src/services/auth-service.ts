@@ -70,28 +70,33 @@ export class AuthService {
       // Hash password
       const passwordHash = await this.passwordService.hashPassword(password);
 
-      // Create organization ID (for now, use a generated ID)
-      const organizationId = generateId();
+      // Create organization ID (for now, use a generated ID or find existing)
+      // First, check if we have any organizations
+      const orgResult = await this.db.query('SELECT org_id FROM organizations LIMIT 1');
+      const organizationId = orgResult.rows.length > 0 ? orgResult.rows[0].org_id : generateId();
+      
+      // If no org exists, create a default one
+      if (orgResult.rows.length === 0) {
+        await this.db.query(
+          'INSERT INTO organizations (org_id, name, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())',
+          [organizationId, organizationName || 'Default Organization']
+        );
+      }
 
-      // Create user
+      // Split name into first and last
+      const nameParts = name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+      // Create user directly with SQL to match existing schema
       const userId = generateId();
-      const user: User = {
-        userId,
-        email,
-        passwordHash,
-        name,
-        organizationId,
-        isActive: true,
-        isMfaEnabled: false,
-        roles: ['user'], // Default role
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      await this.userRepository.create(user);
-
-      // Assign default role
-      await this.rbacService.assignRole(userId, organizationId, 'user');
+      await this.db.query(
+        `INSERT INTO users (
+          user_id, org_id, email, password_hash, first_name, last_name, 
+          role, is_active, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+        [userId, organizationId, email, passwordHash, firstName, lastName, 'user', true]
+      );
 
       this.logger.info('User registered successfully', { userId, email });
 

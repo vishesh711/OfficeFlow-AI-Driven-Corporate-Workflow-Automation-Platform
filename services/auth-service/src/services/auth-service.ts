@@ -51,6 +51,62 @@ export class AuthService {
   }
 
   /**
+   * Register a new user
+   */
+  async register(
+    registerRequest: { email: string; password: string; name: string; organizationName?: string },
+    ipAddress: string,
+    userAgent: string
+  ): Promise<LoginResponse> {
+    const { email, password, name, organizationName } = registerRequest;
+
+    try {
+      // Check if user already exists
+      const existingUser = await this.userRepository.findByEmail(email);
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+
+      // Hash password
+      const passwordHash = await this.passwordService.hashPassword(password);
+
+      // Create organization ID (for now, use a generated ID)
+      const organizationId = generateId();
+
+      // Create user
+      const userId = generateId();
+      const user: User = {
+        userId,
+        email,
+        passwordHash,
+        name,
+        organizationId,
+        isActive: true,
+        isMfaEnabled: false,
+        roles: ['user'], // Default role
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await this.userRepository.create(user);
+
+      // Assign default role
+      await this.rbacService.assignRole(userId, organizationId, 'user');
+
+      this.logger.info('User registered successfully', { userId, email });
+
+      // Auto-login after registration
+      return this.login({ email, password }, ipAddress, userAgent);
+    } catch (error) {
+      this.logger.error('Registration failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        email,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Authenticate user and generate tokens
    */
   async login(

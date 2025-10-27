@@ -1,322 +1,247 @@
-import { useState, useEffect } from 'react'
-import { 
-  Users, 
-  Building, 
-  Key, 
-  FileText, 
-  AlertTriangle, 
-  CheckCircle, 
-  XCircle,
-
-  Shield,
-  Activity,
-  Database,
-  Server
-} from 'lucide-react'
-import { adminApi, monitoringApi, User, Organization, IntegrationCredential, SystemHealth } from '../lib/api'
-import { UserManagement } from '../components/UserManagement.tsx'
-import { OrganizationManagement } from '../components/OrganizationManagement.tsx'
-import { IntegrationManagement } from '../components/IntegrationManagement.tsx'
-import { AuditLogViewer } from '../components/AuditLogViewer.tsx'
-import { SystemHealthDashboard } from '../components/SystemHealthDashboard.tsx'
-
-type AdminTab = 'overview' | 'users' | 'organizations' | 'integrations' | 'audit' | 'health'
+import { useState } from 'react'
+import { Shield, Users, Plug, Database, Sparkles, Plus, Edit, Trash2, Loader2, CheckCircle, XCircle } from 'lucide-react'
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<AdminTab>('overview')
-  const [users, setUsers] = useState<User[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [integrations, setIntegrations] = useState<IntegrationCredential[]>([])
-  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadOverviewData()
-  }, [])
-
-  const loadOverviewData = async () => {
-    try {
-      const [usersResponse, orgsResponse, integrationsResponse, healthResponse] = await Promise.all([
-        adminApi.getUsers(),
-        adminApi.getOrganizations(),
-        adminApi.getIntegrationCredentials(),
-        monitoringApi.getSystemHealth()
-      ])
-      
-      setUsers(usersResponse.data)
-      setOrganizations(orgsResponse.data)
-      setIntegrations(integrationsResponse.data)
-      setSystemHealth(healthResponse.data)
-    } catch (error) {
-      console.error('Failed to load admin data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const getHealthStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return 'text-green-500'
-      case 'degraded':
-        return 'text-yellow-500'
-      case 'unhealthy':
-        return 'text-red-500'
-      default:
-        return 'text-gray-500'
-    }
-  }
-
-  const getHealthStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
-      case 'degraded':
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />
-      case 'unhealthy':
-        return <XCircle className="h-5 w-5 text-red-500" />
-      default:
-        return <AlertTriangle className="h-5 w-5 text-gray-500" />
-    }
-  }
+  const [activeTab, setActiveTab] = useState('users')
+  const [isLoading, setIsLoading] = useState(false)
 
   const tabs = [
-    { id: 'overview', name: 'Overview', icon: Activity },
     { id: 'users', name: 'Users', icon: Users },
-    { id: 'organizations', name: 'Organizations', icon: Building },
-    { id: 'integrations', name: 'Integrations', icon: Key },
-    { id: 'audit', name: 'Audit Logs', icon: FileText },
-    { id: 'health', name: 'System Health', icon: Shield },
+    { id: 'integrations', name: 'Integrations', icon: Plug },
+    { id: 'system', name: 'System', icon: Database },
   ]
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
+  // Mock data
+  const users = [
+    { id: '1', name: 'John Doe', email: 'john@officeflow.com', role: 'Admin', status: 'active' },
+    { id: '2', name: 'Jane Smith', email: 'jane@officeflow.com', role: 'User', status: 'active' },
+    { id: '3', name: 'Bob Johnson', email: 'bob@officeflow.com', role: 'User', status: 'inactive' },
+  ]
+
+  const integrations = [
+    { id: '1', name: 'Google Workspace', type: 'Identity', status: 'connected', lastSync: '2 hours ago' },
+    { id: '2', name: 'Slack', type: 'Communication', status: 'connected', lastSync: '5 minutes ago' },
+    { id: '3', name: 'GitHub', type: 'Development', status: 'disconnected', lastSync: 'Never' },
+  ]
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">System Administration</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Manage users, organizations, integrations, and system health
+    <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl p-8 mb-8 border border-gray-200 shadow-sm">
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        
+        <div className="relative">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
+              <Shield className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          </div>
+          <p className="mt-2 text-sm text-gray-600 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-purple-500" />
+            Manage users, integrations, and system settings
           </p>
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="mt-8">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">
+        <div className="group bg-white overflow-hidden shadow-lg rounded-2xl border-2 border-gray-200 hover:border-blue-400 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-1">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-500 mb-2">
+                  Total Users
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {users.length}
+                </p>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl group-hover:from-blue-200 group-hover:to-blue-300 transition-colors">
+                <Users className="h-7 w-7 text-blue-600 group-hover:text-blue-700 transition-colors" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="group bg-white overflow-hidden shadow-lg rounded-2xl border-2 border-gray-200 hover:border-green-400 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-1">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-500 mb-2">
+                  Active Integrations
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {integrations.filter(i => i.status === 'connected').length}
+                </p>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl group-hover:from-green-200 group-hover:to-green-300 transition-colors">
+                <Plug className="h-7 w-7 text-green-600 group-hover:text-green-700 transition-colors" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="group bg-white overflow-hidden shadow-lg rounded-2xl border-2 border-gray-200 hover:border-purple-400 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-1">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-500 mb-2">
+                  System Health
+                </p>
+                <p className="text-3xl font-bold text-green-600">
+                  Healthy
+                </p>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl group-hover:from-purple-200 group-hover:to-purple-300 transition-colors">
+                <Database className="h-7 w-7 text-purple-600 group-hover:text-purple-700 transition-colors" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg overflow-hidden">
         <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+          <nav className="flex -mb-px">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as AdminTab)}
-                className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium transition-all ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <tab.icon className="h-5 w-5 mr-2" />
+                <tab.icon className="h-5 w-5" />
                 {tab.name}
               </button>
             ))}
           </nav>
         </div>
-      </div>
 
-      {/* Tab Content */}
-      <div className="mt-8">
-        {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* System Stats */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <Users className="h-6 w-6 text-blue-400" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Total Users
-                        </dt>
-                        <dd className="text-lg font-medium text-gray-900">{users.length}</dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
+        <div className="p-6">
+          {activeTab === 'users' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">User Management</h3>
+                <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add User
+                </button>
               </div>
-
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <Building className="h-6 w-6 text-green-400" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Organizations
-                        </dt>
-                        <dd className="text-lg font-medium text-gray-900">{organizations.length}</dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <Key className="h-6 w-6 text-purple-400" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          Integrations
-                        </dt>
-                        <dd className="text-lg font-medium text-gray-900">
-                          {integrations.filter(i => i.isActive).length}
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      {systemHealth && getHealthStatusIcon(systemHealth.database.status)}
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">
-                          System Health
-                        </dt>
-                        <dd className={`text-lg font-medium capitalize ${
-                          systemHealth ? getHealthStatusColor(systemHealth.database.status) : 'text-gray-900'
-                        }`}>
-                          {systemHealth?.database.status || 'Unknown'}
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {users.map((user) => (
+                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.role}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {user.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <button className="text-blue-600 hover:text-blue-900">
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button className="text-red-600 hover:text-red-900">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
+          )}
 
-            {/* System Health Overview */}
-            {systemHealth && (
-              <div className="bg-white shadow rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    System Components
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <Database className="h-8 w-8 text-gray-400 mr-3" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Database</p>
-                          <p className="text-xs text-gray-500">
-                            {systemHealth.database.connections} connections
-                          </p>
-                        </div>
-                      </div>
-                      {getHealthStatusIcon(systemHealth.database.status)}
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <Server className="h-8 w-8 text-gray-400 mr-3" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Redis</p>
-                          <p className="text-xs text-gray-500">
-                            {systemHealth.redis.connections} connections
-                          </p>
-                        </div>
-                      </div>
-                      {getHealthStatusIcon(systemHealth.redis.status)}
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <Activity className="h-8 w-8 text-gray-400 mr-3" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Kafka</p>
-                          <p className="text-xs text-gray-500">
-                            {systemHealth.kafka.topics.length} topics
-                          </p>
-                        </div>
-                      </div>
-                      {getHealthStatusIcon(systemHealth.kafka.status)}
-                    </div>
-                  </div>
-                </div>
+          {activeTab === 'integrations' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">Integration Management</h3>
+                <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Integration
+                </button>
               </div>
-            )}
-
-            {/* Recent Organizations */}
-            <div className="bg-white shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                  Recent Organizations
-                </h3>
-                <div className="space-y-3">
-                  {organizations.slice(0, 5).map((org) => (
-                    <div key={org.id} className="flex items-center justify-between">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {integrations.map((integration) => (
+                  <div key={integration.id} className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all">
+                    <div className="flex items-start justify-between mb-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{org.name}</p>
-                        <p className="text-xs text-gray-500">
-                          {org.userCount} users • {org.workflowCount} workflows
-                        </p>
+                        <h4 className="font-semibold text-gray-900 mb-1">{integration.name}</h4>
+                        <p className="text-sm text-gray-500">{integration.type}</p>
                       </div>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        org.plan === 'enterprise' 
-                          ? 'bg-purple-100 text-purple-800'
-                          : org.plan === 'pro'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {org.plan}
-                      </span>
+                      {integration.status === 'connected' ? (
+                        <CheckCircle className="h-6 w-6 text-green-600" />
+                      ) : (
+                        <XCircle className="h-6 w-6 text-gray-400" />
+                      )}
                     </div>
-                  ))}
+                    <div className="text-xs text-gray-500 mb-4">
+                      Last sync: {integration.lastSync}
+                    </div>
+                    <button className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                      Configure
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'system' && (
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-6">System Information</h3>
+              <div className="space-y-4">
+                <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900">Database Status</span>
+                    <span className="text-green-600 font-medium">Connected</span>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900">Redis Status</span>
+                    <span className="text-green-600 font-medium">Connected</span>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900">Kafka Status</span>
+                    <span className="text-green-600 font-medium">Connected</span>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900">Application Version</span>
+                    <span className="text-gray-600 font-medium">1.0.0</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {activeTab === 'users' && (
-          <UserManagement users={users} onUsersChange={setUsers} />
-        )}
-
-        {activeTab === 'organizations' && (
-          <OrganizationManagement organizations={organizations} onOrganizationsChange={setOrganizations} />
-        )}
-
-        {activeTab === 'integrations' && (
-          <IntegrationManagement integrations={integrations} onIntegrationsChange={setIntegrations} />
-        )}
-
-        {activeTab === 'audit' && (
-          <AuditLogViewer />
-        )}
-
-        {activeTab === 'health' && systemHealth && (
-          <SystemHealthDashboard health={systemHealth} />
-        )}
+          )}
+        </div>
       </div>
     </div>
   )

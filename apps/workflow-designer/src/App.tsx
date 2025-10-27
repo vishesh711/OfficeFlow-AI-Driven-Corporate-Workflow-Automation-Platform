@@ -5,6 +5,7 @@ import { WorkflowList } from '@/pages/WorkflowList'
 import { WorkflowDesigner } from '@/pages/WorkflowDesigner'
 import { MonitoringDashboard } from '@/pages/MonitoringDashboard'
 import { AdminDashboard } from '@/pages/AdminDashboard'
+import { Settings } from '@/pages/Settings'
 import { Login } from '@/pages/Login'
 
 // Simple auth check (replace with real auth later)
@@ -39,6 +40,7 @@ function App() {
                 <Route path="/workflows/:id" element={<WorkflowDesigner />} />
                 <Route path="/monitoring" element={<MonitoringDashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/settings" element={<Settings />} />
               </Routes>
             </Layout>
           </ProtectedRoute>

@@ -3,14 +3,15 @@ import {
   Play, 
   RefreshCw, 
   Clock,
-  Search,
   TrendingUp,
-  Activity
+  Activity,
+  Sparkles,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  AlertTriangle
 } from 'lucide-react'
 import { monitoringApi, WorkflowRun, WorkflowMetrics, WorkflowRunFilter } from '../lib/api'
-import { WorkflowRunTimeline } from '../components/WorkflowRunTimeline.tsx'
-import { WorkflowMetricsChart } from '../components/WorkflowMetricsChart.tsx'
-import { WorkflowRunTable } from '../components/WorkflowRunTable.tsx'
 
 export function MonitoringDashboard() {
   const [workflowRuns, setWorkflowRuns] = useState<WorkflowRun[]>([])
@@ -49,241 +50,219 @@ export function MonitoringDashboard() {
 
   const handleRunAction = async (runId: string, action: 'pause' | 'resume' | 'cancel' | 'retry') => {
     try {
-      switch (action) {
-        case 'pause':
-          await monitoringApi.pauseWorkflowRun(runId)
-          break
-        case 'resume':
-          await monitoringApi.resumeWorkflowRun(runId)
-          break
-        case 'cancel':
-          await monitoringApi.cancelWorkflowRun(runId)
-          break
-        case 'retry':
-          await monitoringApi.retryWorkflowRun(runId)
-          break
-      }
-      loadData() // Refresh data after action
+      await monitoringApi.controlWorkflowRun(runId, action)
+      await loadData()
     } catch (error) {
       console.error(`Failed to ${action} workflow run:`, error)
     }
   }
 
-
-
-  const filteredRuns = workflowRuns.filter(run => {
-    const matchesSearch = searchTerm === '' || 
-      run.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      run.context.employeeName?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(run.status)
-    
-    return matchesSearch && matchesStatus
-  })
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
+  const handleRefresh = () => {
+    setLoading(true)
+    loadData()
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">Workflow Monitoring</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Real-time monitoring and analytics for workflow executions
-          </p>
-        </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-          <button
-            onClick={loadData}
-            className="btn btn-secondary"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </button>
+    <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Header with gradient background */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl p-8 mb-8 border border-gray-200 shadow-sm">
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        
+        <div className="relative sm:flex sm:items-center sm:justify-between">
+          <div className="sm:flex-auto">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
+                <Activity className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Monitoring</h1>
+            </div>
+            <p className="mt-2 text-sm text-gray-600 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-purple-500" />
+              Real-time workflow execution monitoring
+            </p>
+          </div>
+          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex gap-3">
+            <select
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value)}
+              className="px-4 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              <option value="1h">Last Hour</option>
+              <option value="24h">Last 24 Hours</option>
+              <option value="7d">Last 7 Days</option>
+              <option value="30d">Last 30 Days</option>
+            </select>
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              className="inline-flex items-center px-6 py-2 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 transform hover:scale-105"
+            >
+              <RefreshCw className={`h-5 w-5 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Metrics Overview */}
-      {metrics && (
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Activity className="h-6 w-6 text-gray-400" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Total Runs
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">{metrics.totalRuns}</dd>
-                  </dl>
-                </div>
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="group bg-white overflow-hidden shadow-lg rounded-2xl border-2 border-gray-200 hover:border-blue-400 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-1">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-500 mb-2">
+                  Total Runs
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {loading ? <Loader2 className="h-7 w-7 animate-spin text-gray-400" /> : (metrics?.totalRuns || 0)}
+                </p>
               </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Play className="h-6 w-6 text-blue-400" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Running
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">{metrics.runningRuns}</dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <TrendingUp className="h-6 w-6 text-green-400" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Success Rate
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {(metrics.successRate * 100).toFixed(1)}%
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Clock className="h-6 w-6 text-purple-400" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Avg. Execution Time
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {Math.round(metrics.averageExecutionTime / 1000)}s
-                    </dd>
-                  </dl>
-                </div>
+              <div className="p-3 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl group-hover:from-blue-100 group-hover:to-blue-200 transition-colors">
+                <TrendingUp className="h-7 w-7 text-gray-600 group-hover:text-blue-600 transition-colors" />
               </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Charts and Analytics */}
-      {metrics && (
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <WorkflowMetricsChart metrics={metrics} />
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Node Performance</h3>
-            <div className="space-y-4">
-              {metrics.nodePerformance.slice(0, 5).map((node) => (
-                <div key={node.nodeId} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{node.nodeName}</p>
-                    <p className="text-xs text-gray-500">{node.totalExecutions} executions</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-900">
-                      {Math.round(node.averageExecutionTime / 1000)}s avg
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {(node.successRate * 100).toFixed(1)}% success
-                    </p>
-                  </div>
-                </div>
-              ))}
+        <div className="group bg-white overflow-hidden shadow-lg rounded-2xl border-2 border-gray-200 hover:border-blue-400 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-1">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-500 mb-2">
+                  Running
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {loading ? <Loader2 className="h-7 w-7 animate-spin text-gray-400" /> : (metrics?.runningRuns || 0)}
+                </p>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl group-hover:from-blue-200 group-hover:to-blue-300 transition-colors">
+                <Play className="h-7 w-7 text-blue-600 group-hover:text-blue-700 transition-colors" />
+              </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Filters and Search */}
-      <div className="mt-8 bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <div className="flex-1 min-w-0">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Search by run ID or employee name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+        <div className="group bg-white overflow-hidden shadow-lg rounded-2xl border-2 border-gray-200 hover:border-green-400 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-1">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-500 mb-2">
+                  Completed
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {loading ? <Loader2 className="h-7 w-7 animate-spin text-gray-400" /> : (metrics?.completedRuns || 0)}
+                </p>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl group-hover:from-green-200 group-hover:to-green-300 transition-colors">
+                <CheckCircle className="h-7 w-7 text-green-600 group-hover:text-green-700 transition-colors" />
               </div>
             </div>
-            
-            <div className="flex items-center space-x-4">
-              <select
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-              >
-                <option value="1h">Last Hour</option>
-                <option value="24h">Last 24 Hours</option>
-                <option value="7d">Last 7 Days</option>
-                <option value="30d">Last 30 Days</option>
-              </select>
-              
-              <div className="relative">
-                <select
-                  multiple
-                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(Array.from(e.target.selectedOptions, option => option.value))}
-                >
-                  <option value="PENDING">Pending</option>
-                  <option value="RUNNING">Running</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="FAILED">Failed</option>
-                  <option value="CANCELLED">Cancelled</option>
-                </select>
+          </div>
+        </div>
+
+        <div className="group bg-white overflow-hidden shadow-lg rounded-2xl border-2 border-gray-200 hover:border-red-400 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-1">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-500 mb-2">
+                  Failed
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {loading ? <Loader2 className="h-7 w-7 animate-spin text-gray-400" /> : (metrics?.failedRuns || 0)}
+                </p>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-red-100 to-red-200 rounded-xl group-hover:from-red-200 group-hover:to-red-300 transition-colors">
+                <XCircle className="h-7 w-7 text-red-600 group-hover:text-red-700 transition-colors" />
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white shadow-lg rounded-2xl border-2 border-gray-200 p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <TrendingUp className="h-6 w-6 text-blue-600" />
+            Performance Metrics
+          </h3>
+          <div className="h-64 flex items-center justify-center text-gray-500">
+            <p>Chart visualization coming soon</p>
+          </div>
+        </div>
+
+        <div className="bg-white shadow-lg rounded-2xl border-2 border-gray-200 p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <Clock className="h-6 w-6 text-purple-600" />
+            Execution Timeline
+          </h3>
+          <div className="h-64 flex items-center justify-center text-gray-500">
+            <p>Timeline visualization coming soon</p>
           </div>
         </div>
       </div>
 
       {/* Workflow Runs Table */}
-      <div className="mt-8">
-        <WorkflowRunTable 
-          runs={filteredRuns}
-          onSelectRun={setSelectedRun}
-          onRunAction={handleRunAction}
-        />
+      <div className="bg-white shadow-lg rounded-2xl border-2 border-gray-200 p-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <Activity className="h-6 w-6 text-blue-600" />
+          Recent Workflow Runs
+        </h3>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          </div>
+        ) : workflowRuns.length === 0 ? (
+          <div className="text-center py-12">
+            <Activity className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <p className="text-gray-500">No workflow runs yet</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Run ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Started</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {workflowRuns.map((run) => (
+                  <tr key={run.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {run.id.slice(0, 8)}...
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        run.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                        run.status === 'RUNNING' ? 'bg-blue-100 text-blue-800' :
+                        run.status === 'FAILED' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {run.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(run.startedAt).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        onClick={() => setSelectedRun(run)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-
-      {/* Timeline Modal */}
-      {selectedRun && (
-        <WorkflowRunTimeline
-          run={selectedRun}
-          onClose={() => setSelectedRun(null)}
-        />
-      )}
     </div>
   )
 }

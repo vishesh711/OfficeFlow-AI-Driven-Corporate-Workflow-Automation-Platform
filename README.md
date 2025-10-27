@@ -20,7 +20,11 @@ Before running the project, ensure you have:
 git clone <repository-url>
 cd OfficeFlow-AI-Driven-Corporate-Workflow-Automation-Platform
 
-# Make the script executable and run
+# Use the new improved startup script
+chmod +x start-dev.sh
+./start-dev.sh
+
+# Or use the original script
 chmod +x just-run.sh
 ./just-run.sh
 ```

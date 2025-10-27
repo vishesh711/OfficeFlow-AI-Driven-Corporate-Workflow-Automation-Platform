@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class EmailService {
   private templateEngine: TemplateEngine;
-  private smtpProvider: SMTPProvider;
+  private smtpProvider!: SMTPProvider;
   private emailRepository: EmailRepository;
   private config = getEmailConfig();
 

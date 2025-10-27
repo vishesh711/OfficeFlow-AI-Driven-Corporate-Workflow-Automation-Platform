@@ -8,7 +8,7 @@ export class SMTPProvider {
 
   constructor(config: SMTPConfig) {
     this.config = config;
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       host: config.host,
       port: config.port,
       secure: config.secure,
@@ -58,8 +58,9 @@ export class SMTPProvider {
         deliveredAt: new Date(),
       };
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to send email', {
-        error: error.message,
+        error: errorMessage,
         recipients: request.to,
         subject: renderedContent.subject,
       });
@@ -67,7 +68,7 @@ export class SMTPProvider {
       return {
         messageId: '',
         status: 'failed',
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -78,7 +79,8 @@ export class SMTPProvider {
       logger.info('SMTP connection verified successfully');
       return true;
     } catch (error) {
-      logger.error('SMTP connection verification failed', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('SMTP connection verification failed', { error: errorMessage });
       return false;
     }
   }

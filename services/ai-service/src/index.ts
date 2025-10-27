@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -12,7 +12,7 @@ import { NodeInput } from '@officeflow/types';
 
 const SERVICE_NAME = 'ai-service';
 
-async function createAIService() {
+async function createAIService(): Promise<Express> {
   // Load configuration
   const appConfig = createAppConfig(SERVICE_NAME);
   const aiConfig = createAIServiceConfig();

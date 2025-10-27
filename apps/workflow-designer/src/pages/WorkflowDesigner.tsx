@@ -49,6 +49,12 @@ export function WorkflowDesigner() {
 
   const [showTemplateGallery, setShowTemplateGallery] = useState(false)
   const [showValidationPanel, setShowValidationPanel] = useState(false)
+  const [showMetadataEditor, setShowMetadataEditor] = useState(!isEditing) // Show on new workflow
+  const [workflowMetadata, setWorkflowMetadata] = useState({
+    name: '',
+    description: '',
+    eventTrigger: 'employee.onboard',
+  })
 
   // Real-time validation
   const validationResult = useMemo(() => {
@@ -84,8 +90,25 @@ export function WorkflowDesigner() {
   useEffect(() => {
     if (workflow) {
       setCurrentWorkflow(workflow)
+      setWorkflowMetadata({
+        name: workflow.name,
+        description: workflow.description || '',
+        eventTrigger: workflow.eventTrigger,
+      })
     }
   }, [workflow, setCurrentWorkflow])
+
+  // Update current workflow when metadata changes
+  useEffect(() => {
+    if (workflowMetadata.name) {
+      setCurrentWorkflow({
+        ...currentWorkflow,
+        name: workflowMetadata.name,
+        description: workflowMetadata.description,
+        eventTrigger: workflowMetadata.eventTrigger,
+      } as Workflow)
+    }
+  }, [workflowMetadata])
 
   // Reset store when component unmounts
   useEffect(() => {
@@ -298,12 +321,17 @@ export function WorkflowDesigner() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-lg font-medium text-gray-900">
-              {currentWorkflow?.name || 'New Workflow'}
-            </h1>
-            {currentWorkflow?.description && (
-              <p className="text-sm text-gray-500">{currentWorkflow.description}</p>
-            )}
+            <button
+              onClick={() => setShowMetadataEditor(true)}
+              className="text-left hover:bg-gray-50 rounded px-2 py-1 -ml-2"
+            >
+              <h1 className="text-lg font-medium text-gray-900">
+                {currentWorkflow?.name || workflowMetadata.name || 'New Workflow'}
+              </h1>
+              {(currentWorkflow?.description || workflowMetadata.description) && (
+                <p className="text-sm text-gray-500">{currentWorkflow?.description || workflowMetadata.description}</p>
+              )}
+            </button>
           </div>
           {isDirty && (
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -379,13 +407,39 @@ export function WorkflowDesigner() {
             isValidConnection={isValidConnection}
             nodeTypes={nodeTypes}
             fitView
-            className="bg-gray-50"
+            className="bg-gradient-to-br from-gray-50 to-gray-100"
             snapToGrid
             snapGrid={[15, 15]}
+            defaultEdgeOptions={{
+              type: 'smoothstep',
+              animated: true,
+              style: { stroke: '#3b82f6', strokeWidth: 2 },
+              markerEnd: {
+                type: 'arrowclosed',
+                color: '#3b82f6',
+              },
+            }}
+            connectionLineStyle={{ stroke: '#3b82f6', strokeWidth: 2 }}
+            connectionLineType="smoothstep"
           >
-            <Background />
-            <Controls />
-            <MiniMap />
+            <Background 
+              gap={16} 
+              size={1} 
+              color="#e5e7eb"
+              style={{ backgroundColor: 'transparent' }}
+            />
+            <Controls 
+              className="bg-white shadow-lg rounded-lg border border-gray-200"
+              showInteractive={false}
+            />
+            <MiniMap 
+              className="bg-white shadow-lg rounded-lg border border-gray-200"
+              nodeColor={(node) => {
+                if (node.selected) return '#3b82f6'
+                return '#9ca3af'
+              }}
+              maskColor="rgba(0, 0, 0, 0.05)"
+            />
           </ReactFlow>
         </div>
 
@@ -405,6 +459,89 @@ export function WorkflowDesigner() {
         isOpen={showValidationPanel}
         onClose={() => setShowValidationPanel(false)}
       />
+
+      {/* Workflow Metadata Editor */}
+      {showMetadataEditor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Workflow Details</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Workflow Name *
+                </label>
+                <input
+                  type="text"
+                  value={workflowMetadata.name}
+                  onChange={(e) => setWorkflowMetadata({ ...workflowMetadata, name: e.target.value })}
+                  placeholder="e.g., Employee Onboarding"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={workflowMetadata.description}
+                  onChange={(e) => setWorkflowMetadata({ ...workflowMetadata, description: e.target.value })}
+                  placeholder="Describe what this workflow does..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Event Trigger *
+                </label>
+                <select
+                  value={workflowMetadata.eventTrigger}
+                  onChange={(e) => setWorkflowMetadata({ ...workflowMetadata, eventTrigger: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="employee.onboard">Employee Onboarding</option>
+                  <option value="employee.offboard">Employee Offboarding</option>
+                  <option value="employee.role_change">Role Change</option>
+                  <option value="employee.department_change">Department Change</option>
+                  <option value="document.created">Document Created</option>
+                  <option value="document.updated">Document Updated</option>
+                  <option value="meeting.scheduled">Meeting Scheduled</option>
+                  <option value="project.created">Project Created</option>
+                  <option value="task.assigned">Task Assigned</option>
+                  <option value="manual">Manual Trigger</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  if (!isEditing) {
+                    navigate('/workflows')
+                  } else {
+                    setShowMetadataEditor(false)
+                  }
+                }}
+                className="px-4 py-2 text-gray-700 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!workflowMetadata.name.trim()) {
+                    alert('Please enter a workflow name')
+                    return
+                  }
+                  setShowMetadataEditor(false)
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

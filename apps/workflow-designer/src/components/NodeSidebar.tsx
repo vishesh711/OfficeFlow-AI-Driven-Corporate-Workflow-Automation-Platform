@@ -157,14 +157,17 @@ export function NodeSidebar() {
   }
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-      <div className="p-4">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Node Library</h2>
+    <div className="w-72 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 overflow-y-auto shadow-sm">
+      <div className="p-5">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-1">Node Library</h2>
+          <p className="text-xs text-gray-500">Drag nodes to canvas or click to add</p>
+        </div>
         
         <div className="space-y-6">
           {nodeCategories.map((category) => (
             <div key={category.name}>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 {category.name}
               </h3>
               <div className="space-y-2">
@@ -174,17 +177,17 @@ export function NodeSidebar() {
                     draggable
                     onDragStart={(e) => onDragStart(e, node.type, node.label)}
                     onClick={() => handleAddNode(node.type, node.label)}
-                    className="flex items-start p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-move hover:bg-gray-100 transition-colors"
+                    className="group flex items-start p-3 bg-white rounded-xl border-2 border-gray-200 cursor-move hover:border-blue-400 hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5"
                     title={`Drag to canvas or click to add ${node.label}`}
                   >
-                    <div className="flex-shrink-0 mr-3">
-                      <node.icon className="h-5 w-5 text-gray-600" />
+                    <div className="flex-shrink-0 mr-3 p-2 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg group-hover:from-blue-100 group-hover:to-blue-200 transition-colors">
+                      <node.icon className="h-5 w-5 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                         {node.label}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
                         {node.description}
                       </p>
                     </div>

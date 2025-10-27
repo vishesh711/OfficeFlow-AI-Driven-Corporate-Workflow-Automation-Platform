@@ -29,29 +29,40 @@ export function BaseNode({
 }: BaseNodeProps) {
   return (
     <div className={cn(
-      "min-w-[200px] bg-white border-2 rounded-lg shadow-sm",
-      selected ? "border-primary-500" : "border-gray-200"
+      "min-w-[220px] bg-white rounded-xl shadow-lg transition-all duration-200",
+      "border-2 hover:shadow-xl",
+      selected 
+        ? "border-blue-500 shadow-blue-100 ring-2 ring-blue-200" 
+        : "border-gray-200 hover:border-gray-300"
     )}>
       {handles.top && (
         <Handle
           type="target"
           position={Position.Top}
-          className="w-3 h-3 border-2 border-gray-400 bg-white"
+          className={cn(
+            "w-3 h-3 !border-2 !bg-white transition-all",
+            selected ? "!border-blue-500" : "!border-gray-400 hover:!border-blue-400"
+          )}
         />
       )}
       
-      <div className="p-3">
-        <div className="flex items-center space-x-3 mb-2">
-          <div className={cn("p-2 rounded-lg text-white", color)}>
+      <div className="p-4">
+        <div className="flex items-center space-x-3 mb-3">
+          <div className={cn(
+            "p-2.5 rounded-lg text-white shadow-sm transition-transform hover:scale-105",
+            color
+          )}>
             {icon}
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-medium text-gray-900">{data.label}</h3>
+            <h3 className="text-sm font-semibold text-gray-900 tracking-tight">
+              {data.label}
+            </h3>
           </div>
         </div>
         
         {children && (
-          <div className="text-xs text-gray-500 mt-2">
+          <div className="text-xs text-gray-600 mt-2 space-y-1 bg-gray-50 rounded-lg p-2.5 border border-gray-100">
             {children}
           </div>
         )}
@@ -61,7 +72,10 @@ export function BaseNode({
         <Handle
           type="source"
           position={Position.Bottom}
-          className="w-3 h-3 border-2 border-gray-400 bg-white"
+          className={cn(
+            "w-3 h-3 !border-2 !bg-white transition-all",
+            selected ? "!border-blue-500" : "!border-gray-400 hover:!border-blue-400"
+          )}
         />
       )}
       
@@ -69,7 +83,10 @@ export function BaseNode({
         <Handle
           type="target"
           position={Position.Left}
-          className="w-3 h-3 border-2 border-gray-400 bg-white"
+          className={cn(
+            "w-3 h-3 !border-2 !bg-white transition-all",
+            selected ? "!border-blue-500" : "!border-gray-400 hover:!border-blue-400"
+          )}
         />
       )}
       
@@ -77,7 +94,10 @@ export function BaseNode({
         <Handle
           type="source"
           position={Position.Right}
-          className="w-3 h-3 border-2 border-gray-400 bg-white"
+          className={cn(
+            "w-3 h-3 !border-2 !bg-white transition-all",
+            selected ? "!border-blue-500" : "!border-gray-400 hover:!border-blue-400"
+          )}
         />
       )}
     </div>

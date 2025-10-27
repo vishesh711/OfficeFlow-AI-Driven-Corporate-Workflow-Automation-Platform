@@ -1,4 +1,5 @@
 import { OpenAIClient } from './openai-client';
+import { AnthropicClient } from './anthropic-client';
 import { TemplateManager } from '../templates/template-manager';
 import { CostTracker } from '../monitoring/cost-tracker';
 import { 
@@ -13,7 +14,8 @@ import { Logger } from '../utils/logger';
 import { v4 as uuidv4 } from '../utils/uuid';
 
 export class LLMService {
-  private openaiClient: OpenAIClient;
+  private openaiClient?: OpenAIClient;
+  private anthropicClient?: AnthropicClient;
   private templateManager: TemplateManager;
   private costTracker: CostTracker;
   private config: AIServiceConfig;
@@ -24,9 +26,32 @@ export class LLMService {
     this.config = config;
     this.logger = logger;
     
-    this.openaiClient = new OpenAIClient(config.openai, logger);
+    // Initialize the appropriate client based on provider
+    if (config.provider === 'anthropic' && config.anthropic.apiKey) {
+      this.anthropicClient = new AnthropicClient(config.anthropic, logger);
+      this.logger.info('Initialized Anthropic client');
+    } else if (config.provider === 'openai' && config.openai.apiKey) {
+      this.openaiClient = new OpenAIClient(config.openai, logger);
+      this.logger.info('Initialized OpenAI client');
+    } else {
+      this.logger.warn('No LLM provider configured or API key missing', {
+        provider: config.provider,
+        hasAnthropicKey: !!config.anthropic.apiKey,
+        hasOpenAIKey: !!config.openai.apiKey,
+      });
+    }
+    
     this.templateManager = new TemplateManager(logger);
     this.costTracker = new CostTracker(logger);
+  }
+
+  private getActiveClient(): OpenAIClient | AnthropicClient {
+    if (this.config.provider === 'anthropic' && this.anthropicClient) {
+      return this.anthropicClient;
+    } else if (this.config.provider === 'openai' && this.openaiClient) {
+      return this.openaiClient;
+    }
+    throw new Error(`No active LLM client for provider: ${this.config.provider}`);
   }
 
   async generateContent(
@@ -94,7 +119,8 @@ export class LLMService {
       };
 
       // Generate completion
-      const llmResponse = await this.openaiClient.generateCompletion(llmRequest);
+      const activeClient = this.getActiveClient();
+      const llmResponse = await activeClient.generateCompletion(llmRequest);
       
       // Track costs
       if (this.config.costTracking.enabled) {

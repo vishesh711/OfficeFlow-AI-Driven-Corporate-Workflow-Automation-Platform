@@ -7,6 +7,7 @@ import ReactFlow, {
   MiniMap,
   Connection,
   Node,
+  ReactFlowProvider,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 
@@ -310,7 +311,8 @@ export function WorkflowDesigner() {
   )
 
   return (
-    <div className="h-screen flex flex-col">
+    <ReactFlowProvider>
+      <div className="h-screen flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
         <div className="flex items-center space-x-4">
@@ -543,5 +545,6 @@ export function WorkflowDesigner() {
         </div>
       )}
     </div>
+    </ReactFlowProvider>
   )
 }

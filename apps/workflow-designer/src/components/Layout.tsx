@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { 
   LayoutDashboard, 
   GitBranch, 
@@ -8,7 +8,8 @@ import {
   Menu,
   X,
   Activity,
-  Shield
+  Shield,
+  LogOut
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -28,6 +29,15 @@ const navigation = [
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    localStorage.removeItem('officeflow_auth')
+    localStorage.removeItem('officeflow_user')
+    navigate('/login')
+  }
+
+  const user = JSON.parse(localStorage.getItem('officeflow_user') || '{"name":"User","email":"user@officeflow.com"}')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -115,9 +125,17 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1"></div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <button className="flex items-center gap-x-2 text-sm font-medium text-gray-700 hover:text-gray-900">
+              <div className="flex items-center gap-x-2 text-sm font-medium text-gray-700">
                 <User className="h-5 w-5" />
-                <span className="hidden sm:block">Admin User</span>
+                <span className="hidden sm:block">{user.name}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-x-2 text-sm font-medium text-gray-700 hover:text-red-600 transition-colors"
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="hidden sm:block">Logout</span>
               </button>
             </div>
           </div>

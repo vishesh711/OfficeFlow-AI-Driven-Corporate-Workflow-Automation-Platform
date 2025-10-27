@@ -51,6 +51,69 @@ export class AuthService {
   }
 
   /**
+   * Register a new user
+   */
+  async register(
+    registerRequest: { email: string; password: string; name: string; organizationName?: string },
+    ipAddress: string,
+    userAgent: string
+  ): Promise<LoginResponse> {
+    const { email, password, name, organizationName } = registerRequest;
+
+    try {
+      // Check if user already exists
+      const existingUser = await this.userRepository.findByEmail(email);
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+
+      // Hash password
+      const passwordHash = await this.passwordService.hashPassword(password);
+
+      // Create organization ID (for now, use a generated ID or find existing)
+      // First, check if we have any organizations
+      const orgResult = await this.db.query('SELECT org_id FROM organizations LIMIT 1');
+      const organizationId = orgResult.rows.length > 0 ? orgResult.rows[0].org_id : generateId();
+      
+      // If no org exists, create a default one
+      if (orgResult.rows.length === 0) {
+        // Extract domain from email or use a default
+        const emailDomain = email.split('@')[1] || 'default.local';
+        await this.db.query(
+          'INSERT INTO organizations (org_id, name, domain, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())',
+          [organizationId, organizationName || 'Default Organization', emailDomain]
+        );
+      }
+
+      // Split name into first and last
+      const nameParts = name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+      // Create user directly with SQL to match existing schema
+      const userId = generateId();
+      await this.db.query(
+        `INSERT INTO users (
+          user_id, org_id, email, password_hash, first_name, last_name, 
+          role, is_active, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+        [userId, organizationId, email, passwordHash, firstName, lastName, 'user', true]
+      );
+
+      this.logger.info('User registered successfully', { userId, email });
+
+      // Auto-login after registration
+      return this.login({ email, password }, ipAddress, userAgent);
+    } catch (error) {
+      this.logger.error('Registration failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        email,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Authenticate user and generate tokens
    */
   async login(

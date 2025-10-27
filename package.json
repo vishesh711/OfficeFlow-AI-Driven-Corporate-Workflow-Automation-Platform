@@ -11,7 +11,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --concurrency=20",
-    "lint": "echo 'Linting disabled for initial setup'",
+    "lint": "turbo run lint",
     "test": "turbo run test",
     "type-check": "turbo run type-check",
     "clean": "turbo run clean",

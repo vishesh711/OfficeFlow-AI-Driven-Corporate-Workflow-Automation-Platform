@@ -40,6 +40,13 @@ export function createAuthRoutes(authService: AuthService, logger: MockLogger): 
   });
 
   // Validation schemas
+  const registerSchema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(authConfig.password.minLength).required(),
+    name: Joi.string().min(2).required(),
+    organizationName: Joi.string().min(2)
+  });
+
   const loginSchema = Joi.object({
     email: Joi.string().email().required(),
     password: Joi.string().min(1).required(),
@@ -88,6 +95,37 @@ export function createAuthRoutes(authService: AuthService, logger: MockLogger): 
     ipAddress: req.ip || req.socket.remoteAddress || 'unknown',
     userAgent: req.get('User-Agent') || 'unknown'
   });
+
+  /**
+   * POST /auth/register
+   * Register a new user
+   */
+  router.post('/register',
+    generalLimiter,
+    validate(registerSchema),
+    async (req: Request, res: Response) => {
+      try {
+        const { ipAddress, userAgent } = getClientInfo(req);
+        const result = await authService.register(req.body, ipAddress, userAgent);
+        
+        res.status(201).json(result);
+      } catch (error) {
+        logger.error('Registration endpoint error', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          email: req.body.email,
+          ip: req.ip
+        });
+
+        const message = error instanceof Error ? error.message : 'Registration failed';
+        const statusCode = message.includes('already exists') ? 409 : 500;
+        
+        res.status(statusCode).json({
+          error: message,
+          code: statusCode === 409 ? 'USER_ALREADY_EXISTS' : 'INTERNAL_ERROR'
+        });
+      }
+    }
+  );
 
   /**
    * POST /auth/login

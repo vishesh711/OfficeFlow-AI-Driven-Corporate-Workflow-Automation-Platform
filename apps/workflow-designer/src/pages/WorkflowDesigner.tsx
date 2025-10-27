@@ -117,20 +117,60 @@ export function WorkflowDesigner() {
   }, [reset])
 
   const handleSave = useCallback(async () => {
-    if (!currentWorkflow && !nodes.length) return
+    // Check if workflow has a name
+    if (!workflowMetadata.name.trim()) {
+      alert('⚠️ Please enter a workflow name before saving.\n\nClick the "Workflow Info" button at the top or enter a name in the metadata editor.')
+      setShowMetadataEditor(true)
+      return
+    }
+
+    // Check if workflow has nodes
+    if (!nodes.length) {
+      alert('⚠️ Please add at least one node to the workflow before saving.\n\nDrag nodes from the left sidebar onto the canvas.')
+      return
+    }
 
     // Validate workflow before saving
     if (!validationResult.isValid) {
-      const errorMessages = validationResult.errors.map(e => e.message)
-      alert(`Workflow validation failed:\n${errorMessages.join('\n')}`)
+      const errorCount = validationResult.errors.length
+      const warningCount = validationResult.warnings.length
+      
+      // Group errors by type
+      const errorsByType: Record<string, string[]> = {}
+      validationResult.errors.forEach(error => {
+        const type = error.message.includes('trigger') ? 'Trigger Issues' :
+                     error.message.includes('recipients') || error.message.includes('template') ? 'Email Node Issues' :
+                     error.message.includes('expression') ? 'Condition Node Issues' :
+                     error.message.includes('duration') ? 'Delay Node Issues' :
+                     error.message.includes('action') || error.message.includes('provider') ? 'Identity Node Issues' :
+                     error.message.includes('contentType') || error.message.includes('prompt') ? 'AI Node Issues' :
+                     error.message.includes('Circular') ? 'Connection Issues' :
+                     'Other Issues'
+        
+        if (!errorsByType[type]) errorsByType[type] = []
+        errorsByType[type].push(error.message)
+      })
+      
+      let errorMessage = `❌ Workflow validation failed (${errorCount} error${errorCount !== 1 ? 's' : ''}, ${warningCount} warning${warningCount !== 1 ? 's' : ''})\n\n`
+      
+      // Show errors grouped by type
+      Object.entries(errorsByType).forEach(([type, messages]) => {
+        errorMessage += `${type}:\n`
+        messages.forEach(msg => errorMessage += `  • ${msg}\n`)
+        errorMessage += '\n'
+      })
+      
+      errorMessage += '💡 TIP: Open the Validation Panel (bottom right) to see detailed errors and click on them to jump to the problem node.'
+      
+      alert(errorMessage)
       setShowValidationPanel(true)
       return
     }
 
     const workflowData = {
-      name: currentWorkflow?.name || 'Untitled Workflow',
-      description: currentWorkflow?.description || '',
-      eventTrigger: currentWorkflow?.eventTrigger || 'employee.onboard',
+      name: workflowMetadata.name,
+      description: workflowMetadata.description,
+      eventTrigger: workflowMetadata.eventTrigger,
       version: currentWorkflow?.version || 1,
       isActive: currentWorkflow?.isActive || false,
       definition: getWorkflowDefinition(),
@@ -140,13 +180,53 @@ export function WorkflowDesigner() {
       setLoading(true)
       await saveWorkflowMutation.mutateAsync(workflowData)
       setDirty(false)
+      alert('✅ Workflow saved successfully!\n\nYou can now run a test by clicking the "Test Run" button.')
     } catch (error) {
       console.error('Failed to save workflow:', error)
-      alert('Failed to save workflow. Please try again.')
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      alert(`❌ Failed to save workflow.\n\nError: ${errorMsg}\n\nPlease check the console for more details.`)
     } finally {
       setLoading(false)
     }
-  }, [currentWorkflow, nodes, validationResult, getWorkflowDefinition, saveWorkflowMutation, setLoading, setDirty])
+  }, [workflowMetadata, nodes, validationResult, getWorkflowDefinition, saveWorkflowMutation, setLoading, setDirty, currentWorkflow, setShowMetadataEditor, setShowValidationPanel])
+
+  const handleTestRun = useCallback(async () => {
+    // Check if workflow has been saved (has an ID)
+    if (!currentWorkflow || !currentWorkflow.id) {
+      alert('⚠️ Please save the workflow first before running a test.\n\nTemplates and new workflows must be saved to get an ID before they can be executed.')
+      setShowMetadataEditor(true)
+      return
+    }
+
+    // Validate workflow before test run
+    if (!validationResult.isValid) {
+      const errorMessages = validationResult.errors.map(e => e.message)
+      alert(`Workflow validation failed:\n${errorMessages.join('\n')}`)
+      setShowValidationPanel(true)
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await workflowApi.executeWorkflow(currentWorkflow.id, {
+        variables: { testRun: true },
+        data: { trigger: 'manual_test' },
+      })
+      
+      alert(`✅ Test run started successfully!\n\nRun ID: ${response.data.runId}\nStatus: ${response.data.status}\n\nCheck the Monitoring page to view progress.`)
+      
+      // Navigate to monitoring page
+      setTimeout(() => {
+        navigate('/monitoring')
+      }, 2000)
+    } catch (error) {
+      console.error('Failed to execute test run:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`❌ Failed to start test run.\n\nError: ${errorMessage}\n\nPlease try again or check the console for details.`)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentWorkflow, validationResult, setLoading, navigate, setShowMetadataEditor])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -174,19 +254,21 @@ export function WorkflowDesigner() {
   }, [handleSave, selectedNodeId, selectNode])
 
   const handleSelectTemplate = useCallback((template: WorkflowTemplate) => {
-    // Create a new workflow from template
-    const newWorkflow = {
+    // Set workflow metadata from template
+    setWorkflowMetadata({
       name: template.name,
-      description: template.description,
+      description: template.description || '',
       eventTrigger: 'employee.onboard',
-      version: 1,
-      isActive: false,
-      definition: template.definition,
-    }
+    })
     
-    setCurrentWorkflow(newWorkflow as any)
+    // Load the workflow definition (nodes and edges)
     loadWorkflowDefinition(template.definition)
-  }, [setCurrentWorkflow, loadWorkflowDefinition])
+    
+    // Show metadata editor so user can customize before saving
+    setShowMetadataEditor(true)
+    
+    // Note: currentWorkflow will be set when user saves
+  }, [loadWorkflowDefinition, setShowMetadataEditor])
 
   const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     selectNode(node.id)
@@ -312,46 +394,46 @@ export function WorkflowDesigner() {
 
   return (
     <ReactFlowProvider>
-      <div className="h-screen flex flex-col">
+      <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+      <div className="flex items-center justify-between px-6 py-4 bg-white border-b-2 border-gray-200 shadow-sm">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigate('/workflows')}
-            className="text-gray-400 hover:text-gray-600"
+            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
             <button
               onClick={() => setShowMetadataEditor(true)}
-              className="text-left hover:bg-gray-50 rounded px-2 py-1 -ml-2"
+              className="text-left hover:bg-blue-50 rounded-lg px-3 py-2 transition-all"
             >
-              <h1 className="text-lg font-medium text-gray-900">
+              <h1 className="text-xl font-bold text-gray-900">
                 {currentWorkflow?.name || workflowMetadata.name || 'New Workflow'}
               </h1>
               {(currentWorkflow?.description || workflowMetadata.description) && (
-                <p className="text-sm text-gray-500">{currentWorkflow?.description || workflowMetadata.description}</p>
+                <p className="text-sm text-gray-600">{currentWorkflow?.description || workflowMetadata.description}</p>
               )}
             </button>
           </div>
           {isDirty && (
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-800 border border-orange-200">
               Unsaved changes
             </span>
           )}
           <button
             onClick={() => setShowValidationPanel(!showValidationPanel)}
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all ${
               validationResult.isValid
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
+                ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 border-green-200 hover:border-green-300'
+                : 'bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200 hover:border-red-300'
             }`}
           >
             {validationResult.isValid ? (
-              <CheckCircle className="h-3 w-3 mr-1" />
+              <CheckCircle className="h-4 w-4 mr-1.5" />
             ) : (
-              <AlertTriangle className="h-3 w-3 mr-1" />
+              <AlertTriangle className="h-4 w-4 mr-1.5" />
             )}
             {validationResult.errors.length > 0
               ? `${validationResult.errors.length} errors`
@@ -361,11 +443,11 @@ export function WorkflowDesigner() {
             }
           </button>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
           {!isEditing && (
             <button
               onClick={() => setShowTemplateGallery(true)}
-              className="btn btn-outline"
+              className="inline-flex items-center px-4 py-2 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm"
             >
               <FileText className="h-4 w-4 mr-2" />
               Templates
@@ -374,14 +456,16 @@ export function WorkflowDesigner() {
           <button
             onClick={handleSave}
             disabled={isLoading || saveWorkflowMutation.isPending}
-            className="btn btn-primary"
+            className="inline-flex items-center px-5 py-2 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 transform hover:scale-105"
           >
             <Save className="h-4 w-4 mr-2" />
             {saveWorkflowMutation.isPending ? 'Saving...' : 'Save'}
           </button>
           <button
-            disabled={!currentWorkflow?.isActive}
-            className="btn btn-secondary"
+            onClick={handleTestRun}
+            disabled={isLoading || !currentWorkflow?.id}
+            className="inline-flex items-center px-4 py-2 border-2 border-green-300 rounded-xl text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 hover:border-green-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+            title={!currentWorkflow?.id ? "💾 Save workflow first to enable test run" : "▶️ Run workflow with test data"}
           >
             <Play className="h-4 w-4 mr-2" />
             Test Run
@@ -395,7 +479,6 @@ export function WorkflowDesigner() {
 
         {/* Main Canvas */}
         <div className="flex-1 relative">
-          <WorkflowToolbar />
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -424,17 +507,17 @@ export function WorkflowDesigner() {
             connectionLineStyle={{ stroke: '#3b82f6', strokeWidth: 2 }}
             connectionLineType="smoothstep"
           >
-            <Background 
-              gap={16} 
-              size={1} 
+            <Background
+              gap={16}
+              size={1}
               color="#e5e7eb"
               style={{ backgroundColor: 'transparent' }}
             />
-            <Controls 
+            <Controls
               className="bg-white shadow-lg rounded-lg border border-gray-200"
               showInteractive={false}
             />
-            <MiniMap 
+            <MiniMap
               className="bg-white shadow-lg rounded-lg border border-gray-200"
               nodeColor={(node) => {
                 if (node.selected) return '#3b82f6'
@@ -442,6 +525,7 @@ export function WorkflowDesigner() {
               }}
               maskColor="rgba(0, 0, 0, 0.05)"
             />
+            <WorkflowToolbar />
           </ReactFlow>
         </div>
 
@@ -464,12 +548,17 @@ export function WorkflowDesigner() {
 
       {/* Workflow Metadata Editor */}
       {showMetadataEditor && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">Workflow Details</h2>
-            <div className="space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg border-2 border-gray-200 transform transition-all">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
+                <FileText className="h-6 w-6 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Workflow Details</h2>
+            </div>
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Workflow Name *
                 </label>
                 <input
@@ -477,12 +566,12 @@ export function WorkflowDesigner() {
                   value={workflowMetadata.name}
                   onChange={(e) => setWorkflowMetadata({ ...workflowMetadata, name: e.target.value })}
                   placeholder="e.g., Employee Onboarding"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Description
                 </label>
                 <textarea
@@ -490,17 +579,17 @@ export function WorkflowDesigner() {
                   onChange={(e) => setWorkflowMetadata({ ...workflowMetadata, description: e.target.value })}
                   placeholder="Describe what this workflow does..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Event Trigger *
                 </label>
                 <select
                   value={workflowMetadata.eventTrigger}
                   onChange={(e) => setWorkflowMetadata({ ...workflowMetadata, eventTrigger: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
                 >
                   <option value="employee.onboard">Employee Onboarding</option>
                   <option value="employee.offboard">Employee Offboarding</option>
@@ -515,7 +604,7 @@ export function WorkflowDesigner() {
                 </select>
               </div>
             </div>
-            <div className="flex justify-end space-x-3 mt-6">
+            <div className="flex justify-end space-x-3 mt-8">
               <button
                 onClick={() => {
                   if (!isEditing) {
@@ -524,7 +613,7 @@ export function WorkflowDesigner() {
                     setShowMetadataEditor(false)
                   }
                 }}
-                className="px-4 py-2 text-gray-700 hover:text-gray-900"
+                className="px-6 py-2.5 text-gray-700 font-medium hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
               >
                 Cancel
               </button>
@@ -536,7 +625,7 @@ export function WorkflowDesigner() {
                   }
                   setShowMetadataEditor(false)
                 }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 shadow-lg transition-all transform hover:scale-105"
               >
                 Continue
               </button>

@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "PORT=3003 tsx watch src/index.ts",
+    "dev": "PORT=3003 NODE_ENV=development tsx watch --env-file=../../.env src/index.ts",
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",

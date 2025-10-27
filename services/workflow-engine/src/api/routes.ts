@@ -25,7 +25,21 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
   router.get('/workflows', async (req: Request, res: Response) => {
     try {
       const workflows = await workflowRepo.findAll();
-      res.json(workflows);
+      
+      // Transform snake_case to camelCase for frontend
+      const transformedWorkflows = workflows.map(w => ({
+        id: w.workflow_id,
+        name: w.name,
+        description: w.description,
+        eventTrigger: w.event_trigger,
+        version: w.version,
+        isActive: w.is_active,
+        definition: w.definition,
+        createdAt: w.created_at,
+        updatedAt: w.updated_at,
+      }));
+      
+      res.json(transformedWorkflows);
     } catch (error) {
       console.error('Failed to get workflows:', error);
       res.status(500).json({
@@ -49,7 +63,20 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         });
       }
       
-      res.json(workflow);
+      // Transform snake_case to camelCase for frontend
+      const responseWorkflow = {
+        id: workflow.workflow_id,
+        name: workflow.name,
+        description: workflow.description,
+        eventTrigger: workflow.event_trigger,
+        version: workflow.version,
+        isActive: workflow.is_active,
+        definition: workflow.definition,
+        createdAt: workflow.created_at,
+        updatedAt: workflow.updated_at,
+      };
+      
+      res.json(responseWorkflow);
     } catch (error) {
       console.error('Failed to get workflow:', error);
       res.status(500).json({
@@ -64,10 +91,42 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
    */
   router.post('/workflows', async (req: Request, res: Response) => {
     try {
-      const workflowData = req.body;
+      const { name, description, eventTrigger, version, isActive, definition } = req.body;
+      
+      // Get user info from auth token (for now, use a default org_id)
+      // TODO: Extract from auth middleware once implemented
+      const user = (req as any).user;
+      const org_id = user?.orgId || 'f43ed62f-0e77-4ab5-a42a-41aca2a5434c'; // Default org from DB
+      const created_by = user?.userId;
+      
+      // Transform camelCase to snake_case for database
+      const workflowData = {
+        org_id,
+        name,
+        description,
+        event_trigger: eventTrigger,
+        version: version || 1,
+        is_active: isActive !== undefined ? isActive : false,
+        definition,
+        created_by,
+      };
+      
       const workflow = await workflowRepo.create(workflowData);
       
-      res.status(201).json(workflow);
+      // Transform response back to camelCase for frontend
+      const responseWorkflow = {
+        id: workflow.workflow_id,
+        name: workflow.name,
+        description: workflow.description,
+        eventTrigger: workflow.event_trigger,
+        version: workflow.version,
+        isActive: workflow.is_active,
+        definition: workflow.definition,
+        createdAt: workflow.created_at,
+        updatedAt: workflow.updated_at,
+      };
+      
+      res.status(201).json(responseWorkflow);
     } catch (error) {
       console.error('Failed to create workflow:', error);
       res.status(500).json({
@@ -83,7 +142,16 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
   router.put('/workflows/:id', async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const updates = req.body;
+      const { name, description, eventTrigger, version, isActive, definition } = req.body;
+      
+      // Transform camelCase to snake_case
+      const updates: any = {};
+      if (name !== undefined) updates.name = name;
+      if (description !== undefined) updates.description = description;
+      if (eventTrigger !== undefined) updates.event_trigger = eventTrigger;
+      if (version !== undefined) updates.version = version;
+      if (isActive !== undefined) updates.is_active = isActive;
+      if (definition !== undefined) updates.definition = definition;
       
       const workflow = await workflowRepo.update(id, updates);
       
@@ -93,7 +161,20 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         });
       }
       
-      res.json(workflow);
+      // Transform response back to camelCase
+      const responseWorkflow = {
+        id: workflow.workflow_id,
+        name: workflow.name,
+        description: workflow.description,
+        eventTrigger: workflow.event_trigger,
+        version: workflow.version,
+        isActive: workflow.is_active,
+        definition: workflow.definition,
+        createdAt: workflow.created_at,
+        updatedAt: workflow.updated_at,
+      };
+      
+      res.json(responseWorkflow);
     } catch (error) {
       console.error('Failed to update workflow:', error);
       res.status(500).json({
@@ -116,6 +197,44 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
       console.error('Failed to delete workflow:', error);
       res.status(500).json({
         error: 'Failed to delete workflow',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * Execute workflow (test run)
+   */
+  router.post('/workflows/:id/execute', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { context } = req.body;
+      
+      // Get user info from auth token
+      const user = (req as any).user;
+      const organizationId = user?.orgId || 'f43ed62f-0e77-4ab5-a42a-41aca2a5434c';
+      
+      // Create execution context
+      const executionContext = {
+        organizationId,
+        employeeId: context?.employeeId,
+        triggerEvent: { type: 'manual', data: context?.data || {} },
+        variables: context?.variables || {},
+        correlationId: `test-${Date.now()}`,
+      };
+      
+      // Execute workflow
+      const workflowRun = await engineService.executeWorkflow(id, executionContext);
+      
+      res.status(200).json({
+        runId: workflowRun.id,
+        status: workflowRun.status,
+        message: 'Workflow execution started',
+      });
+    } catch (error) {
+      console.error('Failed to execute workflow:', error);
+      res.status(500).json({
+        error: 'Failed to execute workflow',
         message: error instanceof Error ? error.message : 'Unknown error',
       });
     }

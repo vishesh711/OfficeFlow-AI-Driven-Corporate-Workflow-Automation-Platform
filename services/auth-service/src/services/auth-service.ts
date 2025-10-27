@@ -77,9 +77,11 @@ export class AuthService {
       
       // If no org exists, create a default one
       if (orgResult.rows.length === 0) {
+        // Extract domain from email or use a default
+        const emailDomain = email.split('@')[1] || 'default.local';
         await this.db.query(
-          'INSERT INTO organizations (org_id, name, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())',
-          [organizationId, organizationName || 'Default Organization']
+          'INSERT INTO organizations (org_id, name, domain, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())',
+          [organizationId, organizationName || 'Default Organization', emailDomain]
         );
       }
 

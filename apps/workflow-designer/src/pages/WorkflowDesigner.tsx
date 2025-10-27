@@ -119,21 +119,50 @@ export function WorkflowDesigner() {
   const handleSave = useCallback(async () => {
     // Check if workflow has a name
     if (!workflowMetadata.name.trim()) {
-      alert('Please enter a workflow name before saving.')
+      alert('⚠️ Please enter a workflow name before saving.\n\nClick the "Workflow Info" button at the top or enter a name in the metadata editor.')
       setShowMetadataEditor(true)
       return
     }
 
     // Check if workflow has nodes
     if (!nodes.length) {
-      alert('Please add at least one node to the workflow before saving.')
+      alert('⚠️ Please add at least one node to the workflow before saving.\n\nDrag nodes from the left sidebar onto the canvas.')
       return
     }
 
     // Validate workflow before saving
     if (!validationResult.isValid) {
-      const errorMessages = validationResult.errors.map(e => e.message)
-      alert(`Workflow validation failed:\n${errorMessages.join('\n')}`)
+      const errorCount = validationResult.errors.length
+      const warningCount = validationResult.warnings.length
+      
+      // Group errors by type
+      const errorsByType: Record<string, string[]> = {}
+      validationResult.errors.forEach(error => {
+        const type = error.message.includes('trigger') ? 'Trigger Issues' :
+                     error.message.includes('recipients') || error.message.includes('template') ? 'Email Node Issues' :
+                     error.message.includes('expression') ? 'Condition Node Issues' :
+                     error.message.includes('duration') ? 'Delay Node Issues' :
+                     error.message.includes('action') || error.message.includes('provider') ? 'Identity Node Issues' :
+                     error.message.includes('contentType') || error.message.includes('prompt') ? 'AI Node Issues' :
+                     error.message.includes('Circular') ? 'Connection Issues' :
+                     'Other Issues'
+        
+        if (!errorsByType[type]) errorsByType[type] = []
+        errorsByType[type].push(error.message)
+      })
+      
+      let errorMessage = `❌ Workflow validation failed (${errorCount} error${errorCount !== 1 ? 's' : ''}, ${warningCount} warning${warningCount !== 1 ? 's' : ''})\n\n`
+      
+      // Show errors grouped by type
+      Object.entries(errorsByType).forEach(([type, messages]) => {
+        errorMessage += `${type}:\n`
+        messages.forEach(msg => errorMessage += `  • ${msg}\n`)
+        errorMessage += '\n'
+      })
+      
+      errorMessage += '💡 TIP: Open the Validation Panel (bottom right) to see detailed errors and click on them to jump to the problem node.'
+      
+      alert(errorMessage)
       setShowValidationPanel(true)
       return
     }
@@ -151,14 +180,53 @@ export function WorkflowDesigner() {
       setLoading(true)
       await saveWorkflowMutation.mutateAsync(workflowData)
       setDirty(false)
-      alert('Workflow saved successfully!')
+      alert('✅ Workflow saved successfully!\n\nYou can now run a test by clicking the "Test Run" button.')
     } catch (error) {
       console.error('Failed to save workflow:', error)
-      alert('Failed to save workflow. Please try again.')
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      alert(`❌ Failed to save workflow.\n\nError: ${errorMsg}\n\nPlease check the console for more details.`)
     } finally {
       setLoading(false)
     }
-  }, [workflowMetadata, nodes, validationResult, getWorkflowDefinition, saveWorkflowMutation, setLoading, setDirty, currentWorkflow])
+  }, [workflowMetadata, nodes, validationResult, getWorkflowDefinition, saveWorkflowMutation, setLoading, setDirty, currentWorkflow, setShowMetadataEditor, setShowValidationPanel])
+
+  const handleTestRun = useCallback(async () => {
+    // Check if workflow has been saved (has an ID)
+    if (!currentWorkflow || !currentWorkflow.id) {
+      alert('⚠️ Please save the workflow first before running a test.\n\nTemplates and new workflows must be saved to get an ID before they can be executed.')
+      setShowMetadataEditor(true)
+      return
+    }
+
+    // Validate workflow before test run
+    if (!validationResult.isValid) {
+      const errorMessages = validationResult.errors.map(e => e.message)
+      alert(`Workflow validation failed:\n${errorMessages.join('\n')}`)
+      setShowValidationPanel(true)
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await workflowApi.executeWorkflow(currentWorkflow.id, {
+        variables: { testRun: true },
+        data: { trigger: 'manual_test' },
+      })
+      
+      alert(`✅ Test run started successfully!\n\nRun ID: ${response.data.runId}\nStatus: ${response.data.status}\n\nCheck the Monitoring page to view progress.`)
+      
+      // Navigate to monitoring page
+      setTimeout(() => {
+        navigate('/monitoring')
+      }, 2000)
+    } catch (error) {
+      console.error('Failed to execute test run:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`❌ Failed to start test run.\n\nError: ${errorMessage}\n\nPlease try again or check the console for details.`)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentWorkflow, validationResult, setLoading, navigate, setShowMetadataEditor])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -186,19 +254,21 @@ export function WorkflowDesigner() {
   }, [handleSave, selectedNodeId, selectNode])
 
   const handleSelectTemplate = useCallback((template: WorkflowTemplate) => {
-    // Create a new workflow from template
-    const newWorkflow = {
+    // Set workflow metadata from template
+    setWorkflowMetadata({
       name: template.name,
-      description: template.description,
+      description: template.description || '',
       eventTrigger: 'employee.onboard',
-      version: 1,
-      isActive: false,
-      definition: template.definition,
-    }
+    })
     
-    setCurrentWorkflow(newWorkflow as any)
+    // Load the workflow definition (nodes and edges)
     loadWorkflowDefinition(template.definition)
-  }, [setCurrentWorkflow, loadWorkflowDefinition])
+    
+    // Show metadata editor so user can customize before saving
+    setShowMetadataEditor(true)
+    
+    // Note: currentWorkflow will be set when user saves
+  }, [loadWorkflowDefinition, setShowMetadataEditor])
 
   const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     selectNode(node.id)
@@ -392,8 +462,10 @@ export function WorkflowDesigner() {
             {saveWorkflowMutation.isPending ? 'Saving...' : 'Save'}
           </button>
           <button
-            disabled={!currentWorkflow?.isActive}
+            onClick={handleTestRun}
+            disabled={isLoading || !currentWorkflow?.id}
             className="inline-flex items-center px-4 py-2 border-2 border-green-300 rounded-xl text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 hover:border-green-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+            title={!currentWorkflow?.id ? "💾 Save workflow first to enable test run" : "▶️ Run workflow with test data"}
           >
             <Play className="h-4 w-4 mr-2" />
             Test Run

@@ -22,7 +22,7 @@ export function Login() {
     setIsLoading(true)
 
     try {
-      const response = await axios.post('http://localhost:3001/api/auth/login', {
+      const response = await axios.post('http://localhost:3001/auth/login', {
         email,
         password
       })
@@ -53,15 +53,36 @@ export function Login() {
       return
     }
 
+    // Validate password strength
     if (password.length < 8) {
       setError('Password must be at least 8 characters long')
+      return
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setError('Password must contain at least one uppercase letter')
+      return
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setError('Password must contain at least one lowercase letter')
+      return
+    }
+
+    if (!/\d/.test(password)) {
+      setError('Password must contain at least one number')
+      return
+    }
+
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      setError('Password must contain at least one special character (!@#$%^&* etc.)')
       return
     }
 
     setIsLoading(true)
 
     try {
-      const response = await axios.post('http://localhost:3001/api/auth/register', {
+      const response = await axios.post('http://localhost:3001/auth/register', {
         email,
         password,
         name
@@ -188,6 +209,9 @@ export function Login() {
                     )}
                   </button>
                 </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Must be 8+ characters with uppercase, lowercase, number, and special character
+                </p>
               </div>
 
               {/* Remember Me & Forgot Password */}
@@ -307,7 +331,9 @@ export function Login() {
                     )}
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Must be 8+ characters with uppercase, lowercase, number, and special character
+                </p>
               </div>
 
               {/* Confirm Password Field */}

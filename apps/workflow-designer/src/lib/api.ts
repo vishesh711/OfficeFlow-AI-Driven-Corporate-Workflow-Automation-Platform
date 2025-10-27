@@ -227,6 +227,8 @@ export const workflowApi = {
   updateWorkflow: (id: string, workflow: Partial<Workflow>) =>
     apiClient.put<Workflow>(`/workflows/${id}`, workflow),
   deleteWorkflow: (id: string) => apiClient.delete(`/workflows/${id}`),
+  executeWorkflow: (id: string, context?: { employeeId?: string; data?: Record<string, any>; variables?: Record<string, any> }) =>
+    apiClient.post<{ runId: string; status: string; message: string }>(`/workflows/${id}/execute`, { context }),
   getWorkflowRuns: (workflowId: string) =>
     apiClient.get<WorkflowRun[]>(`/workflows/${workflowId}/runs`),
 }

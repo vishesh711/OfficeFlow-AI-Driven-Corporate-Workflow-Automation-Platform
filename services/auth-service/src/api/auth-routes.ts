@@ -44,7 +44,7 @@ export function createAuthRoutes(authService: AuthService, logger: MockLogger): 
     email: Joi.string().email().required(),
     password: Joi.string().min(authConfig.password.minLength).required(),
     name: Joi.string().min(2).required(),
-    organizationName: Joi.string().min(2).optional()
+    organizationName: Joi.string().min(2)
   });
 
   const loginSchema = Joi.object({

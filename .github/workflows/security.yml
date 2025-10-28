@@ -146,7 +146,8 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.service == 'workflow-designer' && 'apps' || 'services' }}/${{ matrix.service }}
+          context: .
+          file: ${{ matrix.service == 'workflow-designer' && 'apps/workflow-designer/Dockerfile' || format('services/{0}/Dockerfile', matrix.service) }}
           push: false
           tags: officeflow/${{ matrix.service }}:security-scan
           cache-from: type=gha

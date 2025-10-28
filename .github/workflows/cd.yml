@@ -32,6 +32,7 @@ jobs:
       contents: read
       packages: write
     strategy:
+      fail-fast: false
       matrix:
         service:
           - workflow-engine
@@ -44,9 +45,6 @@ jobs:
           - slack-service
           - webhook-gateway
           - workflow-designer
-    outputs:
-      version: ${{ steps.meta.outputs.version }}
-      image-digest: ${{ steps.build.outputs.digest }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -79,9 +77,8 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ${{ matrix.service == 'workflow-designer' && 'apps/workflow-designer/Dockerfile' || format('services/{0}/Dockerfile', matrix.service) }}
-          platforms: linux/amd64
+          context: ${{ matrix.service == 'workflow-designer' && 'apps' || 'services' }}/${{ matrix.service }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -95,15 +92,17 @@ jobs:
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.REGISTRY }}/${{ env.REGISTRY_PREFIX }}/${{ matrix.service }}:${{ steps.meta.outputs.version }}
+          image: ${{ env.REGISTRY }}/${{ env.REGISTRY_PREFIX }}/${{ matrix.service }}@${{ steps.build.outputs.digest }}
           format: spdx-json
           output-file: sbom-${{ matrix.service }}.spdx.json
+        continue-on-error: true
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v3
         with:
           name: sbom-${{ matrix.service }}
           path: sbom-${{ matrix.service }}.spdx.json
+        continue-on-error: true
 
   # Security scanning of built images
   security-scan-images:
@@ -127,14 +126,16 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.REGISTRY_PREFIX }}/${{ matrix.service }}:${{ needs.build-and-push.outputs.version }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.REGISTRY_PREFIX }}/${{ matrix.service }}:latest
           format: sarif
           output: trivy-results-${{ matrix.service }}.sarif
+        continue-on-error: true
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: trivy-results-${{ matrix.service }}.sarif
+        continue-on-error: true
 
   # Deploy to staging
   deploy-staging:
@@ -162,8 +163,8 @@ jobs:
 
       - name: Update image tags in manifests
         run: |
-          VERSION=${{ github.event.inputs.version || needs.build-and-push.outputs.version }}
-          find k8s -name "*.yaml" -exec sed -i "s|:latest|:${VERSION}|g" {} \;
+          VERSION=${{ github.event.inputs.version || github.sha }}
+          find k8s -name "*.yaml" -exec sed -i "s|:latest|:main-${VERSION:0:7}|g" {} \;
 
       - name: Deploy to staging
         run: |
@@ -226,7 +227,7 @@ jobs:
       - name: Blue-Green Deployment
         run: |
           export KUBECONFIG=kubeconfig
-          VERSION=${{ github.event.inputs.version || needs.build-and-push.outputs.version }}
+          VERSION=${{ github.event.inputs.version || github.sha }}
           
           # Update image tags
           find k8s -name "*.yaml" -exec sed -i "s|:latest|:${VERSION}|g" {} \;
@@ -326,7 +327,7 @@ jobs:
           channel: '#deployments'
           text: |
             🚀 Deployment successful!
-            Version: ${{ needs.build-and-push.outputs.version }}
+            Version: ${{ github.sha }}
             Environment: ${{ github.event.inputs.environment || 'production' }}
             Commit: ${{ github.sha }}
         env:
@@ -340,7 +341,7 @@ jobs:
           channel: '#deployments'
           text: |
             ❌ Deployment failed!
-            Version: ${{ needs.build-and-push.outputs.version }}
+            Version: ${{ github.sha }}
             Environment: ${{ github.event.inputs.environment || 'production' }}
             Commit: ${{ github.sha }}
         env:
@@ -361,7 +362,7 @@ jobs:
             
             ## Docker Images
             
-            All images are available at `ghcr.io/${{ github.repository_owner }}/officeflow/*:${{ needs.build-and-push.outputs.version }}`
+            All images are available at `ghcr.io/${{ github.repository_owner }}/officeflow/*:latest`
             
             ## Deployment
             

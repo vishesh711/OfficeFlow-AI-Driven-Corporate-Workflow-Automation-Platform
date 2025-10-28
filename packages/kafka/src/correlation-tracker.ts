@@ -38,13 +38,15 @@ export class CorrelationTracker {
   /**
    * Create a new correlation context
    */
-  createContext(options: {
-    parentId?: string;
-    organizationId?: string;
-    employeeId?: string;
-    workflowRunId?: string;
-    nodeRunId?: string;
-  } = {}): CorrelationContext {
+  createContext(
+    options: {
+      parentId?: string;
+      organizationId?: string;
+      employeeId?: string;
+      workflowRunId?: string;
+      nodeRunId?: string;
+    } = {}
+  ): CorrelationContext {
     const correlationId = uuidv4();
     const traceId = options.parentId ? this.getTraceId(options.parentId) : uuidv4();
     const spanId = uuidv4();
@@ -94,7 +96,7 @@ export class CorrelationTracker {
     } = {}
   ): CorrelationContext {
     const parentContext = this.getContext(parentCorrelationId);
-    
+
     return this.createContext({
       parentId: parentCorrelationId,
       organizationId: options.organizationId || parentContext?.organizationId,
@@ -133,8 +135,8 @@ export class CorrelationTracker {
       const events = this.traceEvents.get(correlationId) || [];
       const startEvent = events
         .reverse()
-        .find(e => e.service === service && e.operation === operation && e.status === 'started');
-      
+        .find((e) => e.service === service && e.operation === operation && e.status === 'started');
+
       if (startEvent) {
         event.duration = event.timestamp.getTime() - startEvent.timestamp.getTime();
       }
@@ -166,7 +168,7 @@ export class CorrelationTracker {
     }
 
     const events = this.getTraceEvents(correlationId);
-    
+
     // Find child contexts
     const children: Array<{ context: CorrelationContext; events: TraceEvent[] }> = [];
     for (const [childId, childContext] of this.contextStore.entries()) {
@@ -184,14 +186,15 @@ export class CorrelationTracker {
   /**
    * Clean up old contexts and events (call periodically)
    */
-  cleanup(maxAgeMs: number = 24 * 60 * 60 * 1000): void { // Default: 24 hours
+  cleanup(maxAgeMs: number = 24 * 60 * 60 * 1000): void {
+    // Default: 24 hours
     const cutoffTime = Date.now() - maxAgeMs;
-    
+
     // Clean up contexts
     for (const [correlationId, context] of this.contextStore.entries()) {
       const events = this.traceEvents.get(correlationId);
       if (events && events.length > 0) {
-        const lastEventTime = Math.max(...events.map(e => e.timestamp.getTime()));
+        const lastEventTime = Math.max(...events.map((e) => e.timestamp.getTime()));
         if (lastEventTime < cutoffTime) {
           this.contextStore.delete(correlationId);
           this.traceEvents.delete(correlationId);
@@ -226,7 +229,7 @@ export class CorrelationTracker {
             'workflow.run.id': trace.context.workflowRunId,
             'node.run.id': trace.context.nodeRunId,
           },
-          logs: trace.events.map(event => ({
+          logs: trace.events.map((event) => ({
             timestamp: event.timestamp,
             fields: {
               level: event.status === 'failed' ? 'error' : 'info',
@@ -238,7 +241,7 @@ export class CorrelationTracker {
           })),
         },
         // Add child spans
-        ...trace.children.map(child => ({
+        ...trace.children.map((child) => ({
           spanId: child.context.spanId,
           parentSpanId: trace.context.spanId,
           operationName: 'child-operation',
@@ -251,7 +254,7 @@ export class CorrelationTracker {
             'workflow.run.id': child.context.workflowRunId,
             'node.run.id': child.context.nodeRunId,
           },
-          logs: child.events.map(event => ({
+          logs: child.events.map((event) => ({
             timestamp: event.timestamp,
             fields: {
               level: event.status === 'failed' ? 'error' : 'info',

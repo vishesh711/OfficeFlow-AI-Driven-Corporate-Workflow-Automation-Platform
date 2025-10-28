@@ -1,28 +1,52 @@
-import { useState } from 'react'
-import { Shield, Users, Plug, Database, Sparkles, Plus, Edit, Trash2, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { useState } from 'react';
+import {
+  Shield,
+  Users,
+  Plug,
+  Database,
+  Sparkles,
+  Plus,
+  Edit,
+  Trash2,
+  Loader2,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react';
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('users')
-  const [isLoading, setIsLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState('users');
+  const [isLoading, setIsLoading] = useState(false);
 
   const tabs = [
     { id: 'users', name: 'Users', icon: Users },
     { id: 'integrations', name: 'Integrations', icon: Plug },
     { id: 'system', name: 'System', icon: Database },
-  ]
+  ];
 
   // Mock data
   const users = [
     { id: '1', name: 'John Doe', email: 'john@officeflow.com', role: 'Admin', status: 'active' },
     { id: '2', name: 'Jane Smith', email: 'jane@officeflow.com', role: 'User', status: 'active' },
     { id: '3', name: 'Bob Johnson', email: 'bob@officeflow.com', role: 'User', status: 'inactive' },
-  ]
+  ];
 
   const integrations = [
-    { id: '1', name: 'Google Workspace', type: 'Identity', status: 'connected', lastSync: '2 hours ago' },
-    { id: '2', name: 'Slack', type: 'Communication', status: 'connected', lastSync: '5 minutes ago' },
+    {
+      id: '1',
+      name: 'Google Workspace',
+      type: 'Identity',
+      status: 'connected',
+      lastSync: '2 hours ago',
+    },
+    {
+      id: '2',
+      name: 'Slack',
+      type: 'Communication',
+      status: 'connected',
+      lastSync: '5 minutes ago',
+    },
     { id: '3', name: 'GitHub', type: 'Development', status: 'disconnected', lastSync: 'Never' },
-  ]
+  ];
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -30,7 +54,7 @@ export function AdminDashboard() {
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl p-8 mb-8 border border-gray-200 shadow-sm">
         <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
         <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        
+
         <div className="relative">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
@@ -51,12 +75,8 @@ export function AdminDashboard() {
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-500 mb-2">
-                  Total Users
-                </p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {users.length}
-                </p>
+                <p className="text-sm font-medium text-gray-500 mb-2">Total Users</p>
+                <p className="text-3xl font-bold text-gray-900">{users.length}</p>
               </div>
               <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl group-hover:from-blue-200 group-hover:to-blue-300 transition-colors">
                 <Users className="h-7 w-7 text-blue-600 group-hover:text-blue-700 transition-colors" />
@@ -69,11 +89,9 @@ export function AdminDashboard() {
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-500 mb-2">
-                  Active Integrations
-                </p>
+                <p className="text-sm font-medium text-gray-500 mb-2">Active Integrations</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {integrations.filter(i => i.status === 'connected').length}
+                  {integrations.filter((i) => i.status === 'connected').length}
                 </p>
               </div>
               <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl group-hover:from-green-200 group-hover:to-green-300 transition-colors">
@@ -87,12 +105,8 @@ export function AdminDashboard() {
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-500 mb-2">
-                  System Health
-                </p>
-                <p className="text-3xl font-bold text-green-600">
-                  Healthy
-                </p>
+                <p className="text-sm font-medium text-gray-500 mb-2">System Health</p>
+                <p className="text-3xl font-bold text-green-600">Healthy</p>
               </div>
               <div className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl group-hover:from-purple-200 group-hover:to-purple-300 transition-colors">
                 <Database className="h-7 w-7 text-purple-600 group-hover:text-purple-700 transition-colors" />
@@ -137,23 +151,43 @@ export function AdminDashboard() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Role
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {users.map((user) => (
                       <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.role}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {user.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {user.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {user.role}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              user.status === 'active'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
                             {user.status}
                           </span>
                         </td>
@@ -186,7 +220,10 @@ export function AdminDashboard() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {integrations.map((integration) => (
-                  <div key={integration.id} className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all">
+                  <div
+                    key={integration.id}
+                    className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all"
+                  >
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h4 className="font-semibold text-gray-900 mb-1">{integration.name}</h4>
@@ -244,5 +281,5 @@ export function AdminDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

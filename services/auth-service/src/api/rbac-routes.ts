@@ -15,25 +15,26 @@ export function createRbacRoutes(
   /**
    * Get all available roles
    */
-  router.get('/roles', 
+  router.get(
+    '/roles',
     authMiddleware.authenticate,
     authMiddleware.authorizePermission(RESOURCES.USER, ACTIONS.READ),
     async (req: Request, res: Response) => {
       try {
         const roles = await rbacService.getAllRoles();
-        
+
         res.json({
           success: true,
-          data: roles
+          data: roles,
         });
       } catch (error) {
         logger.error('Error getting roles', {
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         res.status(500).json({
           error: 'Failed to get roles',
-          code: 'GET_ROLES_FAILED'
+          code: 'GET_ROLES_FAILED',
         });
       }
     }
@@ -42,7 +43,8 @@ export function createRbacRoutes(
   /**
    * Get user's roles in organization
    */
-  router.get('/users/:userId/roles',
+  router.get(
+    '/users/:userId/roles',
     authMiddleware.authenticate,
     authMiddleware.authorizeOrganization,
     authMiddleware.authorizePermission(RESOURCES.USER, ACTIONS.READ),
@@ -52,20 +54,20 @@ export function createRbacRoutes(
         const orgId = req.user!.orgId;
 
         const roles = await rbacService.getUserRoles(userId as UUID, orgId);
-        
+
         res.json({
           success: true,
-          data: roles
+          data: roles,
         });
       } catch (error) {
         logger.error('Error getting user roles', {
           userId: req.params.userId,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         res.status(500).json({
           error: 'Failed to get user roles',
-          code: 'GET_USER_ROLES_FAILED'
+          code: 'GET_USER_ROLES_FAILED',
         });
       }
     }
@@ -74,7 +76,8 @@ export function createRbacRoutes(
   /**
    * Get user's permissions in organization
    */
-  router.get('/users/:userId/permissions',
+  router.get(
+    '/users/:userId/permissions',
     authMiddleware.authenticate,
     authMiddleware.authorizeOrganization,
     authMiddleware.authorizePermission(RESOURCES.USER, ACTIONS.READ),
@@ -84,20 +87,20 @@ export function createRbacRoutes(
         const orgId = req.user!.orgId;
 
         const permissions = await rbacService.getUserPermissions(userId as UUID, orgId);
-        
+
         res.json({
           success: true,
-          data: permissions
+          data: permissions,
         });
       } catch (error) {
         logger.error('Error getting user permissions', {
           userId: req.params.userId,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         res.status(500).json({
           error: 'Failed to get user permissions',
-          code: 'GET_USER_PERMISSIONS_FAILED'
+          code: 'GET_USER_PERMISSIONS_FAILED',
         });
       }
     }
@@ -106,7 +109,8 @@ export function createRbacRoutes(
   /**
    * Assign role to user
    */
-  router.post('/users/:userId/roles',
+  router.post(
+    '/users/:userId/roles',
     authMiddleware.authenticate,
     authMiddleware.authorizeOrganization,
     authMiddleware.authorizePermission(RESOURCES.USER, ACTIONS.UPDATE),
@@ -120,7 +124,7 @@ export function createRbacRoutes(
         if (!roleId) {
           res.status(400).json({
             error: 'Role ID is required',
-            code: 'MISSING_ROLE_ID'
+            code: 'MISSING_ROLE_ID',
           });
           return;
         }
@@ -132,21 +136,21 @@ export function createRbacRoutes(
           assignedBy,
           expiresAt ? new Date(expiresAt) : undefined
         );
-        
+
         res.json({
           success: true,
-          data: assignment
+          data: assignment,
         });
       } catch (error) {
         logger.error('Error assigning role to user', {
           userId: req.params.userId,
           roleId: req.body.roleId,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         res.status(500).json({
           error: 'Failed to assign role',
-          code: 'ASSIGN_ROLE_FAILED'
+          code: 'ASSIGN_ROLE_FAILED',
         });
       }
     }
@@ -155,7 +159,8 @@ export function createRbacRoutes(
   /**
    * Remove role from user
    */
-  router.delete('/users/:userId/roles/:roleId',
+  router.delete(
+    '/users/:userId/roles/:roleId',
     authMiddleware.authenticate,
     authMiddleware.authorizeOrganization,
     authMiddleware.authorizePermission(RESOURCES.USER, ACTIONS.UPDATE),
@@ -164,26 +169,22 @@ export function createRbacRoutes(
         const { userId, roleId } = req.params;
         const orgId = req.user!.orgId;
 
-        await rbacService.removeUserRole(
-          userId as UUID,
-          roleId as UUID,
-          orgId
-        );
-        
+        await rbacService.removeUserRole(userId as UUID, roleId as UUID, orgId);
+
         res.json({
           success: true,
-          message: 'Role removed successfully'
+          message: 'Role removed successfully',
         });
       } catch (error) {
         logger.error('Error removing role from user', {
           userId: req.params.userId,
           roleId: req.params.roleId,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         res.status(500).json({
           error: 'Failed to remove role',
-          code: 'REMOVE_ROLE_FAILED'
+          code: 'REMOVE_ROLE_FAILED',
         });
       }
     }
@@ -192,7 +193,8 @@ export function createRbacRoutes(
   /**
    * Check if user has specific permission
    */
-  router.post('/permissions/check',
+  router.post(
+    '/permissions/check',
     authMiddleware.authenticate,
     async (req: Request, res: Response) => {
       try {
@@ -203,7 +205,7 @@ export function createRbacRoutes(
         if (!resource || !action) {
           res.status(400).json({
             error: 'Resource and action are required',
-            code: 'MISSING_PERMISSION_PARAMS'
+            code: 'MISSING_PERMISSION_PARAMS',
           });
           return;
         }
@@ -213,24 +215,24 @@ export function createRbacRoutes(
           orgId,
           resource,
           action,
-          resourceId: resourceId as UUID
+          resourceId: resourceId as UUID,
         });
-        
+
         res.json({
           success: true,
-          data: result
+          data: result,
         });
       } catch (error) {
         logger.error('Error checking permission', {
           userId: req.user?.userId,
           resource: req.body.resource,
           action: req.body.action,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         res.status(500).json({
           error: 'Failed to check permission',
-          code: 'CHECK_PERMISSION_FAILED'
+          code: 'CHECK_PERMISSION_FAILED',
         });
       }
     }
@@ -239,7 +241,8 @@ export function createRbacRoutes(
   /**
    * Grant resource-specific permission to user
    */
-  router.post('/resources/:resourceId/permissions',
+  router.post(
+    '/resources/:resourceId/permissions',
     authMiddleware.authenticate,
     authMiddleware.authorizeOrganization,
     authMiddleware.authorizePermission(RESOURCES.USER, ACTIONS.MANAGE),
@@ -253,7 +256,7 @@ export function createRbacRoutes(
         if (!resourceType || !userId || !permissions || !Array.isArray(permissions)) {
           res.status(400).json({
             error: 'Resource type, user ID, and permissions array are required',
-            code: 'MISSING_RESOURCE_PERMISSION_PARAMS'
+            code: 'MISSING_RESOURCE_PERMISSION_PARAMS',
           });
           return;
         }
@@ -267,21 +270,21 @@ export function createRbacRoutes(
           grantedBy,
           expiresAt ? new Date(expiresAt) : undefined
         );
-        
+
         res.json({
           success: true,
-          data: resourcePermission
+          data: resourcePermission,
         });
       } catch (error) {
         logger.error('Error granting resource permission', {
           resourceId: req.params.resourceId,
           userId: req.body.userId,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         res.status(500).json({
           error: 'Failed to grant resource permission',
-          code: 'GRANT_RESOURCE_PERMISSION_FAILED'
+          code: 'GRANT_RESOURCE_PERMISSION_FAILED',
         });
       }
     }
@@ -290,7 +293,8 @@ export function createRbacRoutes(
   /**
    * Revoke resource-specific permission from user
    */
-  router.delete('/resources/:resourceId/permissions/:userId',
+  router.delete(
+    '/resources/:resourceId/permissions/:userId',
     authMiddleware.authenticate,
     authMiddleware.authorizeOrganization,
     authMiddleware.authorizePermission(RESOURCES.USER, ACTIONS.MANAGE),
@@ -299,26 +303,22 @@ export function createRbacRoutes(
         const { resourceId, userId } = req.params;
         const orgId = req.user!.orgId;
 
-        await rbacService.revokeResourcePermission(
-          resourceId as UUID,
-          userId as UUID,
-          orgId
-        );
-        
+        await rbacService.revokeResourcePermission(resourceId as UUID, userId as UUID, orgId);
+
         res.json({
           success: true,
-          message: 'Resource permission revoked successfully'
+          message: 'Resource permission revoked successfully',
         });
       } catch (error) {
         logger.error('Error revoking resource permission', {
           resourceId: req.params.resourceId,
           userId: req.params.userId,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         res.status(500).json({
           error: 'Failed to revoke resource permission',
-          code: 'REVOKE_RESOURCE_PERMISSION_FAILED'
+          code: 'REVOKE_RESOURCE_PERMISSION_FAILED',
         });
       }
     }
@@ -327,7 +327,8 @@ export function createRbacRoutes(
   /**
    * Create custom role
    */
-  router.post('/roles',
+  router.post(
+    '/roles',
     authMiddleware.authenticate,
     authMiddleware.authorizePermission(RESOURCES.USER, ACTIONS.MANAGE),
     async (req: Request, res: Response) => {
@@ -337,26 +338,26 @@ export function createRbacRoutes(
         if (!name || !Array.isArray(permissionIds)) {
           res.status(400).json({
             error: 'Role name and permissions array are required',
-            code: 'MISSING_ROLE_PARAMS'
+            code: 'MISSING_ROLE_PARAMS',
           });
           return;
         }
 
         const role = await rbacService.createRole(name, description || '', permissionIds);
-        
+
         res.status(201).json({
           success: true,
-          data: role
+          data: role,
         });
       } catch (error) {
         logger.error('Error creating role', {
           name: req.body.name,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         res.status(500).json({
           error: 'Failed to create role',
-          code: 'CREATE_ROLE_FAILED'
+          code: 'CREATE_ROLE_FAILED',
         });
       }
     }

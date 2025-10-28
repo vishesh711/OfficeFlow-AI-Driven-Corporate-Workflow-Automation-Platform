@@ -21,27 +21,27 @@ describe('Identity Service Error Handling Tests', () => {
 
     mockCredentialManager = {
       getCredentials: jest.fn(),
-      isTokenExpiringSoon: jest.fn().mockReturnValue(false)
+      isTokenExpiringSoon: jest.fn().mockReturnValue(false),
     };
 
     mockAdapter = {
       createUser: jest.fn(),
       updateUser: jest.fn(),
       deleteUser: jest.fn(),
-      assignGroups: jest.fn()
+      assignGroups: jest.fn(),
     };
 
     mockProviderFactory = {
-      getAdapter: jest.fn().mockReturnValue(mockAdapter)
+      getAdapter: jest.fn().mockReturnValue(mockAdapter),
     };
 
     mockAuditLogger = {
       logAccountCreation: jest.fn().mockResolvedValue('audit-id-123'),
-      logAccountDeactivation: jest.fn().mockResolvedValue('audit-id-456')
+      logAccountDeactivation: jest.fn().mockResolvedValue('audit-id-456'),
     };
 
     mockCentralAudit = {
-      publishAuditEvent: jest.fn().mockResolvedValue(undefined)
+      publishAuditEvent: jest.fn().mockResolvedValue(undefined),
     };
 
     executor = new IdentityNodeExecutor(
@@ -71,7 +71,7 @@ describe('Identity Service Error Handling Tests', () => {
           action: 'provision',
           userEmail: 'test@example.com',
           firstName: 'John',
-          lastName: 'Doe'
+          lastName: 'Doe',
         },
         context: {
           organizationId: 'test-org',
@@ -79,10 +79,10 @@ describe('Identity Service Error Handling Tests', () => {
           correlationId: 'error-test-corr',
           variables: {},
           secrets: {},
-          triggerEvent: 'manual'
+          triggerEvent: 'manual',
         },
         idempotencyKey: 'error-test-idem',
-        attempt: 1
+        attempt: 1,
       };
 
       mockCredentialManager.getCredentials.mockResolvedValue({
@@ -90,15 +90,15 @@ describe('Identity Service Error Handling Tests', () => {
           accessToken: 'test-token',
           tokenType: 'Bearer',
           expiresIn: 3600,
-          expiresAt: new Date(Date.now() + 3600 * 1000)
-        }
+          expiresAt: new Date(Date.now() + 3600 * 1000),
+        },
       });
     });
 
     it('should handle rate limiting errors with retry status', async () => {
       const rateLimitError = {
         success: false,
-        error: 'Rate limit exceeded. Please try again later.'
+        error: 'Rate limit exceeded. Please try again later.',
       };
 
       mockAdapter.createUser.mockResolvedValue(rateLimitError);
@@ -114,7 +114,7 @@ describe('Identity Service Error Handling Tests', () => {
     it('should handle authentication errors', async () => {
       const authError = {
         success: false,
-        error: 'Invalid credentials or insufficient permissions'
+        error: 'Invalid credentials or insufficient permissions',
       };
 
       mockAdapter.createUser.mockResolvedValue(authError);
@@ -129,7 +129,7 @@ describe('Identity Service Error Handling Tests', () => {
     it('should handle user already exists errors', async () => {
       const userExistsError = {
         success: false,
-        error: 'User already exists with this email address'
+        error: 'User already exists with this email address',
       };
 
       mockAdapter.createUser.mockResolvedValue(userExistsError);
@@ -155,7 +155,7 @@ describe('Identity Service Error Handling Tests', () => {
         'Identity node execution failed',
         expect.objectContaining({
           nodeId: 'error-test-node',
-          error: 'ETIMEDOUT: Connection timed out'
+          error: 'ETIMEDOUT: Connection timed out',
         })
       );
     });
@@ -163,7 +163,7 @@ describe('Identity Service Error Handling Tests', () => {
     it('should handle service unavailable errors', async () => {
       const serviceError = {
         success: false,
-        error: 'Service temporarily unavailable'
+        error: 'Service temporarily unavailable',
       };
 
       mockAdapter.createUser.mockResolvedValue(serviceError);
@@ -190,7 +190,7 @@ describe('Identity Service Error Handling Tests', () => {
           action: 'provision',
           userEmail: 'test@example.com',
           firstName: 'Jane',
-          lastName: 'Smith'
+          lastName: 'Smith',
         },
         context: {
           organizationId: 'test-org',
@@ -198,10 +198,10 @@ describe('Identity Service Error Handling Tests', () => {
           correlationId: 'token-test-corr',
           variables: {},
           secrets: {},
-          triggerEvent: 'manual'
+          triggerEvent: 'manual',
         },
         idempotencyKey: 'token-test-idem',
-        attempt: 1
+        attempt: 1,
       };
     });
 
@@ -210,11 +210,11 @@ describe('Identity Service Error Handling Tests', () => {
         accessToken: 'expiring-token',
         tokenType: 'Bearer',
         expiresIn: 300,
-        expiresAt: new Date(Date.now() + 300 * 1000) // 5 minutes from now
+        expiresAt: new Date(Date.now() + 300 * 1000), // 5 minutes from now
       };
 
       mockCredentialManager.getCredentials.mockResolvedValue({
-        tokens: expiringTokens
+        tokens: expiringTokens,
       });
 
       mockCredentialManager.isTokenExpiringSoon.mockReturnValue(true);
@@ -222,7 +222,7 @@ describe('Identity Service Error Handling Tests', () => {
       mockAdapter.createUser.mockResolvedValue({
         success: true,
         userId: 'test-user-123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       });
 
       const result = await executor.execute(mockInput);
@@ -232,7 +232,7 @@ describe('Identity Service Error Handling Tests', () => {
         'Access token is expiring soon',
         expect.objectContaining({
           provider: 'office365',
-          expiresAt: expiringTokens.expiresAt
+          expiresAt: expiringTokens.expiresAt,
         })
       );
     });
@@ -242,11 +242,11 @@ describe('Identity Service Error Handling Tests', () => {
         accessToken: 'expired-token',
         tokenType: 'Bearer',
         expiresIn: 3600,
-        expiresAt: new Date(Date.now() - 1000) // 1 second ago
+        expiresAt: new Date(Date.now() - 1000), // 1 second ago
       };
 
       mockCredentialManager.getCredentials.mockResolvedValue({
-        tokens: expiredTokens
+        tokens: expiredTokens,
       });
 
       mockCredentialManager.isTokenExpiringSoon.mockReturnValue(true);
@@ -254,7 +254,7 @@ describe('Identity Service Error Handling Tests', () => {
       // Simulate token expired error from provider
       const tokenExpiredError = {
         success: false,
-        error: 'Access token has expired'
+        error: 'Access token has expired',
       };
 
       mockAdapter.createUser.mockResolvedValue(tokenExpiredError);
@@ -266,7 +266,7 @@ describe('Identity Service Error Handling Tests', () => {
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'Access token is expiring soon',
         expect.objectContaining({
-          provider: 'office365'
+          provider: 'office365',
         })
       );
     });
@@ -287,7 +287,7 @@ describe('Identity Service Error Handling Tests', () => {
           userEmail: 'test@example.com',
           firstName: 'John',
           lastName: 'Doe',
-          groups: ['valid-group@example.com', 'invalid-group@example.com']
+          groups: ['valid-group@example.com', 'invalid-group@example.com'],
         },
         context: {
           organizationId: 'test-org',
@@ -295,10 +295,10 @@ describe('Identity Service Error Handling Tests', () => {
           correlationId: 'group-test-corr',
           variables: {},
           secrets: {},
-          triggerEvent: 'manual'
+          triggerEvent: 'manual',
         },
         idempotencyKey: 'group-test-idem',
-        attempt: 1
+        attempt: 1,
       };
 
       mockCredentialManager.getCredentials.mockResolvedValue({
@@ -306,8 +306,8 @@ describe('Identity Service Error Handling Tests', () => {
           accessToken: 'test-token',
           tokenType: 'Bearer',
           expiresIn: 3600,
-          expiresAt: new Date(Date.now() + 3600 * 1000)
-        }
+          expiresAt: new Date(Date.now() + 3600 * 1000),
+        },
       });
     });
 
@@ -316,7 +316,7 @@ describe('Identity Service Error Handling Tests', () => {
       mockAdapter.createUser.mockResolvedValue({
         success: true,
         userId: 'test-user-123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       });
 
       // Group assignment partially fails
@@ -325,11 +325,11 @@ describe('Identity Service Error Handling Tests', () => {
         metadata: {
           groupAssignments: [
             { group: 'valid-group@example.com', success: true },
-            { group: 'invalid-group@example.com', success: false, error: 'Group not found' }
+            { group: 'invalid-group@example.com', success: false, error: 'Group not found' },
           ],
           successCount: 1,
-          totalCount: 2
-        }
+          totalCount: 2,
+        },
       });
 
       const result = await executor.execute(mockInput);
@@ -339,11 +339,10 @@ describe('Identity Service Error Handling Tests', () => {
 
       // Verify both user creation and group assignment were called
       expect(mockAdapter.createUser).toHaveBeenCalled();
-      expect(mockAdapter.assignGroups).toHaveBeenCalledWith(
-        expect.any(Object),
-        'test-user-123',
-        ['valid-group@example.com', 'invalid-group@example.com']
-      );
+      expect(mockAdapter.assignGroups).toHaveBeenCalledWith(expect.any(Object), 'test-user-123', [
+        'valid-group@example.com',
+        'invalid-group@example.com',
+      ]);
     });
 
     it('should handle complete group assignment failure', async () => {
@@ -351,7 +350,7 @@ describe('Identity Service Error Handling Tests', () => {
       mockAdapter.createUser.mockResolvedValue({
         success: true,
         userId: 'test-user-123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       });
 
       // All group assignments fail
@@ -361,11 +360,11 @@ describe('Identity Service Error Handling Tests', () => {
         metadata: {
           groupAssignments: [
             { group: 'valid-group@example.com', success: false, error: 'Permission denied' },
-            { group: 'invalid-group@example.com', success: false, error: 'Permission denied' }
+            { group: 'invalid-group@example.com', success: false, error: 'Permission denied' },
           ],
           successCount: 0,
-          totalCount: 2
-        }
+          totalCount: 2,
+        },
       });
 
       const result = await executor.execute(mockInput);
@@ -380,7 +379,7 @@ describe('Identity Service Error Handling Tests', () => {
         provider: 'google_workspace',
         action: 'assign_groups',
         userEmail: 'test@example.com',
-        groups: []
+        groups: [],
       };
 
       const result = await executor.execute(mockInput);
@@ -407,7 +406,7 @@ describe('Identity Service Error Handling Tests', () => {
           action: 'provision',
           userEmail: 'test@example.com',
           firstName: 'John',
-          lastName: 'Doe'
+          lastName: 'Doe',
         },
         context: {
           organizationId: 'test-org',
@@ -415,10 +414,10 @@ describe('Identity Service Error Handling Tests', () => {
           correlationId: 'audit-test-corr',
           variables: {},
           secrets: {},
-          triggerEvent: 'manual'
+          triggerEvent: 'manual',
         },
         idempotencyKey: 'audit-test-idem',
-        attempt: 1
+        attempt: 1,
       };
 
       mockCredentialManager.getCredentials.mockResolvedValue({
@@ -426,8 +425,8 @@ describe('Identity Service Error Handling Tests', () => {
           accessToken: 'test-token',
           tokenType: 'Bearer',
           expiresIn: 3600,
-          expiresAt: new Date(Date.now() + 3600 * 1000)
-        }
+          expiresAt: new Date(Date.now() + 3600 * 1000),
+        },
       });
     });
 
@@ -436,7 +435,7 @@ describe('Identity Service Error Handling Tests', () => {
       mockAdapter.createUser.mockResolvedValue({
         success: true,
         userId: 'test-user-123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       });
 
       // Audit logging fails
@@ -454,7 +453,7 @@ describe('Identity Service Error Handling Tests', () => {
         expect.objectContaining({
           nodeId: 'audit-test-node',
           action: 'provision',
-          error: 'Audit service unavailable'
+          error: 'Audit service unavailable',
         })
       );
     });
@@ -464,7 +463,7 @@ describe('Identity Service Error Handling Tests', () => {
       mockAdapter.createUser.mockResolvedValue({
         success: true,
         userId: 'test-user-123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       });
 
       // Local audit logging succeeds
@@ -485,7 +484,7 @@ describe('Identity Service Error Handling Tests', () => {
         expect.objectContaining({
           nodeId: 'audit-test-node',
           action: 'provision',
-          error: 'Central audit service down'
+          error: 'Central audit service down',
         })
       );
     });

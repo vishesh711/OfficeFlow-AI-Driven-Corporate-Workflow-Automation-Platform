@@ -70,14 +70,17 @@ export class MockOpenAI {
           object: 'chat.completion',
           created: Date.now(),
           model: params.model,
-          choices: [{
-            index: 0,
-            message: {
-              role: 'assistant',
-              content: 'This is a mock response. In production, this would be replaced with actual OpenAI integration.',
+          choices: [
+            {
+              index: 0,
+              message: {
+                role: 'assistant',
+                content:
+                  'This is a mock response. In production, this would be replaced with actual OpenAI integration.',
+              },
+              finish_reason: 'stop',
             },
-            finish_reason: 'stop',
-          }],
+          ],
           usage: {
             prompt_tokens: 50,
             completion_tokens: 20,

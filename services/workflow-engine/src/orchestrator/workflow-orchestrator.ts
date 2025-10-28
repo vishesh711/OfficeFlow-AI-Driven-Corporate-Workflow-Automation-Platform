@@ -2,18 +2,15 @@
  * Main workflow orchestration engine
  */
 
-import { 
-  UUID, 
-  WorkflowRun, 
+import {
+  UUID,
+  WorkflowRun,
   ExecutionContext,
   WorkflowNode,
   WorkflowRepository,
-  WorkflowRunRepository
+  WorkflowRunRepository,
 } from '@officeflow/types';
-import { 
-  mapWorkflowRunEntityToRun, 
-  mapWorkflowRunToEntity 
-} from '../utils/entity-mappers';
+import { mapWorkflowRunEntityToRun, mapWorkflowRunToEntity } from '../utils/entity-mappers';
 import { OfficeFlowProducer } from '@officeflow/kafka';
 import { WorkflowStateMachine } from '../state/state-machine';
 import { RedisStateManager } from '../state/redis-state-manager';
@@ -87,10 +84,7 @@ export class WorkflowOrchestrator {
   /**
    * Execute a workflow
    */
-  async executeWorkflow(
-    workflowId: UUID, 
-    context: ExecutionContext
-  ): Promise<WorkflowRun> {
+  async executeWorkflow(workflowId: UUID, context: ExecutionContext): Promise<WorkflowRun> {
     // Load and parse workflow definition
     const parsedWorkflow = await this.workflowLoader.loadWorkflow(workflowId);
 
@@ -128,10 +122,7 @@ export class WorkflowOrchestrator {
     };
 
     // Acquire execution lock
-    const lockAcquired = await this.stateManager.acquireLock(
-      runId, 
-      this.config.instanceId
-    );
+    const lockAcquired = await this.stateManager.acquireLock(runId, this.config.instanceId);
 
     if (!lockAcquired) {
       throw new Error(`Failed to acquire execution lock for workflow: ${runId}`);
@@ -146,7 +137,6 @@ export class WorkflowOrchestrator {
       await this.startWorkflowExecution(parsedWorkflow, workflowState, context);
 
       return createdRun;
-
     } catch (error) {
       // Release lock on error
       await this.stateManager.releaseLock(runId, this.config.instanceId);
@@ -197,9 +187,7 @@ export class WorkflowOrchestrator {
     // Continue execution from current state
     try {
       const parsedWorkflow = await this.workflowLoader.loadWorkflow(state.workflowId);
-      const context = this.contextManager.deserializeContext(
-        JSON.stringify(state.context)
-      );
+      const context = this.contextManager.deserializeContext(JSON.stringify(state.context));
       await this.continueWorkflowExecution(parsedWorkflow, resumedState, context);
     } catch (error) {
       console.error(`Failed to resume workflow ${runId}:`, error);
@@ -261,10 +249,8 @@ export class WorkflowOrchestrator {
       const parsedWorkflow = await this.workflowLoader.loadWorkflow(state.workflowId);
       const node = parsedWorkflow.nodeMap.get(nodeId);
       if (node) {
-        const context = this.contextManager.deserializeContext(
-          JSON.stringify(state.context)
-        );
-        
+        const context = this.contextManager.deserializeContext(JSON.stringify(state.context));
+
         const updatedContext = this.contextManager.updateContextWithNodeOutput(
           context,
           nodeId,
@@ -286,12 +272,7 @@ export class WorkflowOrchestrator {
   /**
    * Handle node execution failure
    */
-  async handleNodeFailure(
-    runId: UUID,
-    nodeId: UUID,
-    error: any,
-    attempt: number
-  ): Promise<void> {
+  async handleNodeFailure(runId: UUID, nodeId: UUID, error: any, attempt: number): Promise<void> {
     const state = await this.getWorkflowState(runId);
     if (!state) {
       console.warn(`Workflow state not found for node failure: ${runId}`);
@@ -323,7 +304,9 @@ export class WorkflowOrchestrator {
       );
 
       if (errorHandlingResult.shouldRetry) {
-        console.log(`Node ${nodeId} will be retried at ${errorHandlingResult.retryAt?.toISOString()}`);
+        console.log(
+          `Node ${nodeId} will be retried at ${errorHandlingResult.retryAt?.toISOString()}`
+        );
         return;
       }
 
@@ -340,7 +323,6 @@ export class WorkflowOrchestrator {
       } else {
         await this.evaluateWorkflowContinuation(parsedWorkflow, state);
       }
-
     } catch (handlingError) {
       console.error(`Failed to handle node failure for ${runId}:`, handlingError);
       // Log system error through error handler
@@ -363,7 +345,7 @@ export class WorkflowOrchestrator {
 
     // Get entry nodes from parsed workflow
     const entryNodes = parsedWorkflow.entryNodes;
-    
+
     if (entryNodes.length === 0) {
       throw new Error('No entry nodes found in workflow');
     }
@@ -415,7 +397,7 @@ export class WorkflowOrchestrator {
     for (const node of nodes) {
       const input = this.prepareNodeInput(node, context, state);
       nodeInputs.set(node.id, input);
-      
+
       // Add to current nodes
       state.currentNodes.add(node.id);
     }
@@ -425,15 +407,8 @@ export class WorkflowOrchestrator {
     await this.stateManager.setWorkflowState(state);
 
     // Dispatch nodes
-    await this.nodeDispatcher.dispatchNodes(
-      state.runId,
-      nodes,
-      nodeInputs,
-      context
-    );
+    await this.nodeDispatcher.dispatchNodes(state.runId, nodes, nodeInputs, context);
   }
-
-
 
   /**
    * Prepare input for node execution
@@ -469,7 +444,7 @@ export class WorkflowOrchestrator {
 
     if (completionStatus.isComplete) {
       const completedState = this.stateMachine.transitionWorkflow(
-        state, 
+        state,
         completionStatus.status === 'COMPLETED' ? 'complete' : 'fail'
       );
 
@@ -483,14 +458,12 @@ export class WorkflowOrchestrator {
     }
   }
 
-
-
   /**
    * Get workflow state (from cache or Redis)
    */
   private async getWorkflowState(runId: UUID): Promise<WorkflowState | null> {
     let state = this.activeWorkflows.get(runId);
-    
+
     if (!state) {
       const redisState = await this.stateManager.getWorkflowState(runId);
       if (redisState) {
@@ -498,7 +471,7 @@ export class WorkflowOrchestrator {
         state = redisState;
       }
     }
-    
+
     return state || null;
   }
 
@@ -507,7 +480,7 @@ export class WorkflowOrchestrator {
    */
   private async pauseRunningNodes(runId: UUID): Promise<void> {
     const nodeStates = await this.stateManager.getWorkflowNodeStates(runId);
-    const runningNodes = nodeStates.filter(node => node.status === 'RUNNING');
+    const runningNodes = nodeStates.filter((node) => node.status === 'RUNNING');
 
     for (const nodeState of runningNodes) {
       // Send pause message (implementation depends on node executor capabilities)
@@ -520,7 +493,7 @@ export class WorkflowOrchestrator {
    */
   private async cancelRunningNodes(runId: UUID): Promise<void> {
     const nodeStates = await this.stateManager.getWorkflowNodeStates(runId);
-    const activeNodes = nodeStates.filter(node => 
+    const activeNodes = nodeStates.filter((node) =>
       ['RUNNING', 'QUEUED', 'RETRYING'].includes(node.status)
     );
 
@@ -535,7 +508,7 @@ export class WorkflowOrchestrator {
   private async cleanupWorkflowState(runId: UUID): Promise<void> {
     this.activeWorkflows.delete(runId);
     await this.stateManager.releaseLock(runId, this.config.instanceId);
-    
+
     // Optionally delete state from Redis after some time
     // await this.stateManager.deleteWorkflowState(runId);
   }
@@ -565,27 +538,23 @@ export class WorkflowOrchestrator {
 
       if (workflowErrorResult.shouldExecuteCompensation && workflowErrorResult.compensationPlan) {
         // Execute compensation flow
-        await this.errorHandler.executeCompensation(
-          workflowErrorResult.compensationPlan,
-          state
-        );
+        await this.errorHandler.executeCompensation(workflowErrorResult.compensationPlan, state);
       }
 
       // Mark workflow as failed
       const failedState = this.stateMachine.transitionWorkflow(state, 'fail');
       await this.stateManager.setWorkflowState(failedState);
       await this.workflowRunRepo.updateStatus(state.runId, 'FAILED');
-      
-      await this.cleanupWorkflowState(state.runId);
 
+      await this.cleanupWorkflowState(state.runId);
     } catch (compensationError) {
       console.error(`Compensation failed for workflow ${state.runId}:`, compensationError);
-      
+
       // Still mark workflow as failed even if compensation fails
       const failedState = this.stateMachine.transitionWorkflow(state, 'fail');
       await this.stateManager.setWorkflowState(failedState);
       await this.workflowRunRepo.updateStatus(state.runId, 'FAILED');
-      
+
       await this.cleanupWorkflowState(state.runId);
     }
   }
@@ -608,12 +577,14 @@ export class WorkflowOrchestrator {
 
       if (eligibleNodes.length === 0) {
         // No more nodes to execute, workflow failed
-        await this.handleWorkflowFailure(parsedWorkflow, state, new Error('No more executable nodes'));
+        await this.handleWorkflowFailure(
+          parsedWorkflow,
+          state,
+          new Error('No more executable nodes')
+        );
       } else {
         // Continue with remaining nodes
-        const context = this.contextManager.deserializeContext(
-          JSON.stringify(state.context)
-        );
+        const context = this.contextManager.deserializeContext(JSON.stringify(state.context));
         await this.dispatchEligibleNodes(parsedWorkflow, state, context, eligibleNodes);
       }
     }
@@ -628,7 +599,7 @@ export class WorkflowOrchestrator {
 
       try {
         const retryNodes = await this.stateManager.getNodesReadyForRetry(50);
-        
+
         for (const { runId, nodeId } of retryNodes) {
           const nodeState = await this.stateManager.getNodeState(runId, nodeId);
           if (nodeState && nodeState.status === 'RETRYING') {
@@ -636,20 +607,22 @@ export class WorkflowOrchestrator {
             const workflowState = await this.getWorkflowState(runId);
             if (workflowState) {
               try {
-                const parsedWorkflow = await this.workflowLoader.loadWorkflow(workflowState.workflowId);
+                const parsedWorkflow = await this.workflowLoader.loadWorkflow(
+                  workflowState.workflowId
+                );
                 const node = parsedWorkflow.nodeMap.get(nodeId);
-                
+
                 if (node) {
                   const context = this.contextManager.deserializeContext(
                     JSON.stringify(workflowState.context)
                   );
-                  
+
                   const input = this.prepareNodeInput(node, context, workflowState);
                   await this.nodeDispatcher.dispatchNode(
-                    runId, 
-                    node, 
-                    input, 
-                    context, 
+                    runId,
+                    node,
+                    input,
+                    context,
                     nodeState.attempt
                   );
                 }
@@ -658,7 +631,7 @@ export class WorkflowOrchestrator {
               }
             }
           }
-          
+
           // Remove from retry schedule
           await this.stateManager.removeFromRetrySchedule(runId, nodeId);
         }

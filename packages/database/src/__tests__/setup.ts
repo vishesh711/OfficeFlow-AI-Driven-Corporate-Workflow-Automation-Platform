@@ -7,7 +7,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Test database configuration
 const TEST_DB_CONFIG = {
-  connectionString: process.env.TEST_DATABASE_URL || 'postgresql://postgres:password@localhost:5432/officeflow_test',
+  connectionString:
+    process.env.TEST_DATABASE_URL ||
+    'postgresql://postgres:password@localhost:5432/officeflow_test',
   max: 5,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -67,9 +69,7 @@ export const createTestWorkflow = (orgId: string, createdBy?: string) => ({
       { id: 'start', type: 'trigger', name: 'Start' },
       { id: 'email', type: 'email', name: 'Send Welcome Email' },
     ],
-    edges: [
-      { from: 'start', to: 'email' },
-    ],
+    edges: [{ from: 'start', to: 'email' }],
   },
   created_by: createdBy,
 });
@@ -86,9 +86,14 @@ export const createTestWorkflowRun = (orgId: string, workflowId: string, employe
 });
 
 // Clean up test data
-export const cleanupTestData = async (pool: Pool, tableName: string, idColumn: string, ids: string[]) => {
+export const cleanupTestData = async (
+  pool: Pool,
+  tableName: string,
+  idColumn: string,
+  ids: string[]
+) => {
   if (ids.length === 0) return;
-  
+
   const placeholders = ids.map((_, index) => `$${index + 1}`).join(', ');
   await pool.query(`DELETE FROM ${tableName} WHERE ${idColumn} IN (${placeholders})`, ids);
 };

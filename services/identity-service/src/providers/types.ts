@@ -32,7 +32,11 @@ export interface ProvisioningResult {
 
 export interface IdentityProviderAdapter {
   createUser(tokens: OAuth2Token, userInfo: UserAccount): Promise<ProvisioningResult>;
-  updateUser(tokens: OAuth2Token, userId: string, updates: Partial<UserAccount>): Promise<ProvisioningResult>;
+  updateUser(
+    tokens: OAuth2Token,
+    userId: string,
+    updates: Partial<UserAccount>
+  ): Promise<ProvisioningResult>;
   deleteUser(tokens: OAuth2Token, userId: string): Promise<ProvisioningResult>;
   assignGroups(tokens: OAuth2Token, userId: string, groups: string[]): Promise<ProvisioningResult>;
   removeGroups(tokens: OAuth2Token, userId: string, groups: string[]): Promise<ProvisioningResult>;

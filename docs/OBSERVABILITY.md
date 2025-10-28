@@ -33,6 +33,7 @@ The OfficeFlow platform implements a complete observability stack including:
 ### 1. Structured Logging
 
 #### Features
+
 - JSON-formatted logs with consistent schema
 - Correlation ID tracking across service boundaries
 - Contextual information (organization, workflow, user IDs)
@@ -40,6 +41,7 @@ The OfficeFlow platform implements a complete observability stack including:
 - Error stack trace capture
 
 #### Usage
+
 ```typescript
 import { initializeObservability } from '@officeflow/observability';
 
@@ -63,6 +65,7 @@ logger.error('Workflow execution failed', error, {
 ```
 
 #### Log Schema
+
 ```json
 {
   "timestamp": "2024-01-15T10:30:00.000Z",
@@ -81,23 +84,27 @@ logger.error('Workflow execution failed', error, {
 ### 2. Health Checks
 
 #### Kubernetes Integration
+
 - **Liveness Probe**: `/health/live` - Basic service availability
 - **Readiness Probe**: `/health/ready` - Service ready to handle traffic
 - **Startup Probe**: `/health/ready` - Service initialization complete
 
 #### Custom Health Checks
+
 ```typescript
 import { commonHealthChecks } from '@officeflow/observability';
 
 // Database health check
-healthService.addCheck(commonHealthChecks.database(async () => {
-  try {
-    await db.query('SELECT 1');
-    return true;
-  } catch {
-    return false;
-  }
-}));
+healthService.addCheck(
+  commonHealthChecks.database(async () => {
+    try {
+      await db.query('SELECT 1');
+      return true;
+    } catch {
+      return false;
+    }
+  })
+);
 
 // Memory usage check
 healthService.addCheck(commonHealthChecks.memory(500)); // 500MB threshold
@@ -112,13 +119,14 @@ healthService.addCheck({
     } catch (error) {
       return { status: 'unhealthy', message: error.message };
     }
-  }
+  },
 });
 ```
 
 ### 3. Metrics Collection
 
 #### Available Metrics
+
 - `officeflow_requests_total` - Total HTTP requests
 - `officeflow_request_duration_seconds` - Request duration histogram
 - `officeflow_workflow_executions_total` - Workflow execution counter
@@ -130,6 +138,7 @@ healthService.addCheck({
 - `officeflow_queue_size` - Queue size gauge
 
 #### Custom Metrics
+
 ```typescript
 import { metricsService } from '@officeflow/observability';
 
@@ -137,7 +146,7 @@ import { metricsService } from '@officeflow/observability';
 metricsService.incrementWorkflowExecutions({
   organizationId: 'org-123',
   workflowId: 'wf-456',
-  status: 'success'
+  status: 'success',
 });
 
 // Record durations
@@ -145,25 +154,27 @@ const timer = metricsService.createTimer();
 // ... perform operation
 metricsService.recordWorkflowDuration(timer(), {
   organizationId: 'org-123',
-  workflowId: 'wf-456'
+  workflowId: 'wf-456',
 });
 
 // Set gauge values
 metricsService.setQueueSize(42, {
   service: 'workflow-engine',
-  queue: 'node-execution'
+  queue: 'node-execution',
 });
 ```
 
 ### 4. Distributed Tracing
 
 #### OpenTelemetry Integration
+
 - Automatic instrumentation for HTTP, database, and Kafka operations
 - Custom span creation for business logic
 - Correlation with logs and metrics
 - Jaeger backend for trace visualization
 
 #### Usage
+
 ```typescript
 import { tracingService } from '@officeflow/observability';
 
@@ -180,7 +191,7 @@ await tracingService.executeWithSpan(
   {
     workflowId: 'wf-123',
     organizationId: 'org-456',
-    operation: 'workflow-processing'
+    operation: 'workflow-processing',
   }
 );
 ```
@@ -188,6 +199,7 @@ await tracingService.executeWithSpan(
 ### 5. Alerting
 
 #### Alert Rules
+
 - **High Error Rate**: >5% error rate for 2 minutes
 - **Critical Error Rate**: >20% error rate for 1 minute
 - **High Response Time**: 95th percentile >2s for 5 minutes
@@ -197,31 +209,35 @@ await tracingService.executeWithSpan(
 - **Queue Backlog**: >1000 items in queue for 5 minutes
 
 #### PagerDuty Integration
+
 ```yaml
 # Update routing key in k8s/monitoring/alerting-rules.yaml
 pagerduty_configs:
-- routing_key: 'YOUR_PAGERDUTY_ROUTING_KEY'
-  description: 'OfficeFlow Critical Alert'
-  severity: 'critical'
+  - routing_key: 'YOUR_PAGERDUTY_ROUTING_KEY'
+    description: 'OfficeFlow Critical Alert'
+    severity: 'critical'
 ```
 
 #### Slack Integration
+
 ```yaml
 # Update webhook URL in k8s/monitoring/alertmanager.yaml
 slack_configs:
-- api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
-  channel: '#officeflow-alerts'
-  title: 'OfficeFlow Alert'
+  - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+    channel: '#officeflow-alerts'
+    title: 'OfficeFlow Alert'
 ```
 
 ## Deployment
 
 ### Prerequisites
+
 - Kubernetes cluster with RBAC enabled
 - kubectl configured and connected
 - Sufficient cluster resources (4 CPU, 8GB RAM minimum)
 
 ### Local Development
+
 The monitoring stack is included in the Docker Compose setup:
 
 ```bash
@@ -235,6 +251,7 @@ docker-compose up -d
 ```
 
 ### Production Deployment
+
 ```bash
 # Deploy monitoring infrastructure
 ./scripts/deploy-monitoring.sh
@@ -247,6 +264,7 @@ kubectl apply -f k8s/workflow-engine/
 ```
 
 ### CI/CD Integration
+
 The platform includes automated monitoring deployment:
 
 - **Performance Testing**: Automated load and stress testing with Artillery and k6
@@ -255,6 +273,7 @@ The platform includes automated monitoring deployment:
 - **Alerting**: Slack/email notifications for deployment issues and performance regressions
 
 ### Manual Deployment
+
 ```bash
 # Create namespaces
 kubectl apply -f k8s/namespace.yaml
@@ -275,6 +294,7 @@ kubectl apply -f k8s/logging/fluentd-config.yaml
 ```
 
 ### Access Services
+
 ```bash
 # Grafana Dashboard
 kubectl port-forward -n monitoring svc/grafana 3000:3000
@@ -296,6 +316,7 @@ kubectl port-forward -n monitoring svc/alertmanager 9093:9093
 ## Configuration
 
 ### Environment Variables
+
 ```bash
 # Logging
 LOG_LEVEL=info                    # trace, debug, info, warn, error, fatal
@@ -310,6 +331,7 @@ HEALTH_CHECK_TIMEOUT=5000        # Health check timeout in ms
 ```
 
 ### Service Configuration
+
 ```typescript
 // Initialize observability in each service
 const { logger, healthService, middleware } = initializeObservability({
@@ -336,6 +358,7 @@ app.get('/health/ready', healthService.readinessHandler());
 ## Monitoring Dashboards
 
 ### Grafana Dashboards
+
 1. **OfficeFlow Platform Overview**
    - Request rate and error rate
    - Response time percentiles
@@ -355,6 +378,7 @@ app.get('/health/ready', healthService.readinessHandler());
    - Network traffic
 
 ### Key Metrics to Monitor
+
 - **Golden Signals**: Latency, Traffic, Errors, Saturation
 - **Business Metrics**: Workflow success rate, processing time
 - **Infrastructure**: CPU, Memory, Disk, Network
@@ -365,6 +389,7 @@ app.get('/health/ready', healthService.readinessHandler());
 ### Common Issues
 
 #### High Memory Usage
+
 ```bash
 # Check memory metrics
 kubectl top pods -n officeflow
@@ -377,6 +402,7 @@ kubectl logs -n officeflow deployment/workflow-engine --tail=100
 ```
 
 #### Service Discovery Issues
+
 ```bash
 # Check ServiceMonitor configuration
 kubectl get servicemonitor -n officeflow -o yaml
@@ -390,6 +416,7 @@ kubectl port-forward -n monitoring svc/prometheus 9090:9090
 ```
 
 #### Missing Traces
+
 ```bash
 # Check Jaeger collector logs
 kubectl logs -n monitoring deployment/jaeger-collector
@@ -402,6 +429,7 @@ kubectl logs -n officeflow deployment/workflow-engine | grep -i "tracing\|teleme
 ```
 
 ### Log Analysis
+
 ```bash
 # Search logs by correlation ID
 kubectl logs -n officeflow -l app=workflow-engine | grep "correlation-id-123"
@@ -416,6 +444,7 @@ kubectl logs -n officeflow -l app=workflow-engine -f
 ## Best Practices
 
 ### Logging
+
 - Use structured logging with consistent field names
 - Include correlation IDs in all log entries
 - Log at appropriate levels (avoid debug in production)
@@ -423,6 +452,7 @@ kubectl logs -n officeflow -l app=workflow-engine -f
 - Use log sampling for high-volume operations
 
 ### Metrics
+
 - Follow Prometheus naming conventions
 - Use labels judiciously (avoid high cardinality)
 - Implement SLI/SLO monitoring
@@ -430,6 +460,7 @@ kubectl logs -n officeflow -l app=workflow-engine -f
 - Set up proper retention policies
 
 ### Tracing
+
 - Trace critical user journeys end-to-end
 - Add custom spans for important business operations
 - Include relevant attributes in spans
@@ -437,6 +468,7 @@ kubectl logs -n officeflow -l app=workflow-engine -f
 - Correlate traces with logs and metrics
 
 ### Alerting
+
 - Alert on symptoms, not causes
 - Use appropriate thresholds and time windows
 - Implement alert fatigue prevention
@@ -446,18 +478,21 @@ kubectl logs -n officeflow -l app=workflow-engine -f
 ## Security Considerations
 
 ### Access Control
+
 - Use RBAC for Kubernetes resources
 - Implement authentication for monitoring tools
 - Restrict access to sensitive logs and metrics
 - Use network policies to isolate monitoring components
 
 ### Data Privacy
+
 - Avoid logging sensitive information (passwords, tokens)
 - Implement log retention policies
 - Use encryption for data in transit and at rest
 - Comply with data protection regulations
 
 ### Monitoring Security
+
 - Monitor for security events and anomalies
 - Set up alerts for suspicious activities
 - Implement audit logging for administrative actions
@@ -466,11 +501,13 @@ kubectl logs -n officeflow -l app=workflow-engine -f
 ## Performance Impact
 
 ### Resource Usage
+
 - Observability overhead: ~5-10% CPU, ~10-15% memory
 - Network overhead: ~1-2% for metrics and traces
 - Storage requirements: ~100GB/month for medium workload
 
 ### Optimization
+
 - Use appropriate sampling rates for tracing
 - Implement metric aggregation and downsampling
 - Configure log retention based on compliance needs
@@ -479,6 +516,7 @@ kubectl logs -n officeflow -l app=workflow-engine -f
 ## Support and Maintenance
 
 ### Regular Tasks
+
 - Review and update alert thresholds
 - Clean up old metrics and logs
 - Update dashboards based on new requirements
@@ -486,6 +524,7 @@ kubectl logs -n officeflow -l app=workflow-engine -f
 - Review and rotate credentials
 
 ### Monitoring the Monitors
+
 - Set up alerts for monitoring infrastructure
 - Monitor resource usage of observability components
 - Implement backup and recovery procedures

@@ -13,7 +13,7 @@ export class OpenAIClient {
   constructor(config: OpenAIConfig, logger: Logger) {
     this.config = config;
     this.logger = logger;
-    
+
     this.client = new MockOpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
@@ -38,7 +38,7 @@ export class OpenAIClient {
       });
 
       const messages: ChatCompletionMessageParam[] = [];
-      
+
       if (request.systemMessage) {
         messages.push({
           role: 'system',
@@ -64,7 +64,7 @@ export class OpenAIClient {
 
       const processingTimeMs = Date.now() - startTime;
       const choice = completion.choices[0];
-      
+
       if (!choice || !choice.message.content) {
         throw new Error('No completion generated');
       }
@@ -81,7 +81,7 @@ export class OpenAIClient {
             requestId,
             content: content.substring(0, 200),
           });
-          
+
           // Try to extract JSON from the response
           const jsonMatch = content.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
@@ -115,10 +115,9 @@ export class OpenAIClient {
       });
 
       return response;
-
     } catch (error) {
       const processingTimeMs = Date.now() - startTime;
-      
+
       this.logger.error('OpenAI completion failed', {
         requestId,
         error: error instanceof Error ? error.message : 'Unknown error',

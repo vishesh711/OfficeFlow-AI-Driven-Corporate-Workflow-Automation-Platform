@@ -16,7 +16,7 @@ export class TopicManager {
       ssl: config.ssl,
       sasl: config.sasl,
     });
-    
+
     this.admin = this.kafka.admin();
   }
 
@@ -50,10 +50,10 @@ export class TopicManager {
   async createOrganizationTopics(organizationId: string): Promise<void> {
     const orgTopics: ITopicConfig[] = [
       'employee.onboard',
-      'employee.exit', 
+      'employee.exit',
       'employee.transfer',
-      'employee.update'
-    ].map(eventType => {
+      'employee.update',
+    ].map((eventType) => {
       const baseConfig = ALL_TOPIC_CONFIGS[eventType];
       return {
         topic: `${eventType}.${organizationId}`,
@@ -73,7 +73,7 @@ export class TopicManager {
     try {
       const existingTopics = await this.admin.listTopics();
       const topicsToCreate = topicConfigs.filter(
-        config => !existingTopics.includes(config.topic)
+        (config) => !existingTopics.includes(config.topic)
       );
 
       if (topicsToCreate.length === 0) {
@@ -87,8 +87,10 @@ export class TopicManager {
         timeout: 30000,
       });
 
-      console.log(`Created ${topicsToCreate.length} topics:`, 
-        topicsToCreate.map(t => t.topic).join(', '));
+      console.log(
+        `Created ${topicsToCreate.length} topics:`,
+        topicsToCreate.map((t) => t.topic).join(', ')
+      );
     } catch (error) {
       console.error('Failed to create topics:', error);
       throw error;
@@ -128,15 +130,20 @@ export class TopicManager {
   /**
    * Update topic configuration
    */
-  async updateTopicConfig(topicName: string, configEntries: Array<{ name: string; value: string }>): Promise<void> {
+  async updateTopicConfig(
+    topicName: string,
+    configEntries: Array<{ name: string; value: string }>
+  ): Promise<void> {
     try {
       await this.admin.alterConfigs({
         validateOnly: false,
-        resources: [{
-          type: 2, // TOPIC
-          name: topicName,
-          configEntries,
-        }],
+        resources: [
+          {
+            type: 2, // TOPIC
+            name: topicName,
+            configEntries,
+          },
+        ],
       });
       console.log(`Updated configuration for topic: ${topicName}`);
     } catch (error) {

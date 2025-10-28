@@ -10,17 +10,12 @@ import {
   updateOrganizationSchema,
 } from '../validation/schemas';
 
-export class OrganizationRepositoryImpl 
-  extends BaseRepository<OrganizationEntity> 
-  implements OrganizationRepository {
-
+export class OrganizationRepositoryImpl
+  extends BaseRepository<OrganizationEntity>
+  implements OrganizationRepository
+{
   constructor() {
-    super(
-      'organizations',
-      'org_id',
-      createOrganizationSchema,
-      updateOrganizationSchema
-    );
+    super('organizations', 'org_id', createOrganizationSchema, updateOrganizationSchema);
   }
 
   /**
@@ -29,7 +24,7 @@ export class OrganizationRepositoryImpl
   async findByDomain(domain: string): Promise<OrganizationEntity | null> {
     const query = 'SELECT * FROM organizations WHERE domain = $1';
     const result = await this.pool.query(query, [domain]);
-    
+
     if (result.rows.length === 0) {
       return null;
     }

@@ -26,6 +26,7 @@ The Identity Service has been successfully configured to work independently with
 ### 📦 Dependencies Status:
 
 **Core Dependencies (Ready for Installation):**
+
 - ✅ express, cors, helmet, compression
 - ✅ winston (with custom types)
 - ✅ joi (with custom types)
@@ -36,6 +37,7 @@ The Identity Service has been successfully configured to work independently with
 - ✅ pg (PostgreSQL client)
 
 **Development Dependencies:**
+
 - ✅ TypeScript and related tools
 - ✅ Jest for testing
 - ✅ tsx for development
@@ -43,12 +45,14 @@ The Identity Service has been successfully configured to work independently with
 ### 🚀 Installation Options:
 
 **Option 1: Use Standalone Package**
+
 ```bash
 cp package-standalone.json package.json
 npm install
 ```
 
 **Option 2: Install Individual Dependencies**
+
 ```bash
 npm install express cors helmet compression winston joi axios jsonwebtoken crypto-js node-cron googleapis @azure/msal-node okta-sdk-nodejs pg
 ```

@@ -4,23 +4,14 @@
 
 import { EmployeeEntity, EmployeeRepository, UUID } from '@officeflow/types';
 import { BaseRepository } from './base';
-import {
-  employeeSchema,
-  createEmployeeSchema,
-  updateEmployeeSchema,
-} from '../validation/schemas';
+import { employeeSchema, createEmployeeSchema, updateEmployeeSchema } from '../validation/schemas';
 
-export class EmployeeRepositoryImpl 
-  extends BaseRepository<EmployeeEntity> 
-  implements EmployeeRepository {
-
+export class EmployeeRepositoryImpl
+  extends BaseRepository<EmployeeEntity>
+  implements EmployeeRepository
+{
   constructor() {
-    super(
-      'employees',
-      'employee_id',
-      createEmployeeSchema,
-      updateEmployeeSchema
-    );
+    super('employees', 'employee_id', createEmployeeSchema, updateEmployeeSchema);
   }
 
   /**
@@ -29,7 +20,7 @@ export class EmployeeRepositoryImpl
   async findByEmail(email: string): Promise<EmployeeEntity | null> {
     const query = 'SELECT * FROM employees WHERE email = $1';
     const result = await this.pool.query(query, [email]);
-    
+
     if (result.rows.length === 0) {
       return null;
     }
@@ -62,9 +53,9 @@ export class EmployeeRepositoryImpl
    * Find employees by department
    */
   async findByDepartment(orgId: UUID, department: string): Promise<EmployeeEntity[]> {
-    return this.findAll({ 
-      org_id: orgId, 
-      department 
+    return this.findAll({
+      org_id: orgId,
+      department,
     });
   }
 
@@ -74,7 +65,7 @@ export class EmployeeRepositoryImpl
   async findByEmployeeNumber(orgId: UUID, employeeNumber: string): Promise<EmployeeEntity | null> {
     const query = 'SELECT * FROM employees WHERE org_id = $1 AND employee_number = $2';
     const result = await this.pool.query(query, [orgId, employeeNumber]);
-    
+
     if (result.rows.length === 0) {
       return null;
     }
@@ -85,7 +76,11 @@ export class EmployeeRepositoryImpl
   /**
    * Get employees hired in date range
    */
-  async findHiredInDateRange(orgId: UUID, startDate: Date, endDate: Date): Promise<EmployeeEntity[]> {
+  async findHiredInDateRange(
+    orgId: UUID,
+    startDate: Date,
+    endDate: Date
+  ): Promise<EmployeeEntity[]> {
     const query = `
       SELECT * FROM employees 
       WHERE org_id = $1 
@@ -93,15 +88,19 @@ export class EmployeeRepositoryImpl
         AND hire_date <= $3
       ORDER BY hire_date DESC
     `;
-    
+
     const result = await this.pool.query(query, [orgId, startDate, endDate]);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 
   /**
    * Get employees terminated in date range
    */
-  async findTerminatedInDateRange(orgId: UUID, startDate: Date, endDate: Date): Promise<EmployeeEntity[]> {
+  async findTerminatedInDateRange(
+    orgId: UUID,
+    startDate: Date,
+    endDate: Date
+  ): Promise<EmployeeEntity[]> {
     const query = `
       SELECT * FROM employees 
       WHERE org_id = $1 
@@ -109,19 +108,21 @@ export class EmployeeRepositoryImpl
         AND termination_date <= $3
       ORDER BY termination_date DESC
     `;
-    
+
     const result = await this.pool.query(query, [orgId, startDate, endDate]);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 
   /**
    * Get department statistics
    */
-  async getDepartmentStats(orgId: UUID): Promise<Array<{
-    department: string;
-    totalEmployees: number;
-    activeEmployees: number;
-  }>> {
+  async getDepartmentStats(orgId: UUID): Promise<
+    Array<{
+      department: string;
+      totalEmployees: number;
+      activeEmployees: number;
+    }>
+  > {
     const query = `
       SELECT 
         department,
@@ -132,9 +133,9 @@ export class EmployeeRepositoryImpl
       GROUP BY department
       ORDER BY total_employees DESC
     `;
-    
+
     const result = await this.pool.query(query, [orgId]);
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       department: row.department,
       totalEmployees: parseInt(row.total_employees, 10),
       activeEmployees: parseInt(row.active_employees, 10),
@@ -146,12 +147,12 @@ export class EmployeeRepositoryImpl
    */
   async updateStatus(employeeId: UUID, status: string): Promise<EmployeeEntity | null> {
     const updates: any = { status };
-    
+
     // Set termination date if status is terminated
     if (status === 'terminated') {
       updates.termination_date = new Date();
     }
-    
+
     return this.update(employeeId, updates);
   }
 
@@ -171,9 +172,9 @@ export class EmployeeRepositoryImpl
       ORDER BY first_name, last_name
       LIMIT $3
     `;
-    
+
     const searchPattern = `%${searchTerm}%`;
     const result = await this.pool.query(query, [orgId, searchPattern, limit]);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 }

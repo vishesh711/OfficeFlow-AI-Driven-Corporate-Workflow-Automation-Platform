@@ -89,7 +89,7 @@ export class ConflictError extends OfficeFlowError {
   readonly statusCode = HTTP_STATUS.CONFLICT;
 
   constructor(resource: string, conflictReason?: string) {
-    const message = conflictReason 
+    const message = conflictReason
       ? `${resource} conflict: ${conflictReason}`
       : `${resource} already exists`;
     super(message, { resource, conflictReason });
@@ -196,9 +196,11 @@ export function isRetryableError(error: Error): boolean {
       ERROR_CODES.KAFKA_ERROR,
     ].includes(error.code as any);
   }
-  
+
   // Network errors are generally retryable
-  return error.message.includes('ECONNRESET') ||
-         error.message.includes('ETIMEDOUT') ||
-         error.message.includes('ENOTFOUND');
+  return (
+    error.message.includes('ECONNRESET') ||
+    error.message.includes('ETIMEDOUT') ||
+    error.message.includes('ENOTFOUND')
+  );
 }

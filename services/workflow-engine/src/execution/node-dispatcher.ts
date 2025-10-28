@@ -69,7 +69,7 @@ export class NodeDispatcher {
     attempt: number = 1
   ): Promise<void> {
     const idempotencyKey = this.generateIdempotencyKey(runId, node.id, attempt);
-    
+
     // Create node execution request
     const executionRequest: NodeExecutionRequest = {
       runId,
@@ -98,7 +98,7 @@ export class NodeDispatcher {
 
     // Determine target topic based on node type
     const topic = this.getTopicForNodeType(node.type);
-    
+
     try {
       // Send execution request to Kafka
       await this.producer.sendMessage(
@@ -126,10 +126,9 @@ export class NodeDispatcher {
         attempt,
         idempotencyKey,
       });
-
     } catch (error) {
       console.error('Failed to dispatch node:', error);
-      
+
       // Update node state to FAILED
       const failedState: NodeState = {
         ...nodeState,
@@ -156,7 +155,7 @@ export class NodeDispatcher {
     nodeInputs: Map<UUID, Record<string, any>>,
     context: Record<string, any>
   ): Promise<void> {
-    const dispatchPromises = nodes.map(node => {
+    const dispatchPromises = nodes.map((node) => {
       const input = nodeInputs.get(node.id) || {};
       return this.dispatchNode(runId, node, input, context);
     });
@@ -201,7 +200,6 @@ export class NodeDispatcher {
         status,
         executionTimeMs: result.metadata.executionTimeMs,
       });
-
     } catch (error) {
       console.error('Failed to handle node result:', error);
       throw error;
@@ -218,7 +216,7 @@ export class NodeDispatcher {
     retryDelayMs: number
   ): Promise<void> {
     const retryAt = new Date(Date.now() + retryDelayMs);
-    
+
     // Update node state to RETRYING
     const currentState = await this.stateManager.getNodeState(runId, nodeId);
     if (currentState) {
@@ -261,17 +259,14 @@ export class NodeDispatcher {
 
     // Send cancellation message
     try {
-      await this.producer.sendMessage(
-        'node.execute.cancel',
-        {
-          type: 'node.execute.cancel',
-          payload: {
-            runId,
-            nodeId,
-            reason: 'Workflow cancelled',
-          },
-        }
-      );
+      await this.producer.sendMessage('node.execute.cancel', {
+        type: 'node.execute.cancel',
+        payload: {
+          runId,
+          nodeId,
+          reason: 'Workflow cancelled',
+        },
+      });
     } catch (error) {
       console.error('Failed to send node cancellation message:', error);
     }

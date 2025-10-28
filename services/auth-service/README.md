@@ -140,6 +140,7 @@ app.use('/api/public', authMiddleware.optionalAuthenticate);
 ### Login Flow
 
 1. **Basic Login**:
+
    ```json
    POST /auth/login
    {
@@ -149,6 +150,7 @@ app.use('/api/public', authMiddleware.optionalAuthenticate);
    ```
 
 2. **MFA Required**:
+
    ```json
    POST /auth/login
    {
@@ -176,6 +178,7 @@ app.use('/api/public', authMiddleware.optionalAuthenticate);
 ### MFA Setup Flow
 
 1. **Initiate Setup**:
+
    ```json
    POST /auth/mfa/setup
    {
@@ -184,6 +187,7 @@ app.use('/api/public', authMiddleware.optionalAuthenticate);
    ```
 
 2. **Response with QR Code**:
+
    ```json
    {
      "secret": "JBSWY3DPEHPK3PXP",

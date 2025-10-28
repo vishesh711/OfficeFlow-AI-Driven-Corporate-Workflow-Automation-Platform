@@ -34,7 +34,7 @@ class DatabaseSeeder {
       }
 
       const seedData = this.generateSeedData();
-      
+
       await this.seedOrganizations(seedData.organizations);
       await this.seedUsers(seedData.users);
       await this.seedEmployees(seedData.employees);
@@ -50,7 +50,7 @@ class DatabaseSeeder {
 
   private async clearData(): Promise<void> {
     console.log('🧹 Clearing existing data...');
-    
+
     const tables = [
       'audit_logs',
       'node_runs',
@@ -332,7 +332,7 @@ class DatabaseSeeder {
 
   private async seedOrganizations(organizations: any[]): Promise<void> {
     console.log('📊 Seeding organizations...');
-    
+
     for (const org of organizations) {
       await this.orgRepo.create(org);
       console.log(`  ✓ Created organization: ${org.name}`);
@@ -341,7 +341,7 @@ class DatabaseSeeder {
 
   private async seedUsers(users: any[]): Promise<void> {
     console.log('👥 Seeding users...');
-    
+
     for (const user of users) {
       await this.userRepo.create(user);
       console.log(`  ✓ Created user: ${user.email}`);
@@ -350,7 +350,7 @@ class DatabaseSeeder {
 
   private async seedEmployees(employees: any[]): Promise<void> {
     console.log('👤 Seeding employees...');
-    
+
     for (const employee of employees) {
       await this.employeeRepo.create(employee);
       console.log(`  ✓ Created employee: ${employee.first_name} ${employee.last_name}`);
@@ -359,7 +359,7 @@ class DatabaseSeeder {
 
   private async seedWorkflows(workflows: any[]): Promise<void> {
     console.log('⚡ Seeding workflows...');
-    
+
     for (const workflow of workflows) {
       await this.workflowRepo.create(workflow);
       console.log(`  ✓ Created workflow: ${workflow.name}`);
@@ -368,7 +368,7 @@ class DatabaseSeeder {
 
   private async seedIntegrationAccounts(accounts: any[]): Promise<void> {
     console.log('🔗 Seeding integration accounts...');
-    
+
     for (const account of accounts) {
       await this.integrationRepo.create(account);
       console.log(`  ✓ Created integration: ${account.account_name}`);
@@ -379,7 +379,8 @@ class DatabaseSeeder {
 // Run seeding if this file is executed directly
 if (require.main === module) {
   const seeder = new DatabaseSeeder();
-  seeder.seed()
+  seeder
+    .seed()
     .then(() => {
       console.log('🎉 Seeding completed!');
       process.exit(0);

@@ -45,11 +45,9 @@ export const serverConfigSchema = Joi.object({
   port: Joi.number().port().default(3000),
   host: Joi.string().default('0.0.0.0'),
   cors: Joi.object({
-    origin: Joi.alternatives().try(
-      Joi.string(),
-      Joi.array().items(Joi.string()),
-      Joi.boolean()
-    ).default('*'),
+    origin: Joi.alternatives()
+      .try(Joi.string(), Joi.array().items(Joi.string()), Joi.boolean())
+      .default('*'),
     credentials: Joi.boolean().default(true),
   }).default(),
   rateLimit: Joi.object({
@@ -101,7 +99,7 @@ export function validateConfig<T>(config: unknown, schema: Joi.ObjectSchema): T 
   });
 
   if (error) {
-    const errorMessage = error.details.map(detail => detail.message).join(', ');
+    const errorMessage = error.details.map((detail) => detail.message).join(', ');
     throw new Error(`Configuration validation failed: ${errorMessage}`);
   }
 

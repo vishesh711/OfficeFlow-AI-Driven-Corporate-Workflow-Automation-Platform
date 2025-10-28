@@ -20,7 +20,7 @@ describe('AuthService', () => {
     mockDb = {
       query: jest.fn(),
       end: jest.fn(),
-      on: jest.fn()
+      on: jest.fn(),
     } as any;
 
     mockRedis = {
@@ -30,14 +30,14 @@ describe('AuthService', () => {
       sadd: jest.fn(),
       srem: jest.fn(),
       ping: jest.fn(),
-      quit: jest.fn()
+      quit: jest.fn(),
     } as any;
 
     mockLogger = {
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
-      debug: jest.fn()
+      debug: jest.fn(),
     } as MockLogger;
 
     authService = new AuthService(mockDb, mockRedis, mockLogger);
@@ -57,7 +57,7 @@ describe('AuthService', () => {
     it('should hash password correctly', async () => {
       const password = 'TestPassword123!';
       const hash = await passwordService.hashPassword(password);
-      
+
       expect(hash).toBeDefined();
       expect(hash).not.toBe(password);
       expect(hash.length).toBeGreaterThan(20); // Adjusted for mock implementation
@@ -66,10 +66,10 @@ describe('AuthService', () => {
     it('should verify password correctly', async () => {
       const password = 'TestPassword123!';
       const hash = await passwordService.hashPassword(password);
-      
+
       const isValid = await passwordService.verifyPassword(password, hash);
       expect(isValid).toBe(true);
-      
+
       const isInvalid = await passwordService.verifyPassword('WrongPassword', hash);
       expect(isInvalid).toBe(false);
     });
@@ -83,7 +83,7 @@ describe('AuthService', () => {
 
     it('should generate secure password', () => {
       const password = passwordService.generateSecurePassword();
-      
+
       expect(password).toBeDefined();
       expect(password.length).toBe(16);
       expect(/[A-Z]/.test(password)).toBe(true);
@@ -109,7 +109,7 @@ describe('AuthService', () => {
         isActive: true,
         mfaEnabled: false,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const sessionId = 'session-123';
 
@@ -148,7 +148,7 @@ describe('AuthService', () => {
     it('should generate password reset token', () => {
       const userId = 'user-123';
       const token = jwtService.generatePasswordResetToken(userId);
-      
+
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');
 
@@ -168,7 +168,7 @@ describe('AuthService', () => {
     it('should generate MFA secret', () => {
       const email = 'test@example.com';
       const result = mfaService.generateSecret(email);
-      
+
       expect(result.secret).toBeDefined();
       expect(result.otpauthUrl).toBeDefined();
       expect(result.otpauthUrl).toContain(email);
@@ -177,15 +177,15 @@ describe('AuthService', () => {
 
     it('should verify TOTP token', () => {
       const secret = 'JBSWY3DPEHPK3PXP';
-      
+
       // Generate a token for the current time
       const token = mfaService.generateTOTP(secret);
       expect(token).toMatch(/^\d{6}$/);
-      
+
       // Verify the token
       const isValid = mfaService.verifyToken(secret, token);
       expect(isValid).toBe(true);
-      
+
       // Invalid token should fail
       const isInvalid = mfaService.verifyToken(secret, '000000');
       expect(isInvalid).toBe(false);
@@ -193,12 +193,12 @@ describe('AuthService', () => {
 
     it('should generate backup codes', () => {
       const codes = mfaService.generateBackupCodes(5);
-      
+
       expect(codes).toHaveLength(5);
-      codes.forEach(code => {
+      codes.forEach((code) => {
         expect(code).toMatch(/^[A-Z0-9]{8}$/);
       });
-      
+
       // All codes should be unique
       const uniqueCodes = new Set(codes);
       expect(uniqueCodes.size).toBe(codes.length);
@@ -206,7 +206,7 @@ describe('AuthService', () => {
 
     it('should verify backup codes', () => {
       const codes = ['ABCD1234', 'EFGH5678', 'IJKL9012'];
-      
+
       expect(mfaService.verifyBackupCode('ABCD1234', codes)).toBe(true);
       expect(mfaService.verifyBackupCode('abcd1234', codes)).toBe(true); // Case insensitive
       expect(mfaService.verifyBackupCode('INVALID1', codes)).toBe(false);
@@ -217,7 +217,7 @@ describe('AuthService', () => {
       expect(mfaService.isValidTokenFormat('12345')).toBe(false);
       expect(mfaService.isValidTokenFormat('1234567')).toBe(false);
       expect(mfaService.isValidTokenFormat('abcdef')).toBe(false);
-      
+
       expect(mfaService.isValidBackupCodeFormat('ABCD1234')).toBe(true);
       expect(mfaService.isValidBackupCodeFormat('abcd1234')).toBe(true);
       expect(mfaService.isValidBackupCodeFormat('ABCD123')).toBe(false);
@@ -233,17 +233,17 @@ describe('AuthService', () => {
         isActive: true,
         mfaEnabled: false,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       const regularUser = {
         ...adminUser,
-        role: 'user' as const
+        role: 'user' as const,
       };
 
       const mfaEnabledUser = {
         ...adminUser,
-        mfaEnabled: true
+        mfaEnabled: true,
       };
 
       expect(mfaService.isMfaSetupRequired(adminUser)).toBe(true);

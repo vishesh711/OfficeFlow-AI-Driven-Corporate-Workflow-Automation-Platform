@@ -40,25 +40,26 @@ class AuthServiceApp {
   private setupLogger(): void {
     this.logger = winston.createLogger({
       level: process.env.LOG_LEVEL || 'info',
-      format: process.env.LOG_FORMAT === 'json' 
-        ? winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.errors({ stack: true }),
-            winston.format.json()
-          )
-        : winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.errors({ stack: true }),
-            winston.format.simple()
-          ),
+      format:
+        process.env.LOG_FORMAT === 'json'
+          ? winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.errors({ stack: true }),
+              winston.format.json()
+            )
+          : winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.errors({ stack: true }),
+              winston.format.simple()
+            ),
       transports: [
         new winston.transports.Console(),
-        new winston.transports.File({ 
+        new winston.transports.File({
           filename: 'logs/auth-service.log',
           maxsize: 10485760, // 10MB
-          maxFiles: 5
-        })
-      ]
+          maxFiles: 5,
+        }),
+      ],
     });
   }
 
@@ -83,11 +84,11 @@ class AuthServiceApp {
 
   private setupRedis(): void {
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    
+
     this.redis = new Redis(redisUrl, {
       enableReadyCheck: false,
       maxRetriesPerRequest: null,
-      lazyConnect: true
+      lazyConnect: true,
     });
 
     this.redis.on('error', (err) => {
@@ -114,30 +115,37 @@ class AuthServiceApp {
     }
 
     // Security middleware
-    this.app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'"],
-          imgSrc: ["'self'", "data:", "https:"],
+    this.app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", 'data:', 'https:'],
+          },
         },
-      },
-      hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true
-      }
-    }));
+        hsts: {
+          maxAge: 31536000,
+          includeSubDomains: true,
+          preload: true,
+        },
+      })
+    );
 
     // CORS configuration
     const corsOrigin = process.env.CORS_ORIGIN;
-    this.app.use(cors({
-      origin: corsOrigin === '*' ? true : (corsOrigin?.split(',') || ['http://localhost:3000', 'http://localhost:5173']),
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Session-ID', 'X-User-ID']
-    }));
+    this.app.use(
+      cors({
+        origin:
+          corsOrigin === '*'
+            ? true
+            : corsOrigin?.split(',') || ['http://localhost:3000', 'http://localhost:5173'],
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Session-ID', 'X-User-ID'],
+      })
+    );
 
     this.app.use(compression());
 
@@ -151,14 +159,16 @@ class AuthServiceApp {
         method: req.method,
         url: req.url,
         userAgent: req.get('User-Agent'),
-        ip: req.ip
+        ip: req.ip,
       });
       next();
     });
 
     // Request ID middleware
     this.app.use((req, res, next) => {
-      const requestId = req.get('X-Request-ID') || `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+      const requestId =
+        req.get('X-Request-ID') ||
+        `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       req.headers['x-request-id'] = requestId;
       res.set('X-Request-ID', requestId);
       next();
@@ -172,13 +182,13 @@ class AuthServiceApp {
         status: 'healthy',
         service: 'auth-service',
         timestamp: new Date().toISOString(),
-        version: process.env.npm_package_version || '1.0.0'
+        version: process.env.npm_package_version || '1.0.0',
       });
     });
 
     // Auth routes
     this.app.use('/auth', createAuthRoutes(this.authService, this.logger));
-    
+
     // RBAC routes
     this.app.use('/rbac', createRbacRoutes(this.rbacService, this.authMiddleware, this.logger));
 
@@ -187,37 +197,39 @@ class AuthServiceApp {
       res.status(404).json({
         error: 'Not found',
         code: 'NOT_FOUND',
-        path: req.originalUrl
+        path: req.originalUrl,
       });
     });
   }
 
   private setupErrorHandling(): void {
     // Global error handler
-    this.app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-      const requestId = req.headers['x-request-id'] as string;
-      
-      this.logger.error('Unhandled error', {
-        error: error.message,
-        stack: error.stack,
-        url: req.url,
-        method: req.method,
-        requestId
-      });
+    this.app.use(
+      (error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        const requestId = req.headers['x-request-id'] as string;
 
-      res.status(500).json({
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR',
-        requestId,
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-      });
-    });
+        this.logger.error('Unhandled error', {
+          error: error.message,
+          stack: error.stack,
+          url: req.url,
+          method: req.method,
+          requestId,
+        });
+
+        res.status(500).json({
+          error: 'Internal server error',
+          code: 'INTERNAL_ERROR',
+          requestId,
+          message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
+        });
+      }
+    );
 
     // Handle unhandled promise rejections
     process.on('unhandledRejection', (reason, _promise) => {
       this.logger.error('Unhandled promise rejection', {
         reason: reason instanceof Error ? reason.message : reason,
-        stack: reason instanceof Error ? reason.stack : undefined
+        stack: reason instanceof Error ? reason.stack : undefined,
       });
     });
 
@@ -225,7 +237,7 @@ class AuthServiceApp {
     process.on('uncaughtException', (error) => {
       this.logger.error('Uncaught exception', {
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
       process.exit(1);
     });
@@ -233,16 +245,19 @@ class AuthServiceApp {
 
   private async setupPeriodicTasks(): Promise<void> {
     // Clean up expired sessions and tokens every 5 minutes
-    setInterval(async () => {
-      try {
-        await this.db.query('SELECT cleanup_expired_auth_data()');
-        this.logger.debug('Periodic cleanup completed');
-      } catch (error) {
-        this.logger.error('Periodic cleanup failed', {
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    }, 5 * 60 * 1000); // 5 minutes
+    setInterval(
+      async () => {
+        try {
+          await this.db.query('SELECT cleanup_expired_auth_data()');
+          this.logger.debug('Periodic cleanup completed');
+        } catch (error) {
+          this.logger.error('Periodic cleanup failed', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      },
+      5 * 60 * 1000
+    ); // 5 minutes
   }
 
   async start(): Promise<void> {
@@ -266,14 +281,14 @@ class AuthServiceApp {
           environment: process.env.NODE_ENV || 'development',
           jwtExpiresIn: authConfig.jwt.expiresIn,
           mfaEnabled: true,
-          sessionTimeoutMinutes: authConfig.session.timeoutMinutes
+          sessionTimeoutMinutes: authConfig.session.timeoutMinutes,
         });
       });
 
       // Graceful shutdown
       const shutdown = async (signal: string) => {
         this.logger.info(`Received ${signal}, shutting down gracefully`);
-        
+
         server.close(async () => {
           try {
             await this.db.end();
@@ -282,7 +297,7 @@ class AuthServiceApp {
             process.exit(0);
           } catch (error) {
             this.logger.error('Error during shutdown', {
-              error: error instanceof Error ? error.message : 'Unknown error'
+              error: error instanceof Error ? error.message : 'Unknown error',
             });
             process.exit(1);
           }
@@ -297,10 +312,9 @@ class AuthServiceApp {
 
       process.on('SIGTERM', () => shutdown('SIGTERM'));
       process.on('SIGINT', () => shutdown('SIGINT'));
-
     } catch (error) {
       this.logger.error('Failed to start Auth Service', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       process.exit(1);
     }
@@ -310,7 +324,7 @@ class AuthServiceApp {
 // Start the service
 if (require.main === module) {
   const service = new AuthServiceApp();
-  service.start().catch(error => {
+  service.start().catch((error) => {
     console.error('Failed to start service:', error);
     process.exit(1);
   });

@@ -4,7 +4,7 @@
 
 import { UUID } from './common';
 
-export type LifecycleEventType = 
+export type LifecycleEventType =
   | 'employee.onboard'
   | 'employee.exit'
   | 'employee.transfer'
@@ -62,7 +62,11 @@ export interface EmployeeTransferEvent extends LifecycleEvent {
 }
 
 export interface WorkflowEvent {
-  type: 'workflow.run.request' | 'workflow.run.pause' | 'workflow.run.resume' | 'workflow.run.cancel';
+  type:
+    | 'workflow.run.request'
+    | 'workflow.run.pause'
+    | 'workflow.run.resume'
+    | 'workflow.run.cancel';
   runId: UUID;
   organizationId: UUID;
   timestamp: Date;

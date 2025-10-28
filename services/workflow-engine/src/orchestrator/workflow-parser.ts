@@ -2,13 +2,13 @@
  * Workflow definition parser and DAG validation
  */
 
-import { 
-  WorkflowDefinition, 
-  WorkflowDAG, 
-  WorkflowNode, 
-  WorkflowEdge, 
+import {
+  WorkflowDefinition,
+  WorkflowDAG,
+  WorkflowNode,
+  WorkflowEdge,
   NodeType,
-  UUID 
+  UUID,
 } from '@officeflow/types';
 import { ValidationResult } from '@officeflow/types';
 
@@ -44,7 +44,7 @@ export class WorkflowParser {
     'delay',
     'condition',
     'parallel',
-    'compensation'
+    'compensation',
   ];
 
   /**
@@ -53,7 +53,7 @@ export class WorkflowParser {
   static parseWorkflow(workflow: WorkflowDefinition): ParsedWorkflow {
     const errors = this.validateWorkflowDefinition(workflow);
     if (errors.length > 0) {
-      throw new Error(`Workflow validation failed: ${errors.map(e => e.message).join(', ')}`);
+      throw new Error(`Workflow validation failed: ${errors.map((e) => e.message).join(', ')}`);
     }
 
     const dag = workflow.definition;
@@ -78,7 +78,7 @@ export class WorkflowParser {
       exitNodes,
       nodeMap,
       edgeMap,
-      dependencyMap
+      dependencyMap,
     };
   }
 
@@ -92,7 +92,7 @@ export class WorkflowParser {
     if (!workflow.definition) {
       errors.push({
         code: 'MISSING_DEFINITION',
-        message: 'Workflow definition is required'
+        message: 'Workflow definition is required',
       });
       return errors;
     }
@@ -103,7 +103,7 @@ export class WorkflowParser {
     if (!dag.nodes || dag.nodes.length === 0) {
       errors.push({
         code: 'NO_NODES',
-        message: 'Workflow must contain at least one node'
+        message: 'Workflow must contain at least one node',
       });
       return errors;
     }
@@ -136,7 +136,7 @@ export class WorkflowParser {
       errors.push({
         code: 'MISSING_NODE_ID',
         message: 'Node ID is required',
-        nodeId: node.id
+        nodeId: node.id,
       });
     }
 
@@ -144,7 +144,7 @@ export class WorkflowParser {
       errors.push({
         code: 'MISSING_NODE_NAME',
         message: 'Node name is required',
-        nodeId: node.id
+        nodeId: node.id,
       });
     }
 
@@ -152,13 +152,13 @@ export class WorkflowParser {
       errors.push({
         code: 'MISSING_NODE_TYPE',
         message: 'Node type is required',
-        nodeId: node.id
+        nodeId: node.id,
       });
     } else if (!this.SUPPORTED_NODE_TYPES.includes(node.type)) {
       errors.push({
         code: 'UNSUPPORTED_NODE_TYPE',
         message: `Unsupported node type: ${node.type}`,
-        nodeId: node.id
+        nodeId: node.id,
       });
     }
 
@@ -168,7 +168,7 @@ export class WorkflowParser {
         errors.push({
           code: 'INVALID_RETRY_POLICY',
           message: 'Max retries must be between 0 and 10',
-          nodeId: node.id
+          nodeId: node.id,
         });
       }
 
@@ -176,7 +176,7 @@ export class WorkflowParser {
         errors.push({
           code: 'INVALID_BACKOFF',
           message: 'Backoff must be between 100ms and 5 minutes',
-          nodeId: node.id
+          nodeId: node.id,
         });
       }
     }
@@ -186,7 +186,7 @@ export class WorkflowParser {
       errors.push({
         code: 'INVALID_TIMEOUT',
         message: 'Timeout must be between 1 second and 1 hour',
-        nodeId: node.id
+        nodeId: node.id,
       });
     }
 
@@ -196,15 +196,18 @@ export class WorkflowParser {
   /**
    * Validate individual edge
    */
-  private static validateEdge(edge: WorkflowEdge, nodes: WorkflowNode[]): WorkflowValidationError[] {
+  private static validateEdge(
+    edge: WorkflowEdge,
+    nodes: WorkflowNode[]
+  ): WorkflowValidationError[] {
     const errors: WorkflowValidationError[] = [];
-    const nodeIds = new Set(nodes.map(n => n.id));
+    const nodeIds = new Set(nodes.map((n) => n.id));
 
     if (!edge.id) {
       errors.push({
         code: 'MISSING_EDGE_ID',
         message: 'Edge ID is required',
-        edgeId: edge.id
+        edgeId: edge.id,
       });
     }
 
@@ -212,7 +215,7 @@ export class WorkflowParser {
       errors.push({
         code: 'INVALID_FROM_NODE',
         message: 'Edge fromNodeId must reference a valid node',
-        edgeId: edge.id
+        edgeId: edge.id,
       });
     }
 
@@ -220,7 +223,7 @@ export class WorkflowParser {
       errors.push({
         code: 'INVALID_TO_NODE',
         message: 'Edge toNodeId must reference a valid node',
-        edgeId: edge.id
+        edgeId: edge.id,
       });
     }
 
@@ -228,7 +231,7 @@ export class WorkflowParser {
       errors.push({
         code: 'SELF_REFERENCING_EDGE',
         message: 'Edge cannot reference the same node as source and target',
-        edgeId: edge.id
+        edgeId: edge.id,
       });
     }
 
@@ -238,26 +241,29 @@ export class WorkflowParser {
   /**
    * Validate DAG structure constraints
    */
-  private static validateDAGStructure(nodes: WorkflowNode[], edges: WorkflowEdge[]): WorkflowValidationError[] {
+  private static validateDAGStructure(
+    nodes: WorkflowNode[],
+    edges: WorkflowEdge[]
+  ): WorkflowValidationError[] {
     const errors: WorkflowValidationError[] = [];
 
     // Check for duplicate node IDs
-    const nodeIds = nodes.map(n => n.id);
+    const nodeIds = nodes.map((n) => n.id);
     const duplicateNodeIds = nodeIds.filter((id, index) => nodeIds.indexOf(id) !== index);
     if (duplicateNodeIds.length > 0) {
       errors.push({
         code: 'DUPLICATE_NODE_IDS',
-        message: `Duplicate node IDs found: ${duplicateNodeIds.join(', ')}`
+        message: `Duplicate node IDs found: ${duplicateNodeIds.join(', ')}`,
       });
     }
 
     // Check for duplicate edge IDs
-    const edgeIds = edges.map(e => e.id);
+    const edgeIds = edges.map((e) => e.id);
     const duplicateEdgeIds = edgeIds.filter((id, index) => edgeIds.indexOf(id) !== index);
     if (duplicateEdgeIds.length > 0) {
       errors.push({
         code: 'DUPLICATE_EDGE_IDS',
-        message: `Duplicate edge IDs found: ${duplicateEdgeIds.join(', ')}`
+        message: `Duplicate edge IDs found: ${duplicateEdgeIds.join(', ')}`,
       });
     }
 
@@ -269,7 +275,7 @@ export class WorkflowParser {
         errors.push({
           code: 'DUPLICATE_EDGES',
           message: `Multiple edges found between nodes: ${edge.fromNodeId} -> ${edge.toNodeId}`,
-          edgeId: edge.id
+          edgeId: edge.id,
         });
       }
       edgeKeys.add(key);
@@ -280,7 +286,7 @@ export class WorkflowParser {
     if (entryNodes.length === 0) {
       errors.push({
         code: 'NO_ENTRY_NODES',
-        message: 'Workflow must have at least one entry node (node with no incoming edges)'
+        message: 'Workflow must have at least one entry node (node with no incoming edges)',
       });
     }
 
@@ -291,14 +297,14 @@ export class WorkflowParser {
    * Detect cycles in the DAG using DFS
    */
   static detectCycles(nodes: WorkflowNode[], edges: WorkflowEdge[]): void {
-    const nodeIds = new Set(nodes.map(n => n.id));
+    const nodeIds = new Set(nodes.map((n) => n.id));
     const adjacencyList = new Map<UUID, UUID[]>();
-    
+
     // Build adjacency list
     for (const nodeId of nodeIds) {
       adjacencyList.set(nodeId, []);
     }
-    
+
     for (const edge of edges) {
       const neighbors = adjacencyList.get(edge.fromNodeId) || [];
       neighbors.push(edge.toNodeId);
@@ -344,7 +350,7 @@ export class WorkflowParser {
    * Perform topological sort to determine execution order
    */
   static topologicalSort(nodes: WorkflowNode[], edges: WorkflowEdge[]): WorkflowNode[] {
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    const nodeMap = new Map(nodes.map((n) => [n.id, n]));
     const inDegree = new Map<UUID, number>();
     const adjacencyList = new Map<UUID, UUID[]>();
 
@@ -358,7 +364,7 @@ export class WorkflowParser {
     for (const edge of edges) {
       const currentInDegree = inDegree.get(edge.toNodeId) || 0;
       inDegree.set(edge.toNodeId, currentInDegree + 1);
-      
+
       const neighbors = adjacencyList.get(edge.fromNodeId) || [];
       neighbors.push(edge.toNodeId);
       adjacencyList.set(edge.fromNodeId, neighbors);
@@ -385,7 +391,7 @@ export class WorkflowParser {
       for (const neighborId of neighbors) {
         const newInDegree = (inDegree.get(neighborId) || 0) - 1;
         inDegree.set(neighborId, newInDegree);
-        
+
         if (newInDegree === 0) {
           queue.push(neighborId);
         }
@@ -404,23 +410,23 @@ export class WorkflowParser {
    * Find entry nodes (nodes with no incoming edges)
    */
   static findEntryNodes(nodes: WorkflowNode[], edges: WorkflowEdge[]): WorkflowNode[] {
-    const nodesWithIncoming = new Set(edges.map(edge => edge.toNodeId));
-    return nodes.filter(node => !nodesWithIncoming.has(node.id));
+    const nodesWithIncoming = new Set(edges.map((edge) => edge.toNodeId));
+    return nodes.filter((node) => !nodesWithIncoming.has(node.id));
   }
 
   /**
    * Find exit nodes (nodes with no outgoing edges)
    */
   static findExitNodes(nodes: WorkflowNode[], edges: WorkflowEdge[]): WorkflowNode[] {
-    const nodesWithOutgoing = new Set(edges.map(edge => edge.fromNodeId));
-    return nodes.filter(node => !nodesWithOutgoing.has(node.id));
+    const nodesWithOutgoing = new Set(edges.map((edge) => edge.fromNodeId));
+    return nodes.filter((node) => !nodesWithOutgoing.has(node.id));
   }
 
   /**
    * Create node lookup map
    */
   private static createNodeMap(nodes: WorkflowNode[]): Map<UUID, WorkflowNode> {
-    return new Map(nodes.map(node => [node.id, node]));
+    return new Map(nodes.map((node) => [node.id, node]));
   }
 
   /**
@@ -428,13 +434,13 @@ export class WorkflowParser {
    */
   private static createEdgeMap(edges: WorkflowEdge[]): Map<UUID, WorkflowEdge[]> {
     const edgeMap = new Map<UUID, WorkflowEdge[]>();
-    
+
     for (const edge of edges) {
       const existing = edgeMap.get(edge.fromNodeId) || [];
       existing.push(edge);
       edgeMap.set(edge.fromNodeId, existing);
     }
-    
+
     return edgeMap;
   }
 
@@ -443,13 +449,13 @@ export class WorkflowParser {
    */
   private static createDependencyMap(edges: WorkflowEdge[]): Map<UUID, UUID[]> {
     const dependencyMap = new Map<UUID, UUID[]>();
-    
+
     for (const edge of edges) {
       const existing = dependencyMap.get(edge.toNodeId) || [];
       existing.push(edge.fromNodeId);
       dependencyMap.set(edge.toNodeId, existing);
     }
-    
+
     return dependencyMap;
   }
 
@@ -466,15 +472,13 @@ export class WorkflowParser {
 
     for (const node of parsedWorkflow.definition.definition.nodes) {
       // Skip if already processed or currently running
-      if (completedNodes.has(node.id) || 
-          failedNodes.has(node.id) || 
-          currentNodes.has(node.id)) {
+      if (completedNodes.has(node.id) || failedNodes.has(node.id) || currentNodes.has(node.id)) {
         continue;
       }
 
       // Check if all dependencies are satisfied
       const dependencies = parsedWorkflow.dependencyMap.get(node.id) || [];
-      const allDependenciesMet = dependencies.every(depId => completedNodes.has(depId));
+      const allDependenciesMet = dependencies.every((depId) => completedNodes.has(depId));
 
       if (allDependenciesMet) {
         eligible.push(node);
@@ -499,13 +503,13 @@ export class WorkflowParser {
     if (processedNodes === totalNodes) {
       return {
         isComplete: true,
-        status: failedNodes.size > 0 ? 'FAILED' : 'COMPLETED'
+        status: failedNodes.size > 0 ? 'FAILED' : 'COMPLETED',
       };
     }
 
     return {
       isComplete: false,
-      status: 'RUNNING'
+      status: 'RUNNING',
     };
   }
 }

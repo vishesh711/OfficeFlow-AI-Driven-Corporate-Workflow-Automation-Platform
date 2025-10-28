@@ -8,5 +8,15 @@
     "sourceMap": true
   },
   "include": ["src/simple-*.ts"],
-  "exclude": ["dist", "node_modules", "**/*.test.ts", "src/index.ts", "src/logger.ts", "src/metrics.ts", "src/middleware.ts", "src/tracing.ts", "src/health.ts"]
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/*.test.ts",
+    "src/index.ts",
+    "src/logger.ts",
+    "src/metrics.ts",
+    "src/middleware.ts",
+    "src/tracing.ts",
+    "src/health.ts"
+  ]
 }

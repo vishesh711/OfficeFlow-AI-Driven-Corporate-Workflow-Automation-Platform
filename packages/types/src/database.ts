@@ -64,7 +64,8 @@ export interface WorkflowEntity {
   updated_at: Date;
 }
 
-export interface CreateWorkflowEntity extends Omit<WorkflowEntity, 'workflow_id' | 'created_at' | 'updated_at'> {
+export interface CreateWorkflowEntity
+  extends Omit<WorkflowEntity, 'workflow_id' | 'created_at' | 'updated_at'> {
   workflow_id?: UUID;
 }
 
@@ -193,7 +194,11 @@ export interface WorkflowRunRepository extends Repository<WorkflowRunEntity> {
   findByEmployee(employeeId: UUID): Promise<WorkflowRunEntity[]>;
   findByStatus(status: WorkflowRunStatus): Promise<WorkflowRunEntity[]>;
   findActiveRuns(): Promise<WorkflowRunEntity[]>;
-  updateStatus(runId: UUID, status: WorkflowRunStatus, errorDetails?: any): Promise<WorkflowRunEntity | null>;
+  updateStatus(
+    runId: UUID,
+    status: WorkflowRunStatus,
+    errorDetails?: any
+  ): Promise<WorkflowRunEntity | null>;
 }
 
 export interface NodeRunRepository extends Repository<NodeRunEntity> {

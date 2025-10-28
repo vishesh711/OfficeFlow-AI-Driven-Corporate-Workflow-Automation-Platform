@@ -105,7 +105,6 @@ export class ErrorLogger {
 
       // Log to console with structured format
       this.logToConsole(errorEntry);
-
     } catch (logError) {
       // Fallback logging if our error logging fails
       console.error('Failed to log error:', logError);
@@ -254,9 +253,11 @@ export class ErrorLogger {
         .map(([code, count]) => ({
           code,
           count,
-          lastOccurrence: errors
-            .filter(e => e.code === code)
-            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0]?.timestamp || new Date(),
+          lastOccurrence:
+            errors
+              .filter((e) => e.code === code)
+              .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0]?.timestamp ||
+            new Date(),
         }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
@@ -314,7 +315,7 @@ export class ErrorLogger {
   private async storeErrorEntry(entry: ErrorLogEntry): Promise<void> {
     const key = `error_log:${entry.timestamp.getTime()}:${entry.id}`;
     const ttl = 7 * 24 * 60 * 60; // 7 days TTL
-    
+
     await this.stateManager.storeErrorEntry(key, entry, ttl);
   }
 
@@ -323,19 +324,16 @@ export class ErrorLogger {
    */
   private async sendToAuditLog(entry: ErrorLogEntry): Promise<void> {
     try {
-      await this.producer.sendMessage(
-        'audit.events',
-        {
-          type: 'error.logged',
-          payload: entry,
-          metadata: {
-            correlationId: entry.context.correlationId || entry.id,
-            organizationId: entry.context.organizationId,
-            source: 'workflow-engine',
-            version: '1.0',
-          },
-        }
-      );
+      await this.producer.sendMessage('audit.events', {
+        type: 'error.logged',
+        payload: entry,
+        metadata: {
+          correlationId: entry.context.correlationId || entry.id,
+          organizationId: entry.context.organizationId,
+          source: 'workflow-engine',
+          version: '1.0',
+        },
+      });
     } catch (error) {
       console.error('Failed to send error to audit log:', error);
     }
@@ -364,7 +362,6 @@ export class ErrorLogger {
 
         // Update cooldown
         this.alertCooldowns.set(ruleId, new Date());
-
       } catch (error) {
         console.error(`Failed to process alert rule ${ruleId}:`, error);
       }
@@ -439,9 +436,7 @@ export class ErrorLogger {
       condition: (entry) => entry.level === 'ERROR' || entry.level === 'FATAL',
       severity: 'HIGH',
       cooldownMs: 300000, // 5 minutes
-      channels: [
-        { type: 'SLACK', config: { channel: '#alerts' } },
-      ],
+      channels: [{ type: 'SLACK', config: { channel: '#alerts' } }],
     });
 
     // Workflow failure rule
@@ -451,9 +446,7 @@ export class ErrorLogger {
       condition: (entry) => entry.category === 'WORKFLOW' && entry.level === 'ERROR',
       severity: 'MEDIUM',
       cooldownMs: 600000, // 10 minutes
-      channels: [
-        { type: 'EMAIL', config: { recipients: ['ops@company.com'] } },
-      ],
+      channels: [{ type: 'EMAIL', config: { recipients: ['ops@company.com'] } }],
     });
 
     // System error rule

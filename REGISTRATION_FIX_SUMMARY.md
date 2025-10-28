@@ -3,22 +3,27 @@
 ## Issues Identified and Fixed
 
 ### 1. **Wrong API Endpoint Path** ✅ FIXED
+
 **Problem:** The frontend was calling `/api/auth/register` but the backend serves routes at `/auth/register`
 
 **Files Modified:**
+
 - `apps/workflow-designer/src/pages/Login.tsx`
   - Changed registration endpoint from `http://localhost:3001/api/auth/register` → `http://localhost:3001/auth/register`
   - Changed login endpoint from `http://localhost:3001/api/auth/login` → `http://localhost:3001/auth/login`
 
 ### 2. **Missing Database Tables** ✅ FIXED
+
 **Problem:** The auth service required specific database tables that weren't created during initial setup
 
 **Solution:**
+
 - Manually executed auth service migrations:
   - `006_auth_service_tables.sql` - Created tables for user sessions, password resets, MFA, login attempts, and password history
   - `007_rbac_tables.sql` - Created role-based access control tables
 
 **Tables Created:**
+
 - `user_sessions` - JWT session management
 - `password_reset_tokens` - Password reset functionality
 - `login_attempts` - Security monitoring and rate limiting
@@ -27,25 +32,29 @@
 - `roles`, `permissions`, `role_permissions` - RBAC system
 
 ### 3. **Organization Domain Constraint** ✅ FIXED
+
 **Problem:** When creating a new organization during registration, the `domain` field was NULL but the database schema requires it to be NOT NULL
 
 **Files Modified:**
+
 - `services/auth-service/src/services/auth-service.ts`
   - Modified organization creation to extract domain from user's email
   - If email is `user@example.com`, domain becomes `example.com`
   - Falls back to `default.local` if email parsing fails
 
 ### 4. **Password Validation Feedback** ✅ IMPROVED
+
 **Problem:** Users weren't informed about password requirements before submitting, leading to cryptic error messages
 
 **Files Modified:**
+
 - `apps/workflow-designer/src/pages/Login.tsx`
   - Added client-side password validation for all requirements:
     - Minimum 8 characters
     - At least one uppercase letter (A-Z)
     - At least one lowercase letter (a-z)
     - At least one number (0-9)
-    - At least one special character (!@#$%^&* etc.)
+    - At least one special character (!@#$%^&\* etc.)
   - Added helpful hint text below password field: "Must be 8+ characters with uppercase, lowercase, number, and special character"
   - Provides clear error messages for each specific validation failure
 
@@ -65,6 +74,7 @@ For successful registration, passwords must meet ALL of these criteria:
 ## Testing
 
 Registration was successfully tested with:
+
 ```bash
 curl -X POST http://localhost:3001/auth/register \
   -H "Content-Type: application/json" \
@@ -72,6 +82,7 @@ curl -X POST http://localhost:3001/auth/register \
 ```
 
 **Result:** ✅ Success
+
 - User created in database
 - Organization auto-created with domain from email
 - Access token and refresh token returned
@@ -82,6 +93,7 @@ curl -X POST http://localhost:3001/auth/register \
 ✅ **Registration is now fully functional!**
 
 Users can now:
+
 1. Navigate to the sign-up form
 2. Enter their name, email, and password (meeting all requirements)
 3. Confirm their password
@@ -113,4 +125,3 @@ Users can now:
 ## No Further Action Required
 
 The registration system is now working correctly. Users can sign up with passwords that meet the security requirements, and the system will properly create their account and log them in automatically.
-

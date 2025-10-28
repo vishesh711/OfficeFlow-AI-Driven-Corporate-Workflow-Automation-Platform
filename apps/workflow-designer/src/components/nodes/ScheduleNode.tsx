@@ -1,10 +1,10 @@
-import { NodeProps } from 'reactflow'
-import { Clock } from 'lucide-react'
-import { BaseNode } from './BaseNode'
+import { NodeProps } from 'reactflow';
+import { Clock } from 'lucide-react';
+import { BaseNode } from './BaseNode';
 
 export function ScheduleNode({ data, selected }: NodeProps) {
-  const schedule = data.params?.schedule || '0 9 * * 1'
-  
+  const schedule = data.params?.schedule || '0 9 * * 1';
+
   return (
     <BaseNode
       data={data}
@@ -15,5 +15,5 @@ export function ScheduleNode({ data, selected }: NodeProps) {
     >
       <div>Cron: {schedule}</div>
     </BaseNode>
-  )
+  );
 }

@@ -3,12 +3,12 @@ import Joi from 'joi';
 import { CalendarService } from '../services/calendar-service';
 import { getCalendarConfig } from '../config/calendar-config';
 import { logger } from '../utils/logger';
-import { 
+import {
   CalendarEventRequest,
   CalendarListRequest,
   AvailabilityRequest,
   FindMeetingTimeRequest,
-  CalendarCredentials
+  CalendarCredentials,
 } from '../types/calendar-types';
 
 const router = express.Router();
@@ -22,11 +22,15 @@ const eventSchema = Joi.object({
   endTime: Joi.date().iso().greater(Joi.ref('startTime')).required(),
   timezone: Joi.string().required(),
   location: Joi.string().optional(),
-  attendees: Joi.array().items(Joi.object({
-    email: Joi.string().email().required(),
-    name: Joi.string().optional(),
-    required: Joi.boolean().default(true),
-  })).default([]),
+  attendees: Joi.array()
+    .items(
+      Joi.object({
+        email: Joi.string().email().required(),
+        name: Joi.string().optional(),
+        required: Joi.boolean().default(true),
+      })
+    )
+    .default([]),
   recurrence: Joi.object({
     frequency: Joi.string().valid('daily', 'weekly', 'monthly', 'yearly').required(),
     interval: Joi.number().integer().min(1).optional(),
@@ -35,10 +39,14 @@ const eventSchema = Joi.object({
     byWeekDay: Joi.array().items(Joi.number().integer().min(0).max(6)).optional(),
     byMonthDay: Joi.array().items(Joi.number().integer().min(1).max(31)).optional(),
   }).optional(),
-  reminders: Joi.array().items(Joi.object({
-    method: Joi.string().valid('email', 'popup').required(),
-    minutes: Joi.number().integer().min(0).required(),
-  })).optional(),
+  reminders: Joi.array()
+    .items(
+      Joi.object({
+        method: Joi.string().valid('email', 'popup').required(),
+        minutes: Joi.number().integer().min(0).required(),
+      })
+    )
+    .optional(),
 });
 
 const createEventSchema = Joi.object({
@@ -79,8 +87,12 @@ const findMeetingTimeSchema = Joi.object({
   startDate: Joi.date().iso().required(),
   endDate: Joi.date().iso().greater(Joi.ref('startDate')).required(),
   workingHours: Joi.object({
-    start: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).required(),
-    end: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).required(),
+    start: Joi.string()
+      .pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+      .required(),
+    end: Joi.string()
+      .pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+      .required(),
     days: Joi.array().items(Joi.number().integer().min(0).max(6)).min(1).required(),
   }).optional(),
   timezone: Joi.string().required(),
@@ -88,7 +100,11 @@ const findMeetingTimeSchema = Joi.object({
 });
 
 // Middleware to extract credentials (in a real implementation, this would validate JWT tokens)
-const extractCredentials = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const extractCredentials = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
   // This is a simplified version - in production, you'd validate JWT tokens
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

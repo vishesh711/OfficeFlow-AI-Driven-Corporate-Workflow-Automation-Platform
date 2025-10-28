@@ -1,10 +1,10 @@
-import { NodeProps } from 'reactflow'
-import { Zap } from 'lucide-react'
-import { BaseNode } from './BaseNode'
+import { NodeProps } from 'reactflow';
+import { Zap } from 'lucide-react';
+import { BaseNode } from './BaseNode';
 
 export function TriggerNode({ data, selected }: NodeProps) {
-  const eventType = data.params?.eventType || 'employee.onboard'
-  
+  const eventType = data.params?.eventType || 'employee.onboard';
+
   return (
     <BaseNode
       data={data}
@@ -15,5 +15,5 @@ export function TriggerNode({ data, selected }: NodeProps) {
     >
       <div>Event: {eventType}</div>
     </BaseNode>
-  )
+  );
 }

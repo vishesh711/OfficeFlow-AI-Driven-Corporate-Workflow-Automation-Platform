@@ -3,6 +3,7 @@
 ## Problem
 
 When using a workflow from a template and clicking "Test Run", it would fail with:
+
 ```
 Failed to start test run. Please try again.
 ```
@@ -10,6 +11,7 @@ Failed to start test run. Please try again.
 ## Root Cause
 
 When you select a template:
+
 1. ❌ Template creates a workflow object **without an ID**
 2. ❌ Test Run tries to execute using `currentWorkflow.id`
 3. ❌ Since `id` is undefined, the API call fails
@@ -29,7 +31,7 @@ const newWorkflow = {
 }
 
 // Test Run tries to execute
-await workflowApi.executeWorkflow(currentWorkflow.id, ...)  
+await workflowApi.executeWorkflow(currentWorkflow.id, ...)
 // currentWorkflow.id is undefined! ❌
 ```
 
@@ -42,15 +44,17 @@ Changed from checking if workflow exists to checking if workflow **has an ID**:
 ```typescript
 // Before
 if (!currentWorkflow) {
-  alert('Please save the workflow before running a test.')
-  return
+  alert('Please save the workflow before running a test.');
+  return;
 }
 
 // After ✅
 if (!currentWorkflow || !currentWorkflow.id) {
-  alert('⚠️ Please save the workflow first before running a test.\n\nTemplates and new workflows must be saved to get an ID before they can be executed.')
-  setShowMetadataEditor(true)
-  return
+  alert(
+    '⚠️ Please save the workflow first before running a test.\n\nTemplates and new workflows must be saved to get an ID before they can be executed.'
+  );
+  setShowMetadataEditor(true);
+  return;
 }
 ```
 
@@ -71,22 +75,25 @@ disabled={isLoading || !currentWorkflow?.id}
 Updated template selection to not create incomplete workflow:
 
 ```typescript
-const handleSelectTemplate = useCallback((template: WorkflowTemplate) => {
-  // Set workflow metadata from template
-  setWorkflowMetadata({
-    name: template.name,
-    description: template.description || '',
-    eventTrigger: 'employee.onboard',
-  })
-  
-  // Load the workflow definition (nodes and edges)
-  loadWorkflowDefinition(template.definition)
-  
-  // Show metadata editor so user can customize before saving
-  setShowMetadataEditor(true)
-  
-  // Note: currentWorkflow will be set when user saves ✅
-}, [loadWorkflowDefinition, setShowMetadataEditor])
+const handleSelectTemplate = useCallback(
+  (template: WorkflowTemplate) => {
+    // Set workflow metadata from template
+    setWorkflowMetadata({
+      name: template.name,
+      description: template.description || '',
+      eventTrigger: 'employee.onboard',
+    });
+
+    // Load the workflow definition (nodes and edges)
+    loadWorkflowDefinition(template.definition);
+
+    // Show metadata editor so user can customize before saving
+    setShowMetadataEditor(true);
+
+    // Note: currentWorkflow will be set when user saves ✅
+  },
+  [loadWorkflowDefinition, setShowMetadataEditor]
+);
 ```
 
 ### 4. **Better Error Messages**
@@ -142,6 +149,7 @@ try {
 ## Visual Indicators
 
 ### Before Save (Template Just Loaded):
+
 ```
 [Templates] [Save] [Test Run] ← DISABLED (grayed out)
                       ↑
@@ -149,6 +157,7 @@ try {
 ```
 
 ### After Save:
+
 ```
 [Templates] [Save] [Test Run] ← ENABLED (green)
                       ↑
@@ -209,10 +218,11 @@ try {
 **Action:** Select template → Click Test Run
 
 **Result:**
+
 ```
 ⚠️ Please save the workflow first before running a test.
 
-Templates and new workflows must be saved to get an 
+Templates and new workflows must be saved to get an
 ID before they can be executed.
 ```
 
@@ -223,6 +233,7 @@ ID before they can be executed.
 **Action:** Template has invalid structure → Save → Test Run
 
 **Result:**
+
 ```
 Workflow validation failed:
 - Trigger node must have at least one connection
@@ -236,6 +247,7 @@ Workflow validation failed:
 **Action:** Test Run with network issues
 
 **Result:**
+
 ```
 ❌ Failed to start test run.
 
@@ -317,6 +329,7 @@ POST /api/workflows/{currentWorkflow.id}/execute
 ✅ **Template Test Run is now fully working!**
 
 Users can:
+
 - Select any template
 - See nodes load on canvas
 - Edit workflow before saving
@@ -325,6 +338,7 @@ Users can:
 - View execution in Monitoring
 
 **The workflow is:**
+
 ```
 Select Template → Customize → Save → Test Run → Monitor
                               ↑
@@ -333,12 +347,12 @@ Select Template → Customize → Save → Test Run → Monitor
 
 ## Quick Reference
 
-| Action | Template Selected | After Save |
-|--------|------------------|------------|
-| Test Run Button | 🔴 Disabled | 🟢 Enabled |
-| Tooltip | "Save first" | "Run with test data" |
-| Has ID | ❌ No | ✅ Yes |
-| Can Execute | ❌ No | ✅ Yes |
+| Action          | Template Selected | After Save           |
+| --------------- | ----------------- | -------------------- |
+| Test Run Button | 🔴 Disabled       | 🟢 Enabled           |
+| Tooltip         | "Save first"      | "Run with test data" |
+| Has ID          | ❌ No             | ✅ Yes               |
+| Can Execute     | ❌ No             | ✅ Yes               |
 
 ## Summary
 
@@ -349,4 +363,3 @@ Select Template → Customize → Save → Test Run → Monitor
 **User Action:** Save workflow first, then test run
 
 **Status:** ✅ Fixed and working!
-

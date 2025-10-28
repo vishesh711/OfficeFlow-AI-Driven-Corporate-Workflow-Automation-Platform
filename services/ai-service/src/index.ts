@@ -164,11 +164,7 @@ async function createAIService(): Promise<Express> {
         });
       }
 
-      const result = await contentGenerator.summarizeDocument(
-        organizationId,
-        document,
-        options
-      );
+      const result = await contentGenerator.summarizeDocument(organizationId, document, options);
 
       res.json(result);
     } catch (error) {
@@ -191,11 +187,7 @@ async function createAIService(): Promise<Express> {
         });
       }
 
-      const result = await contentGenerator.analyzeSentiment(
-        organizationId,
-        text,
-        options
-      );
+      const result = await contentGenerator.analyzeSentiment(organizationId, text, options);
 
       res.json(result);
     } catch (error) {
@@ -265,10 +257,9 @@ async function createAIService(): Promise<Express> {
       const { organizationId } = req.params;
       const { format = 'json' } = req.query;
 
-      const exportData = llmService.getCostTracker().exportMetrics(
-        organizationId,
-        format as 'json' | 'csv'
-      );
+      const exportData = llmService
+        .getCostTracker()
+        .exportMetrics(organizationId, format as 'json' | 'csv');
 
       const contentType = format === 'csv' ? 'text/csv' : 'application/json';
       const filename = `ai-costs-${organizationId}-${new Date().toISOString().split('T')[0]}.${format}`;
@@ -323,14 +314,16 @@ async function createAIService(): Promise<Express> {
   });
 
   // Error handling middleware
-  app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    logger.error('Unhandled error', { error, url: req.url, method: req.method });
+  app.use(
+    (error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+      logger.error('Unhandled error', { error, url: req.url, method: req.method });
 
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'An unexpected error occurred',
-    });
-  });
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'An unexpected error occurred',
+      });
+    }
+  );
 
   // 404 handler
   app.use((req, res) => {

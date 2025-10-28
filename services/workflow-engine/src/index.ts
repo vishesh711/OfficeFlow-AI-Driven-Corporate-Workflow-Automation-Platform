@@ -6,16 +6,16 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import { 
-  WorkflowRepositoryImpl, 
+import {
+  WorkflowRepositoryImpl,
   WorkflowRunRepositoryImpl,
   EmployeeRepositoryImpl,
-  db 
+  db,
 } from '@officeflow/database';
-import { 
+import {
   initializeObservability,
   commonHealthChecks,
-  errorHandlingMiddleware 
+  errorHandlingMiddleware,
 } from '@officeflow/observability';
 import { WorkflowEngineService } from './services/workflow-engine-service';
 import { createWorkflowEngineRoutes } from './api/routes';
@@ -42,14 +42,16 @@ async function startWorkflowEngine() {
     const employeeRepo = new EmployeeRepositoryImpl();
 
     // Add health checks
-    healthService.addCheck(commonHealthChecks.database(async () => {
-      try {
-        await db.query('SELECT 1');
-        return true;
-      } catch {
-        return false;
-      }
-    }));
+    healthService.addCheck(
+      commonHealthChecks.database(async () => {
+        try {
+          await db.query('SELECT 1');
+          return true;
+        } catch {
+          return false;
+        }
+      })
+    );
 
     healthService.addCheck(commonHealthChecks.memory(500)); // 500MB threshold
 
@@ -71,12 +73,14 @@ async function startWorkflowEngine() {
 
     // Middleware
     app.use(helmet());
-    app.use(cors({
-      origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    }));
+    app.use(
+      cors({
+        origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+      })
+    );
     app.use(compression());
     app.use(express.json({ limit: '10mb' }));
     app.use(express.urlencoded({ extended: true }));
@@ -128,7 +132,7 @@ async function startWorkflowEngine() {
     // Graceful shutdown
     const shutdown = async (signal: string) => {
       logger.info(`Received ${signal}, shutting down gracefully...`);
-      
+
       server.close(async () => {
         try {
           await engineService.stop();
@@ -136,7 +140,10 @@ async function startWorkflowEngine() {
           logger.info('Workflow Engine shut down successfully');
           process.exit(0);
         } catch (error) {
-          logger.error('Error during shutdown', error instanceof Error ? error : new Error(String(error)));
+          logger.error(
+            'Error during shutdown',
+            error instanceof Error ? error : new Error(String(error))
+          );
           process.exit(1);
         }
       });
@@ -159,16 +166,22 @@ async function startWorkflowEngine() {
     });
 
     process.on('unhandledRejection', (reason, promise) => {
-      logger.fatal('Unhandled rejection', reason instanceof Error ? reason : new Error(String(reason)), {
-        promise: String(promise),
-      });
+      logger.fatal(
+        'Unhandled rejection',
+        reason instanceof Error ? reason : new Error(String(reason)),
+        {
+          promise: String(promise),
+        }
+      );
       shutdown('unhandledRejection');
     });
 
     logger.info('OfficeFlow Workflow Engine started successfully');
-
   } catch (error) {
-    logger.fatal('Failed to start Workflow Engine', error instanceof Error ? error : new Error(String(error)));
+    logger.fatal(
+      'Failed to start Workflow Engine',
+      error instanceof Error ? error : new Error(String(error))
+    );
     process.exit(1);
   }
 }

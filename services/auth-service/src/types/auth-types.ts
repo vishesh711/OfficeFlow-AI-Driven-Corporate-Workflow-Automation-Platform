@@ -165,71 +165,71 @@ export const AUTH_ERRORS = {
   INVALID_CREDENTIALS: {
     code: 'INVALID_CREDENTIALS',
     message: 'Invalid email or password',
-    statusCode: 401
+    statusCode: 401,
   },
   USER_NOT_FOUND: {
     code: 'USER_NOT_FOUND',
     message: 'User not found',
-    statusCode: 404
+    statusCode: 404,
   },
   USER_INACTIVE: {
     code: 'USER_INACTIVE',
     message: 'User account is inactive',
-    statusCode: 401
+    statusCode: 401,
   },
   MFA_REQUIRED: {
     code: 'MFA_REQUIRED',
     message: 'Multi-factor authentication required',
-    statusCode: 401
+    statusCode: 401,
   },
   INVALID_MFA_TOKEN: {
     code: 'INVALID_MFA_TOKEN',
     message: 'Invalid MFA token',
-    statusCode: 401
+    statusCode: 401,
   },
   MFA_SETUP_REQUIRED: {
     code: 'MFA_SETUP_REQUIRED',
     message: 'MFA setup required for this account',
-    statusCode: 401
+    statusCode: 401,
   },
   INVALID_TOKEN: {
     code: 'INVALID_TOKEN',
     message: 'Invalid or expired token',
-    statusCode: 401
+    statusCode: 401,
   },
   TOKEN_EXPIRED: {
     code: 'TOKEN_EXPIRED',
     message: 'Token has expired',
-    statusCode: 401
+    statusCode: 401,
   },
   SESSION_EXPIRED: {
     code: 'SESSION_EXPIRED',
     message: 'Session has expired',
-    statusCode: 401
+    statusCode: 401,
   },
   TOO_MANY_SESSIONS: {
     code: 'TOO_MANY_SESSIONS',
     message: 'Maximum concurrent sessions exceeded',
-    statusCode: 429
+    statusCode: 429,
   },
   RATE_LIMIT_EXCEEDED: {
     code: 'RATE_LIMIT_EXCEEDED',
     message: 'Too many requests, please try again later',
-    statusCode: 429
+    statusCode: 429,
   },
   WEAK_PASSWORD: {
     code: 'WEAK_PASSWORD',
     message: 'Password does not meet security requirements',
-    statusCode: 400
+    statusCode: 400,
   },
   PASSWORD_REUSE: {
     code: 'PASSWORD_REUSE',
     message: 'Cannot reuse recent passwords',
-    statusCode: 400
+    statusCode: 400,
   },
   INVALID_RESET_TOKEN: {
     code: 'INVALID_RESET_TOKEN',
     message: 'Invalid or expired reset token',
-    statusCode: 400
-  }
+    statusCode: 400,
+  },
 } as const;

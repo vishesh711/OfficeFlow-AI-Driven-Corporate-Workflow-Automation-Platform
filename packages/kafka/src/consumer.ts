@@ -1,10 +1,10 @@
-import { 
-  Kafka, 
-  Consumer, 
-  EachMessagePayload, 
+import {
+  Kafka,
+  Consumer,
+  EachMessagePayload,
   ConsumerSubscribeTopics,
   ConsumerRunConfig,
-  KafkaMessage
+  KafkaMessage,
 } from 'kafkajs';
 import { KafkaClusterConfig, ConsumerGroupConfig, defaultConsumerConfig } from './config';
 import { OfficeFlowMessage, OfficeFlowProducer } from './producer';
@@ -165,7 +165,9 @@ export class OfficeFlowConsumer {
   /**
    * Commit current offsets
    */
-  async commitOffsets(topicPartitions?: Array<{ topic: string; partition: number; offset: string }>): Promise<void> {
+  async commitOffsets(
+    topicPartitions?: Array<{ topic: string; partition: number; offset: string }>
+  ): Promise<void> {
     if (topicPartitions) {
       await this.consumer.commitOffsets(topicPartitions);
     }
@@ -180,7 +182,7 @@ export class OfficeFlowConsumer {
 
   private async handleMessage(payload: EachMessagePayload): Promise<void> {
     const { topic, partition, message } = payload;
-    
+
     try {
       // Parse the message
       const officeFlowMessage = this.parseMessage(message);
@@ -221,7 +223,6 @@ export class OfficeFlowConsumer {
 
       // Execute handler with retry logic
       await this.executeWithRetry(handler, officeFlowMessage, context);
-
     } catch (error) {
       console.error('Failed to process message:', error, {
         topic,
@@ -247,7 +248,7 @@ export class OfficeFlowConsumer {
         return; // Success
       } catch (error) {
         lastError = error as Error;
-        
+
         // Check if error is retryable
         if (!this.isRetryableError(error as Error) || attempt === this.retryConfig.maxRetries) {
           throw error;
@@ -259,11 +260,14 @@ export class OfficeFlowConsumer {
           this.retryConfig.maxDelayMs
         );
 
-        console.warn(`Handler failed, retrying in ${delay}ms (attempt ${attempt + 1}/${this.retryConfig.maxRetries}):`, {
-          messageId: message.id,
-          correlationId: context.correlationId,
-          error: (error as Error).message,
-        });
+        console.warn(
+          `Handler failed, retrying in ${delay}ms (attempt ${attempt + 1}/${this.retryConfig.maxRetries}):`,
+          {
+            messageId: message.id,
+            correlationId: context.correlationId,
+            error: (error as Error).message,
+          }
+        );
 
         await this.sleep(delay);
       }
@@ -288,7 +292,7 @@ export class OfficeFlowConsumer {
 
   private extractHeaders(message: KafkaMessage): Record<string, string> {
     const headers: Record<string, string> = {};
-    
+
     if (message.headers) {
       Object.entries(message.headers).forEach(([key, value]) => {
         if (value) {
@@ -306,12 +310,18 @@ export class OfficeFlowConsumer {
   }
 
   private isRetryableError(error: Error): boolean {
-    return this.retryConfig.retryableErrors?.some(
-      retryableError => error.name === retryableError || error.message.includes(retryableError)
-    ) ?? false;
+    return (
+      this.retryConfig.retryableErrors?.some(
+        (retryableError) => error.name === retryableError || error.message.includes(retryableError)
+      ) ?? false
+    );
   }
 
-  private async handleFailedMessage(topic: string, message: KafkaMessage, error: Error): Promise<void> {
+  private async handleFailedMessage(
+    topic: string,
+    message: KafkaMessage,
+    error: Error
+  ): Promise<void> {
     try {
       const officeFlowMessage = this.parseMessage(message);
       if (officeFlowMessage) {
@@ -324,7 +334,7 @@ export class OfficeFlowConsumer {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private async ensureConnected(): Promise<void> {

@@ -47,15 +47,16 @@ export function createWebhookRoutes(webhookService: WebhookService): express.Rou
    */
   router.post('/webhook/:source/:organizationId', async (req: Request, res: Response) => {
     const { source, organizationId } = req.params;
-    const signature = req.headers['x-signature'] as string || 
-                     req.headers['x-hub-signature'] as string ||
-                     req.headers['x-webhook-signature'] as string;
+    const signature =
+      (req.headers['x-signature'] as string) ||
+      (req.headers['x-hub-signature'] as string) ||
+      (req.headers['x-webhook-signature'] as string);
 
     try {
       // Parse the raw body
       const rawBody = req.body.toString('utf8');
       let data: any;
-      
+
       try {
         data = JSON.parse(rawBody);
       } catch (parseError) {
@@ -81,7 +82,11 @@ export function createWebhookRoutes(webhookService: WebhookService): express.Rou
       // Validate payload
       const validation = webhookService.validateWebhookPayload(webhookPayload);
       if (!validation.isValid) {
-        logger.warn('Invalid webhook payload', { source, organizationId, errors: validation.errors });
+        logger.warn('Invalid webhook payload', {
+          source,
+          organizationId,
+          errors: validation.errors,
+        });
         return res.status(400).json({
           error: 'Invalid webhook payload',
           details: validation.errors,
@@ -119,7 +124,7 @@ export function createWebhookRoutes(webhookService: WebhookService): express.Rou
       }
     } catch (error) {
       logger.error('Webhook endpoint error', { source, organizationId, error });
-      
+
       return res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to process webhook',
@@ -135,7 +140,7 @@ export function createWebhookRoutes(webhookService: WebhookService): express.Rou
     try {
       const health = await webhookService.healthCheck();
       const statusCode = health.status === 'healthy' ? 200 : 503;
-      
+
       res.status(statusCode).json(health);
     } catch (error) {
       logger.error('Health check error', { error });
@@ -203,9 +208,9 @@ export function createWebhookRoutes(webhookService: WebhookService): express.Rou
   router.get('/config/webhook', (req: Request, res: Response) => {
     try {
       const configs = webhookService.getWebhookConfigs();
-      
+
       // Remove sensitive information
-      const sanitizedConfigs = configs.map(config => ({
+      const sanitizedConfigs = configs.map((config) => ({
         organizationId: config.organizationId,
         source: config.source,
         endpoint: config.endpoint,
@@ -233,7 +238,7 @@ export function createWebhookRoutes(webhookService: WebhookService): express.Rou
   router.delete('/config/webhook/:organizationId/:source', (req: Request, res: Response) => {
     try {
       const { organizationId, source } = req.params;
-      
+
       webhookService.unregisterWebhookConfig(organizationId, source);
 
       logger.info('Webhook configuration removed via API', { organizationId, source });

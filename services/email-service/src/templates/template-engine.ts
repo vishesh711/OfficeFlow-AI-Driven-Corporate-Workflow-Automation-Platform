@@ -15,7 +15,7 @@ export class TemplateEngine {
     // Date formatting helper
     Handlebars.registerHelper('formatDate', (date: Date, format: string) => {
       if (!date) return '';
-      
+
       const options: Intl.DateTimeFormatOptions = {};
       switch (format) {
         case 'short':
@@ -33,12 +33,12 @@ export class TemplateEngine {
         default:
           options.dateStyle = 'medium';
       }
-      
+
       return new Intl.DateTimeFormat('en-US', options).format(new Date(date));
     });
 
     // Conditional helper
-    Handlebars.registerHelper('if_eq', function(a: any, b: any, options: any) {
+    Handlebars.registerHelper('if_eq', function (a: any, b: any, options: any) {
       if (a === b) {
         return options.fn(this);
       }
@@ -155,22 +155,23 @@ export class TemplateEngine {
           variables.add(node.path.original);
         }
       }
-      
+
       if (node.program) {
         node.program.body.forEach(extractFromNode);
       }
-      
+
       if (node.inverse) {
         node.inverse.body.forEach(extractFromNode);
       }
     };
 
     ast.body.forEach(extractFromNode);
-    
-    return Array.from(variables).filter(v => 
-      !['currentYear', 'currentDate'].includes(v) && 
-      !v.startsWith('if_') && 
-      !['uppercase', 'lowercase', 'capitalize', 'formatDate', 'join'].includes(v)
+
+    return Array.from(variables).filter(
+      (v) =>
+        !['currentYear', 'currentDate'].includes(v) &&
+        !v.startsWith('if_') &&
+        !['uppercase', 'lowercase', 'capitalize', 'formatDate', 'join'].includes(v)
     );
   }
 

@@ -51,7 +51,7 @@ const org = await orgRepo.create({
   name: 'Acme Corp',
   domain: 'acme.com',
   plan: 'enterprise',
-  settings: {}
+  settings: {},
 });
 
 // Find users by organization

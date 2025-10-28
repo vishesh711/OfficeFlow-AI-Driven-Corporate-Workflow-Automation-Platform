@@ -3,7 +3,10 @@
  * Tests workflow execution logic, state management, and lifecycle operations
  */
 
-import { WorkflowOrchestrator, WorkflowOrchestratorConfig } from '../orchestrator/workflow-orchestrator';
+import {
+  WorkflowOrchestrator,
+  WorkflowOrchestratorConfig,
+} from '../orchestrator/workflow-orchestrator';
 import { WorkflowStateMachine, NodeStateMachine } from '../state/state-machine';
 import { WorkflowState, NodeState } from '../types/workflow-state';
 import { RedisStateManager } from '../state/redis-state-manager';
@@ -107,7 +110,7 @@ describe('WorkflowOrchestrator', () => {
       // Setup mocks
       mockStateManager.acquireLock.mockResolvedValue(true);
       mockWorkflowRunRepo.create.mockResolvedValue(mockWorkflowRun);
-      
+
       // Mock workflow loader
       const mockWorkflowLoader = {
         loadWorkflow: jest.fn().mockResolvedValue(mockParsedWorkflow),
@@ -133,23 +136,23 @@ describe('WorkflowOrchestrator', () => {
 
       mockStateManager.acquireLock.mockResolvedValue(false);
       mockWorkflowRunRepo.create.mockResolvedValue(mockWorkflowRunEntity);
-      
+
       // Mock workflow loader
       const mockWorkflowLoader = {
         loadWorkflow: jest.fn().mockResolvedValue(mockParsedWorkflow),
       };
       (orchestrator as any).workflowLoader = mockWorkflowLoader;
 
-      await expect(
-        orchestrator.executeWorkflow(workflowId, context)
-      ).rejects.toThrow('Failed to acquire execution lock');
+      await expect(orchestrator.executeWorkflow(workflowId, context)).rejects.toThrow(
+        'Failed to acquire execution lock'
+      );
     });
 
     it('should handle node completion and continue execution', async () => {
       const runId = uuidv4();
       const nodeId = uuidv4();
       const output = { result: 'success', data: 'test-data' };
-      
+
       const mockWorkflowState = createMockWorkflowState(runId);
       const mockParsedWorkflow = createMockParsedWorkflow();
       const mockContext = createMockExecutionContext();
@@ -378,7 +381,7 @@ describe('WorkflowStateMachine', () => {
       };
 
       const transitionedState = stateMachine.transitionWorkflow(initialState, 'start');
-      
+
       expect(transitionedState.status).toBe('RUNNING');
       expect(transitionedState.lastUpdatedAt).toBeInstanceOf(Date);
       expect(transitionedState.runId).toBe(initialState.runId);
@@ -436,7 +439,7 @@ describe('NodeStateMachine', () => {
       };
 
       const transitionedState = stateMachine.transitionNode(initialState, 'start');
-      
+
       expect(transitionedState.status).toBe('RUNNING');
       expect(transitionedState.startedAt).toBeInstanceOf(Date);
     });
@@ -451,7 +454,7 @@ describe('NodeStateMachine', () => {
       };
 
       const completedState = stateMachine.transitionNode(runningState, 'complete');
-      
+
       expect(completedState.status).toBe('COMPLETED');
       expect(completedState.endedAt).toBeInstanceOf(Date);
     });

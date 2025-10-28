@@ -7,11 +7,7 @@
     "project": "./tsconfig.json"
   },
   "plugins": ["@typescript-eslint"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "prettier"
-  ],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
   "env": {
     "node": true,
     "es2022": true
@@ -29,13 +25,5 @@
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "no-console": ["warn", { "allow": ["warn", "error"] }]
   },
-  "ignorePatterns": [
-    "dist",
-    "node_modules",
-    "coverage",
-    "*.config.js",
-    "*.config.ts",
-    ".next"
-  ]
+  "ignorePatterns": ["dist", "node_modules", "coverage", "*.config.js", "*.config.ts", ".next"]
 }
-

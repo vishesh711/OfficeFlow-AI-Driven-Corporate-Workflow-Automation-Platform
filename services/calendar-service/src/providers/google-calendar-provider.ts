@@ -1,13 +1,13 @@
 import { google, calendar_v3 } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
-import { 
-  CalendarEvent, 
-  CalendarEventResponse, 
-  CalendarListResponse, 
-  AvailabilityRequest, 
+import {
+  CalendarEvent,
+  CalendarEventResponse,
+  CalendarListResponse,
+  AvailabilityRequest,
   AvailabilityResponse,
   CalendarCredentials,
-  GoogleCalendarConfig
+  GoogleCalendarConfig,
 } from '../types/calendar-types';
 import { logger } from '../utils/logger';
 import moment from 'moment-timezone';
@@ -46,7 +46,7 @@ export class GoogleCalendarProvider {
         dateTime: event.endTime.toISOString(),
         timeZone: event.timezone,
       },
-      attendees: event.attendees.map(attendee => ({
+      attendees: event.attendees.map((attendee) => ({
         email: attendee.email,
         displayName: attendee.name,
         responseStatus: this.mapAttendeeStatus(attendee.status),
@@ -54,10 +54,11 @@ export class GoogleCalendarProvider {
       })),
       reminders: {
         useDefault: false,
-        overrides: event.reminders?.map(reminder => ({
-          method: reminder.method,
-          minutes: reminder.minutes,
-        })) || [],
+        overrides:
+          event.reminders?.map((reminder) => ({
+            method: reminder.method,
+            minutes: reminder.minutes,
+          })) || [],
       },
     };
 
@@ -78,63 +79,77 @@ export class GoogleCalendarProvider {
       endTime: new Date(googleEvent.end?.dateTime || googleEvent.end?.date || ''),
       timezone: googleEvent.start?.timeZone || 'UTC',
       location: googleEvent.location,
-      attendees: googleEvent.attendees?.map(attendee => ({
-        email: attendee.email || '',
-        name: attendee.displayName,
-        status: this.mapGoogleAttendeeStatus(attendee.responseStatus),
-        required: !attendee.optional,
-      })) || [],
-      organizer: googleEvent.organizer ? {
-        email: googleEvent.organizer.email || '',
-        name: googleEvent.organizer.displayName,
-      } : undefined,
-      reminders: googleEvent.reminders?.overrides?.map(reminder => ({
-        method: reminder.method as 'email' | 'popup',
-        minutes: reminder.minutes || 0,
-      })) || [],
+      attendees:
+        googleEvent.attendees?.map((attendee) => ({
+          email: attendee.email || '',
+          name: attendee.displayName,
+          status: this.mapGoogleAttendeeStatus(attendee.responseStatus),
+          required: !attendee.optional,
+        })) || [],
+      organizer: googleEvent.organizer
+        ? {
+            email: googleEvent.organizer.email || '',
+            name: googleEvent.organizer.displayName,
+          }
+        : undefined,
+      reminders:
+        googleEvent.reminders?.overrides?.map((reminder) => ({
+          method: reminder.method as 'email' | 'popup',
+          minutes: reminder.minutes || 0,
+        })) || [],
     };
   }
 
   private mapAttendeeStatus(status?: string): string {
     switch (status) {
-      case 'accepted': return 'accepted';
-      case 'declined': return 'declined';
-      case 'tentative': return 'tentative';
-      default: return 'needsAction';
+      case 'accepted':
+        return 'accepted';
+      case 'declined':
+        return 'declined';
+      case 'tentative':
+        return 'tentative';
+      default:
+        return 'needsAction';
     }
   }
 
-  private mapGoogleAttendeeStatus(status?: string): 'accepted' | 'declined' | 'tentative' | 'needsAction' {
+  private mapGoogleAttendeeStatus(
+    status?: string
+  ): 'accepted' | 'declined' | 'tentative' | 'needsAction' {
     switch (status) {
-      case 'accepted': return 'accepted';
-      case 'declined': return 'declined';
-      case 'tentative': return 'tentative';
-      default: return 'needsAction';
+      case 'accepted':
+        return 'accepted';
+      case 'declined':
+        return 'declined';
+      case 'tentative':
+        return 'tentative';
+      default:
+        return 'needsAction';
     }
   }
 
   private convertRecurrenceRule(recurrence: any): string[] {
     // Convert our recurrence rule to Google's RRULE format
     let rrule = `FREQ=${recurrence.frequency.toUpperCase()}`;
-    
+
     if (recurrence.interval) {
       rrule += `;INTERVAL=${recurrence.interval}`;
     }
-    
+
     if (recurrence.count) {
       rrule += `;COUNT=${recurrence.count}`;
     }
-    
+
     if (recurrence.until) {
       rrule += `;UNTIL=${moment(recurrence.until).format('YYYYMMDD')}`;
     }
-    
+
     if (recurrence.byWeekDay && recurrence.byWeekDay.length > 0) {
       const days = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
       const weekDays = recurrence.byWeekDay.map((day: number) => days[day]).join(',');
       rrule += `;BYDAY=${weekDays}`;
     }
-    
+
     return [`RRULE:${rrule}`];
   }
 
@@ -146,9 +161,9 @@ export class GoogleCalendarProvider {
   ): Promise<CalendarEventResponse> {
     try {
       this.setCredentials(credentials);
-      
+
       const googleEvent = this.convertToGoogleEvent(event);
-      
+
       const response = await this.calendar.events.insert({
         calendarId,
         resource: googleEvent,
@@ -189,9 +204,9 @@ export class GoogleCalendarProvider {
   ): Promise<CalendarEventResponse> {
     try {
       this.setCredentials(credentials);
-      
+
       const googleEvent = this.convertToGoogleEvent(event);
-      
+
       const response = await this.calendar.events.update({
         calendarId,
         eventId,
@@ -233,7 +248,7 @@ export class GoogleCalendarProvider {
   ): Promise<CalendarEventResponse> {
     try {
       this.setCredentials(credentials);
-      
+
       await this.calendar.events.delete({
         calendarId,
         eventId,
@@ -274,7 +289,7 @@ export class GoogleCalendarProvider {
   ): Promise<CalendarListResponse> {
     try {
       this.setCredentials(credentials);
-      
+
       const response = await this.calendar.events.list({
         calendarId,
         timeMin: startTime?.toISOString(),
@@ -284,7 +299,7 @@ export class GoogleCalendarProvider {
         orderBy: 'startTime',
       });
 
-      const events = response.data.items?.map(item => this.convertFromGoogleEvent(item)) || [];
+      const events = response.data.items?.map((item) => this.convertFromGoogleEvent(item)) || [];
 
       logger.info('Google Calendar events listed', {
         count: events.length,
@@ -317,21 +332,21 @@ export class GoogleCalendarProvider {
   ): Promise<AvailabilityResponse[]> {
     try {
       this.setCredentials(credentials);
-      
+
       const response = await this.calendar.freebusy.query({
         resource: {
           timeMin: request.startTime.toISOString(),
           timeMax: request.endTime.toISOString(),
-          items: request.emails.map(email => ({ id: email })),
+          items: request.emails.map((email) => ({ id: email })),
           timeZone: request.timezone,
         },
       });
 
       const results: AvailabilityResponse[] = [];
-      
+
       for (const email of request.emails) {
         const busyTimes = response.data.calendars?.[email]?.busy || [];
-        const slots = busyTimes.map(busy => ({
+        const slots = busyTimes.map((busy) => ({
           startTime: new Date(busy.start || ''),
           endTime: new Date(busy.end || ''),
           status: 'busy' as const,
@@ -379,7 +394,7 @@ export class GoogleCalendarProvider {
     expiresAt?: Date;
   }> {
     const { tokens } = await this.oauth2Client.getToken(code);
-    
+
     return {
       accessToken: tokens.access_token!,
       refreshToken: tokens.refresh_token,
@@ -393,7 +408,7 @@ export class GoogleCalendarProvider {
   }> {
     this.oauth2Client.setCredentials({ refresh_token: refreshToken });
     const { credentials } = await this.oauth2Client.refreshAccessToken();
-    
+
     return {
       accessToken: credentials.access_token!,
       expiresAt: credentials.expiry_date ? new Date(credentials.expiry_date) : undefined,

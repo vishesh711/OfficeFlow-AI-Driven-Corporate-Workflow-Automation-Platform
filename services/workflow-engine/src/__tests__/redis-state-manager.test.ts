@@ -38,7 +38,7 @@ describe('RedisStateManager', () => {
     };
 
     stateManager = new RedisStateManager(config);
-    
+
     // Clean up any existing retry schedule data
     try {
       const redis = (stateManager as any).redis;
@@ -107,7 +107,7 @@ describe('RedisStateManager', () => {
 
       await stateManager.setWorkflowState(workflowState);
       await stateManager.deleteWorkflowState(runId);
-      
+
       const retrieved = await stateManager.getWorkflowState(runId);
       expect(retrieved).toBeNull();
     });
@@ -168,8 +168,8 @@ describe('RedisStateManager', () => {
 
       const retrieved = await stateManager.getWorkflowNodeStates(runId);
       expect(retrieved).toHaveLength(3);
-      
-      const statuses = retrieved.map(s => s.status).sort();
+
+      const statuses = retrieved.map((s) => s.status).sort();
       expect(statuses).toEqual(['COMPLETED', 'FAILED', 'RUNNING']);
     });
 
@@ -194,7 +194,7 @@ describe('RedisStateManager', () => {
 
       const retrieved = await stateManager.getWorkflowNodeStates(runId);
       expect(retrieved).toHaveLength(2);
-      expect(retrieved.every(s => s.status === 'QUEUED')).toBe(true);
+      expect(retrieved.every((s) => s.status === 'QUEUED')).toBe(true);
     });
   });
 
@@ -226,7 +226,7 @@ describe('RedisStateManager', () => {
       const lockHolder2 = 'test-instance-2';
 
       await stateManager.acquireLock(runId, lockHolder1);
-      
+
       const released = await stateManager.releaseLock(runId, lockHolder2);
       expect(released).toBe(false);
     });
@@ -236,8 +236,8 @@ describe('RedisStateManager', () => {
       const lockHolder = 'test-instance-1';
 
       const { acquired, renewalTimer } = await stateManager.acquireLockWithRenewal(
-        runId, 
-        lockHolder, 
+        runId,
+        lockHolder,
         100 // 100ms renewal interval for testing
       );
 
@@ -245,7 +245,7 @@ describe('RedisStateManager', () => {
       expect(renewalTimer).toBeDefined();
 
       // Wait for renewal to happen
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       // Clean up
       if (renewalTimer) {
@@ -265,45 +265,45 @@ describe('RedisStateManager', () => {
 
       // Should not be ready yet
       const notReady = await stateManager.getNodesReadyForRetry(10);
-      expect(notReady.find(r => r.runId === runId && r.nodeId === nodeId)).toBeUndefined();
+      expect(notReady.find((r) => r.runId === runId && r.nodeId === nodeId)).toBeUndefined();
 
       // Schedule for immediate retry
       const immediateRetry = new Date(Date.now() - 1000); // 1 second ago
       await stateManager.scheduleRetry(runId, nodeId, immediateRetry);
 
       const ready = await stateManager.getNodesReadyForRetry(10);
-      expect(ready.find(r => r.runId === runId && r.nodeId === nodeId)).toBeDefined();
+      expect(ready.find((r) => r.runId === runId && r.nodeId === nodeId)).toBeDefined();
     });
 
     it('should remove nodes from retry schedule', async () => {
       // Clean up any existing data first
       const redis = (stateManager as any).redis;
       await redis.del('retry:schedule');
-      
+
       const runId = uuidv4();
       const nodeId = uuidv4();
       const retryAt = new Date(Date.now() - 5000); // 5 seconds in the past
 
       await stateManager.scheduleRetry(runId, nodeId, retryAt);
-      
+
       // Add a small delay to ensure Redis operation completes
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       let ready = await stateManager.getNodesReadyForRetry(10);
-      expect(ready.find(r => r.runId === runId && r.nodeId === nodeId)).toBeDefined();
+      expect(ready.find((r) => r.runId === runId && r.nodeId === nodeId)).toBeDefined();
 
       await stateManager.removeFromRetrySchedule(runId, nodeId);
-      
+
       ready = await stateManager.getNodesReadyForRetry(10);
-      expect(ready.find(r => r.runId === runId && r.nodeId === nodeId)).toBeUndefined();
+      expect(ready.find((r) => r.runId === runId && r.nodeId === nodeId)).toBeUndefined();
     });
 
     it('should clean up expired retries', async () => {
       const runId = uuidv4();
       const nodeId = uuidv4();
-      
+
       // Schedule retry far in the past (should be cleaned up)
-      const expiredRetry = new Date(Date.now() - (8 * 24 * 60 * 60 * 1000)); // 8 days ago
+      const expiredRetry = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000); // 8 days ago
       await stateManager.scheduleRetry(runId, nodeId, expiredRetry);
 
       const cleaned = await stateManager.cleanupExpiredRetries();
@@ -314,10 +314,10 @@ describe('RedisStateManager', () => {
   describe('Health and Monitoring', () => {
     it('should get connection health', async () => {
       const health = await stateManager.getConnectionHealth();
-      
+
       expect(health).toHaveProperty('status');
       expect(['connected', 'connecting', 'disconnected', 'error']).toContain(health.status);
-      
+
       if (health.status === 'connected') {
         expect(health.latencyMs).toBeGreaterThanOrEqual(0);
       }
@@ -344,7 +344,7 @@ describe('RedisStateManager', () => {
       await stateManager.setWorkflowState(workflowState);
 
       const stats = await stateManager.getWorkflowStats();
-      
+
       expect(stats).toHaveProperty('totalActiveWorkflows');
       expect(stats).toHaveProperty('totalScheduledRetries');
       expect(stats).toHaveProperty('nodeStatusCounts');
@@ -355,7 +355,7 @@ describe('RedisStateManager', () => {
     it('should get execution metrics', async () => {
       const orgId = uuidv4();
       const metrics = await stateManager.getExecutionMetrics(orgId);
-      
+
       expect(metrics).toHaveProperty('activeWorkflows');
       expect(metrics).toHaveProperty('queuedNodes');
       expect(metrics).toHaveProperty('runningNodes');
@@ -368,9 +368,9 @@ describe('RedisStateManager', () => {
     it('should handle Redis connection errors gracefully', async () => {
       // This test would require mocking Redis failures
       // For now, we'll test that methods don't throw unexpected errors
-      
+
       const nonExistentId = uuidv4();
-      
+
       // These should not throw
       await expect(stateManager.getWorkflowState(nonExistentId)).resolves.toBeNull();
       await expect(stateManager.getNodeState(nonExistentId, nonExistentId)).resolves.toBeNull();

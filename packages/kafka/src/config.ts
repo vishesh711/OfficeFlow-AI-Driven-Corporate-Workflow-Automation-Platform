@@ -10,19 +10,22 @@ export interface KafkaClusterConfig {
     retries?: number;
   };
   ssl?: boolean;
-  sasl?: {
-    mechanism: 'plain';
-    username: string;
-    password: string;
-  } | {
-    mechanism: 'scram-sha-256';
-    username: string;
-    password: string;
-  } | {
-    mechanism: 'scram-sha-512';
-    username: string;
-    password: string;
-  };
+  sasl?:
+    | {
+        mechanism: 'plain';
+        username: string;
+        password: string;
+      }
+    | {
+        mechanism: 'scram-sha-256';
+        username: string;
+        password: string;
+      }
+    | {
+        mechanism: 'scram-sha-512';
+        username: string;
+        password: string;
+      };
 }
 
 export interface TopicConfig {

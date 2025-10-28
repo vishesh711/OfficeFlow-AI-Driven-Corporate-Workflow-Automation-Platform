@@ -24,7 +24,7 @@ Added new endpoint to execute workflows:
 router.post('/workflows/:id/execute', async (req, res) => {
   const { id } = req.params;
   const { context } = req.body;
-  
+
   // Create execution context
   const executionContext = {
     organizationId: user?.orgId || 'default-org-id',
@@ -33,10 +33,10 @@ router.post('/workflows/:id/execute', async (req, res) => {
     variables: context?.variables || {},
     correlationId: `test-${Date.now()}`,
   };
-  
+
   // Execute workflow
   const workflowRun = await engineService.executeWorkflow(id, executionContext);
-  
+
   res.status(200).json({
     runId: workflowRun.id,
     status: workflowRun.status,
@@ -55,17 +55,17 @@ Added `executeWorkflow` function:
 export const workflowApi = {
   // ... existing methods
   executeWorkflow: (
-    id: string, 
-    context?: { 
-      employeeId?: string
-      data?: Record<string, any>
-      variables?: Record<string, any>
+    id: string,
+    context?: {
+      employeeId?: string;
+      data?: Record<string, any>;
+      variables?: Record<string, any>;
     }
-  ) => apiClient.post<{ runId: string; status: string; message: string }>(
-    `/workflows/${id}/execute`, 
-    { context }
-  ),
-}
+  ) =>
+    apiClient.post<{ runId: string; status: string; message: string }>(`/workflows/${id}/execute`, {
+      context,
+    }),
+};
 ```
 
 ### Frontend UI Changes
@@ -77,38 +77,40 @@ export const workflowApi = {
 ```typescript
 const handleTestRun = useCallback(async () => {
   if (!currentWorkflow) {
-    alert('Please save the workflow before running a test.')
-    return
+    alert('Please save the workflow before running a test.');
+    return;
   }
 
   // Validate workflow before test run
   if (!validationResult.isValid) {
-    const errorMessages = validationResult.errors.map(e => e.message)
-    alert(`Workflow validation failed:\n${errorMessages.join('\n')}`)
-    setShowValidationPanel(true)
-    return
+    const errorMessages = validationResult.errors.map((e) => e.message);
+    alert(`Workflow validation failed:\n${errorMessages.join('\n')}`);
+    setShowValidationPanel(true);
+    return;
   }
 
   try {
-    setLoading(true)
+    setLoading(true);
     const response = await workflowApi.executeWorkflow(currentWorkflow.id, {
       variables: { testRun: true },
       data: { trigger: 'manual_test' },
-    })
-    
-    alert(`Test run started successfully!\n\nRun ID: ${response.data.runId}\nStatus: ${response.data.status}\n\nCheck the Monitoring page to view progress.`)
-    
+    });
+
+    alert(
+      `Test run started successfully!\n\nRun ID: ${response.data.runId}\nStatus: ${response.data.status}\n\nCheck the Monitoring page to view progress.`
+    );
+
     // Navigate to monitoring page
     setTimeout(() => {
-      navigate('/monitoring')
-    }, 2000)
+      navigate('/monitoring');
+    }, 2000);
   } catch (error) {
-    console.error('Failed to execute test run:', error)
-    alert('Failed to start test run. Please try again.')
+    console.error('Failed to execute test run:', error);
+    alert('Failed to start test run. Please try again.');
   } finally {
-    setLoading(false)
+    setLoading(false);
   }
-}, [currentWorkflow, validationResult, setLoading, navigate])
+}, [currentWorkflow, validationResult, setLoading, navigate]);
 ```
 
 #### 2. Updated Button
@@ -156,12 +158,14 @@ const handleTestRun = useCallback(async () => {
 ## Requirements to Use Test Run
 
 ### ✅ Must Have:
+
 1. **Saved workflow** - Click "Save" first
 2. **Valid workflow structure** - Must pass validation
 3. **At least one node** - Workflow can't be empty
 4. **Connected nodes** - Trigger must connect to other nodes
 
 ### ⚠️ Optional:
+
 - Workflow doesn't need to be "active"
 - Can test run even if workflow.isActive is false
 - Test runs are marked with `manual` trigger type
@@ -169,6 +173,7 @@ const handleTestRun = useCallback(async () => {
 ## Test Cases
 
 ### Test Case 1: Simple Email Workflow
+
 ```
 1. Create workflow with:
    - Trigger node (employee.onboard)
@@ -180,6 +185,7 @@ const handleTestRun = useCallback(async () => {
 ```
 
 ### Test Case 2: Conditional Workflow
+
 ```
 1. Create workflow with:
    - Trigger
@@ -193,6 +199,7 @@ const handleTestRun = useCallback(async () => {
 ```
 
 ### Test Case 3: Error Handling
+
 ```
 1. Try test run without saving → Shows alert
 2. Try test run with invalid workflow → Shows validation errors
@@ -267,7 +274,8 @@ After starting a test run:
 
 **Cause:** Workflow hasn't been saved yet
 
-**Solution:** 
+**Solution:**
+
 1. Add nodes to workflow
 2. Click "Save" button
 3. Test Run will become enabled
@@ -283,6 +291,7 @@ After starting a test run:
 **Cause:** Workflow structure is invalid
 
 **Solutions:**
+
 - Ensure all nodes are connected
 - Check that trigger node exists
 - Verify required fields are filled
@@ -291,12 +300,14 @@ After starting a test run:
 ### Execution Fails
 
 **Possible Causes:**
+
 - Workflow engine not running
 - Database connection issue
 - Redis connection issue
 - Kafka not available
 
 **Check:**
+
 ```bash
 # Check workflow engine status
 curl http://localhost:3000/health
@@ -311,7 +322,9 @@ docker ps | grep -E "(postgres|redis|kafka)"
 ## Future Enhancements
 
 ### 1. **Custom Test Data Input**
+
 Add a modal to enter custom test data before execution:
+
 ```typescript
 <TestDataModal
   onSubmit={(testData) => handleTestRun(testData)}
@@ -319,26 +332,32 @@ Add a modal to enter custom test data before execution:
 ```
 
 ### 2. **Quick Test Results**
+
 Show execution results inline without navigating away:
+
 ```typescript
-<TestRunResults 
+<TestRunResults
   runId={lastRunId}
   onClose={() => setShowResults(false)}
 />
 ```
 
 ### 3. **Test History**
+
 Track test runs separately from production runs:
+
 ```typescript
-const testRuns = await workflowApi.getTestRuns(workflowId)
+const testRuns = await workflowApi.getTestRuns(workflowId);
 ```
 
 ### 4. **Dry Run Mode**
+
 Execute workflow without side effects:
+
 ```typescript
-await workflowApi.executeWorkflow(id, { 
-  dryRun: true  // Don't actually send emails, etc.
-})
+await workflowApi.executeWorkflow(id, {
+  dryRun: true, // Don't actually send emails, etc.
+});
 ```
 
 ## Status
@@ -346,6 +365,7 @@ await workflowApi.executeWorkflow(id, {
 ✅ **Test Run is now fully functional!**
 
 Users can:
+
 - Click Test Run button after saving workflow
 - Execute workflows with test data
 - View execution in Monitoring page
@@ -370,4 +390,3 @@ Users can:
    - Monitor node execution
 
 That's it! Test Run is working! 🚀
-

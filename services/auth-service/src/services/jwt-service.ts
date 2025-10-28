@@ -14,13 +14,13 @@ export class JwtService {
       orgId: user.orgId,
       email: user.email,
       role: user.role,
-      sessionId
+      sessionId,
     };
 
     return jwt.sign(payload, authConfig.jwt.secret, {
       expiresIn: authConfig.jwt.expiresIn,
       issuer: 'officeflow-auth',
-      audience: 'officeflow-platform'
+      audience: 'officeflow-platform',
     });
   }
 
@@ -31,13 +31,13 @@ export class JwtService {
     const payload: Omit<RefreshTokenPayload, 'iat' | 'exp'> = {
       userId,
       sessionId,
-      tokenVersion
+      tokenVersion,
     };
 
     return jwt.sign(payload, authConfig.jwt.secret, {
       expiresIn: authConfig.jwt.refreshExpiresIn,
       issuer: 'officeflow-auth',
-      audience: 'officeflow-refresh'
+      audience: 'officeflow-refresh',
     });
   }
 
@@ -48,7 +48,7 @@ export class JwtService {
     try {
       const decoded = jwt.verify(token, authConfig.jwt.secret, {
         issuer: 'officeflow-auth',
-        audience: 'officeflow-platform'
+        audience: 'officeflow-platform',
       }) as JwtPayload;
 
       return decoded;
@@ -70,7 +70,7 @@ export class JwtService {
     try {
       const decoded = jwt.verify(token, authConfig.jwt.secret, {
         issuer: 'officeflow-auth',
-        audience: 'officeflow-refresh'
+        audience: 'officeflow-refresh',
       }) as RefreshTokenPayload;
 
       return decoded;
@@ -119,13 +119,13 @@ export class JwtService {
     const payload = {
       userId,
       type: 'password-reset',
-      tokenId: generateId()
+      tokenId: generateId(),
     };
 
     return jwt.sign(payload, authConfig.jwt.secret, {
       expiresIn: '1h', // Password reset tokens expire in 1 hour
       issuer: 'officeflow-auth',
-      audience: 'officeflow-password-reset'
+      audience: 'officeflow-password-reset',
     });
   }
 
@@ -136,7 +136,7 @@ export class JwtService {
     try {
       const decoded = jwt.verify(token, authConfig.jwt.secret, {
         issuer: 'officeflow-auth',
-        audience: 'officeflow-password-reset'
+        audience: 'officeflow-password-reset',
       }) as any;
 
       if (decoded.type !== 'password-reset') {
@@ -145,7 +145,7 @@ export class JwtService {
 
       return {
         userId: decoded.userId,
-        tokenId: decoded.tokenId
+        tokenId: decoded.tokenId,
       };
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -164,10 +164,10 @@ export class JwtService {
   getTimeUntilExpiration(token: string): number {
     const expiration = this.getTokenExpiration(token);
     if (!expiration) return 0;
-    
+
     const now = new Date();
     const timeUntilExpiration = Math.floor((expiration.getTime() - now.getTime()) / 1000);
-    
+
     return Math.max(0, timeUntilExpiration);
   }
 }

@@ -18,7 +18,7 @@ console.log('✅ JWT-based authentication system completed');
 console.log('Configuration loaded:', {
   jwtExpiresIn: authConfig.jwt.expiresIn,
   sessionTimeout: authConfig.session.timeoutMinutes,
-  passwordMinLength: authConfig.password.minLength
+  passwordMinLength: authConfig.password.minLength,
 });
 
 console.log('Available auth errors:', Object.keys(AUTH_ERRORS).length);

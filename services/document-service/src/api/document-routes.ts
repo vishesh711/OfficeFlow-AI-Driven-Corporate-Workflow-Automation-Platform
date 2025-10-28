@@ -49,7 +49,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
     };
 
     const document = await documentService.uploadDocument(uploadRequest);
-    
+
     res.status(201).json({
       success: true,
       document,
@@ -136,7 +136,7 @@ router.post('/search', async (req: Request, res: Response) => {
     };
 
     const result = await documentService.searchDocuments(searchQuery);
-    
+
     res.json({
       success: true,
       ...result,
@@ -172,7 +172,7 @@ router.get('/:documentId', async (req: Request, res: Response) => {
     }
 
     const document = await documentService['documentRepository'].getDocument(documentId);
-    
+
     if (!document || !document.isActive) {
       return res.status(404).json({
         success: false,
@@ -200,7 +200,7 @@ router.put('/:documentId', async (req: Request, res: Response) => {
     const { userId, ...updates } = req.body;
 
     const document = await documentService.updateDocument(documentId, updates, userId);
-    
+
     res.json({
       success: true,
       document,
@@ -221,7 +221,7 @@ router.delete('/:documentId', async (req: Request, res: Response) => {
     const { userId, organizationId } = req.body;
 
     await documentService.deleteDocument(documentId, userId, organizationId);
-    
+
     res.json({
       success: true,
       message: 'Document deleted successfully',
@@ -240,7 +240,7 @@ router.get('/stats/:organizationId', async (req: Request, res: Response) => {
   try {
     const { organizationId } = req.params;
     const stats = await documentService.getDocumentStats(organizationId);
-    
+
     res.json({
       success: true,
       stats,

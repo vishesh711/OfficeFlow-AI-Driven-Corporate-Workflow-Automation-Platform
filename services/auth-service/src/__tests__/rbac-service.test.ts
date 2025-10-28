@@ -6,14 +6,14 @@ import { RESOURCES, ACTIONS, formatPermission } from '../types/rbac-types';
 // Mock dependencies
 const mockDb = {
   query: jest.fn(),
-  connect: jest.fn()
+  connect: jest.fn(),
 } as unknown as Pool;
 
 const mockLogger = {
   info: jest.fn(),
   error: jest.fn(),
   warn: jest.fn(),
-  debug: jest.fn()
+  debug: jest.fn(),
 } as MockLogger;
 
 describe('RbacService', () => {
@@ -28,20 +28,22 @@ describe('RbacService', () => {
     it('should return true when user has role-based permission', async () => {
       const mockQuery = mockDb.query as jest.Mock;
       mockQuery.mockResolvedValueOnce({
-        rows: [{ has_permission: true }]
+        rows: [{ has_permission: true }],
       });
 
       const context = {
         userId: 'user-123',
         orgId: 'org-456',
         resource: RESOURCES.WORKFLOW,
-        action: ACTIONS.READ
+        action: ACTIONS.READ,
       };
 
       const result = await rbacService.hasPermission(context);
 
       expect(result.allowed).toBe(true);
-      expect(result.grantedPermissions).toContain(formatPermission(RESOURCES.WORKFLOW, ACTIONS.READ));
+      expect(result.grantedPermissions).toContain(
+        formatPermission(RESOURCES.WORKFLOW, ACTIONS.READ)
+      );
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('SELECT user_has_permission($1, $2, $3, $4) as has_permission'),
         ['user-123', 'org-456', RESOURCES.WORKFLOW, ACTIONS.READ]
@@ -52,11 +54,11 @@ describe('RbacService', () => {
       const mockQuery = mockDb.query as jest.Mock;
       // First query (role-based) returns false
       mockQuery.mockResolvedValueOnce({
-        rows: [{ has_permission: false }]
+        rows: [{ has_permission: false }],
       });
       // Second query (resource-specific) returns true
       mockQuery.mockResolvedValueOnce({
-        rows: [{ has_resource_permission: true }]
+        rows: [{ has_resource_permission: true }],
       });
 
       const context = {
@@ -64,7 +66,7 @@ describe('RbacService', () => {
         orgId: 'org-456',
         resource: RESOURCES.WORKFLOW,
         action: ACTIONS.READ,
-        resourceId: 'workflow-789'
+        resourceId: 'workflow-789',
       };
 
       const result = await rbacService.hasPermission(context);
@@ -76,21 +78,23 @@ describe('RbacService', () => {
     it('should return false when user has no permission', async () => {
       const mockQuery = mockDb.query as jest.Mock;
       mockQuery.mockResolvedValueOnce({
-        rows: [{ has_permission: false }]
+        rows: [{ has_permission: false }],
       });
 
       const context = {
         userId: 'user-123',
         orgId: 'org-456',
         resource: RESOURCES.WORKFLOW,
-        action: ACTIONS.DELETE
+        action: ACTIONS.DELETE,
       };
 
       const result = await rbacService.hasPermission(context);
 
       expect(result.allowed).toBe(false);
       expect(result.reason).toContain('Missing permission');
-      expect(result.requiredPermissions).toContain(formatPermission(RESOURCES.WORKFLOW, ACTIONS.DELETE));
+      expect(result.requiredPermissions).toContain(
+        formatPermission(RESOURCES.WORKFLOW, ACTIONS.DELETE)
+      );
     });
 
     it('should handle database errors gracefully', async () => {
@@ -101,7 +105,7 @@ describe('RbacService', () => {
         userId: 'user-123',
         orgId: 'org-456',
         resource: RESOURCES.WORKFLOW,
-        action: ACTIONS.READ
+        action: ACTIONS.READ,
       };
 
       const result = await rbacService.hasPermission(context);
@@ -122,7 +126,7 @@ describe('RbacService', () => {
 
       const permissions = [
         { resource: RESOURCES.WORKFLOW, action: ACTIONS.READ },
-        { resource: RESOURCES.WORKFLOW, action: ACTIONS.UPDATE }
+        { resource: RESOURCES.WORKFLOW, action: ACTIONS.UPDATE },
       ];
 
       const result = await rbacService.hasPermissions('user-123', 'org-456', permissions);
@@ -140,14 +144,18 @@ describe('RbacService', () => {
 
       const permissions = [
         { resource: RESOURCES.WORKFLOW, action: ACTIONS.READ },
-        { resource: RESOURCES.WORKFLOW, action: ACTIONS.DELETE }
+        { resource: RESOURCES.WORKFLOW, action: ACTIONS.DELETE },
       ];
 
       const result = await rbacService.hasPermissions('user-123', 'org-456', permissions);
 
       expect(result.allowed).toBe(false);
-      expect(result.requiredPermissions).toContain(formatPermission(RESOURCES.WORKFLOW, ACTIONS.DELETE));
-      expect(result.grantedPermissions).toContain(formatPermission(RESOURCES.WORKFLOW, ACTIONS.READ));
+      expect(result.requiredPermissions).toContain(
+        formatPermission(RESOURCES.WORKFLOW, ACTIONS.DELETE)
+      );
+      expect(result.grantedPermissions).toContain(
+        formatPermission(RESOURCES.WORKFLOW, ACTIONS.READ)
+      );
     });
   });
 
@@ -155,16 +163,18 @@ describe('RbacService', () => {
     it('should successfully assign role to user', async () => {
       const mockQuery = mockDb.query as jest.Mock;
       mockQuery.mockResolvedValueOnce({
-        rows: [{
-          assignment_id: 'assignment-123',
-          user_id: 'user-123',
-          role_id: 'role-456',
-          org_id: 'org-789',
-          assigned_by: 'admin-123',
-          assigned_at: new Date(),
-          expires_at: null,
-          is_active: true
-        }]
+        rows: [
+          {
+            assignment_id: 'assignment-123',
+            user_id: 'user-123',
+            role_id: 'role-456',
+            org_id: 'org-789',
+            assigned_by: 'admin-123',
+            assigned_at: new Date(),
+            expires_at: null,
+            is_active: true,
+          },
+        ],
       });
 
       const result = await rbacService.assignUserRole(
@@ -197,25 +207,29 @@ describe('RbacService', () => {
       const mockQuery = mockDb.query as jest.Mock;
       // Mock roles query
       mockQuery.mockResolvedValueOnce({
-        rows: [{
-          role_id: 'role-123',
-          name: 'manager',
-          description: 'Manager role',
-          is_system_role: true,
-          created_at: new Date(),
-          updated_at: new Date()
-        }]
+        rows: [
+          {
+            role_id: 'role-123',
+            name: 'manager',
+            description: 'Manager role',
+            is_system_role: true,
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        ],
       });
       // Mock permissions query
       mockQuery.mockResolvedValueOnce({
-        rows: [{
-          permission_id: 'perm-123',
-          name: 'workflow:read',
-          resource: 'workflow',
-          action: 'read',
-          description: 'Read workflows',
-          created_at: new Date()
-        }]
+        rows: [
+          {
+            permission_id: 'perm-123',
+            name: 'workflow:read',
+            resource: 'workflow',
+            action: 'read',
+            description: 'Read workflows',
+            created_at: new Date(),
+          },
+        ],
       });
 
       const roles = await rbacService.getUserRoles('user-123', 'org-456');
@@ -231,17 +245,19 @@ describe('RbacService', () => {
     it('should successfully grant resource permission', async () => {
       const mockQuery = mockDb.query as jest.Mock;
       mockQuery.mockResolvedValueOnce({
-        rows: [{
-          resource_permission_id: 'res-perm-123',
-          resource_id: 'resource-456',
-          resource_type: 'workflow',
-          user_id: 'user-123',
-          org_id: 'org-789',
-          permissions: ['workflow:read', 'workflow:update'],
-          granted_by: 'admin-123',
-          granted_at: new Date(),
-          expires_at: null
-        }]
+        rows: [
+          {
+            resource_permission_id: 'res-perm-123',
+            resource_id: 'resource-456',
+            resource_type: 'workflow',
+            user_id: 'user-123',
+            org_id: 'org-789',
+            permissions: ['workflow:read', 'workflow:update'],
+            granted_by: 'admin-123',
+            granted_at: new Date(),
+            expires_at: null,
+          },
+        ],
       });
 
       const result = await rbacService.grantResourcePermission(
@@ -276,10 +292,12 @@ describe('RbacService', () => {
     it('should allow admin to access any organization', async () => {
       const mockQuery = mockDb.query as jest.Mock;
       mockQuery.mockResolvedValueOnce({
-        rows: [{
-          org_id: 'org-123',
-          role: 'admin'
-        }]
+        rows: [
+          {
+            org_id: 'org-123',
+            role: 'admin',
+          },
+        ],
       });
 
       const canAccess = await rbacService.canAccessOrganization('user-123', 'org-456');
@@ -290,10 +308,12 @@ describe('RbacService', () => {
     it('should allow user to access their own organization', async () => {
       const mockQuery = mockDb.query as jest.Mock;
       mockQuery.mockResolvedValueOnce({
-        rows: [{
-          org_id: 'org-456',
-          role: 'user'
-        }]
+        rows: [
+          {
+            org_id: 'org-456',
+            role: 'user',
+          },
+        ],
       });
 
       const canAccess = await rbacService.canAccessOrganization('user-123', 'org-456');
@@ -304,10 +324,12 @@ describe('RbacService', () => {
     it('should deny user access to other organizations', async () => {
       const mockQuery = mockDb.query as jest.Mock;
       mockQuery.mockResolvedValueOnce({
-        rows: [{
-          org_id: 'org-123',
-          role: 'user'
-        }]
+        rows: [
+          {
+            org_id: 'org-123',
+            role: 'user',
+          },
+        ],
       });
 
       const canAccess = await rbacService.canAccessOrganization('user-123', 'org-456');
@@ -318,7 +340,7 @@ describe('RbacService', () => {
     it('should deny access for inactive users', async () => {
       const mockQuery = mockDb.query as jest.Mock;
       mockQuery.mockResolvedValueOnce({
-        rows: []
+        rows: [],
       });
 
       const canAccess = await rbacService.canAccessOrganization('user-123', 'org-456');
@@ -332,7 +354,7 @@ describe('RbacService', () => {
       const mockConnect = mockDb.connect as jest.Mock;
       const mockClient = {
         query: jest.fn(),
-        release: jest.fn()
+        release: jest.fn(),
       };
       mockConnect.mockResolvedValueOnce(mockClient);
 
@@ -340,14 +362,16 @@ describe('RbacService', () => {
       mockClient.query
         .mockResolvedValueOnce(undefined) // BEGIN
         .mockResolvedValueOnce({
-          rows: [{
-            role_id: 'role-123',
-            name: 'custom-role',
-            description: 'Custom role',
-            is_system_role: false,
-            created_at: new Date(),
-            updated_at: new Date()
-          }]
+          rows: [
+            {
+              role_id: 'role-123',
+              name: 'custom-role',
+              description: 'Custom role',
+              is_system_role: false,
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          ],
         })
         .mockResolvedValueOnce(undefined) // Permission assignments
         .mockResolvedValueOnce(undefined); // COMMIT
@@ -355,21 +379,19 @@ describe('RbacService', () => {
       // Mock getRolePermissions call
       const mockQuery = mockDb.query as jest.Mock;
       mockQuery.mockResolvedValueOnce({
-        rows: [{
-          permission_id: 'perm-123',
-          name: 'workflow:read',
-          resource: 'workflow',
-          action: 'read',
-          description: 'Read workflows',
-          created_at: new Date()
-        }]
+        rows: [
+          {
+            permission_id: 'perm-123',
+            name: 'workflow:read',
+            resource: 'workflow',
+            action: 'read',
+            description: 'Read workflows',
+            created_at: new Date(),
+          },
+        ],
       });
 
-      const role = await rbacService.createRole(
-        'custom-role',
-        'Custom role',
-        ['perm-123']
-      );
+      const role = await rbacService.createRole('custom-role', 'Custom role', ['perm-123']);
 
       expect(role.name).toBe('custom-role');
       expect(role.isSystemRole).toBe(false);
@@ -381,7 +403,7 @@ describe('RbacService', () => {
       const mockConnect = mockDb.connect as jest.Mock;
       const mockClient = {
         query: jest.fn(),
-        release: jest.fn()
+        release: jest.fn(),
       };
       mockConnect.mockResolvedValueOnce(mockClient);
 

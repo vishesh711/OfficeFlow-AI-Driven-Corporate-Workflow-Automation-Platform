@@ -16,12 +16,12 @@ describe('EmployeeRepository', () => {
   beforeAll(async () => {
     pool = getTestPool();
     repository = new EmployeeRepositoryImpl();
-    
+
     // Create test organization
     const orgData = createTestOrganization();
     testOrgId = orgData.org_id;
     createdOrgIds.push(testOrgId);
-    
+
     await pool.query(
       'INSERT INTO organizations (org_id, name, domain, plan, settings) VALUES ($1, $2, $3, $4, $5)',
       [orgData.org_id, orgData.name, orgData.domain, orgData.plan, JSON.stringify(orgData.settings)]
@@ -45,7 +45,7 @@ describe('EmployeeRepository', () => {
   describe('create', () => {
     it('should create employee with valid data', async () => {
       const employeeData = createTestEmployee(testOrgId);
-      
+
       const created = await repository.create(employeeData);
       createdEmployeeIds.push(created.employee_id);
 
@@ -114,7 +114,7 @@ describe('EmployeeRepository', () => {
 
       const found = await repository.findByOrganization(testOrgId);
       expect(found.length).toBeGreaterThanOrEqual(3);
-      expect(found.every(e => e.org_id === testOrgId)).toBe(true);
+      expect(found.every((e) => e.org_id === testOrgId)).toBe(true);
     });
   });
 
@@ -133,7 +133,7 @@ describe('EmployeeRepository', () => {
 
       const engineeringEmployees = await repository.findByDepartment(testOrgId, 'Engineering');
       expect(engineeringEmployees.length).toBe(2);
-      expect(engineeringEmployees.every(e => e.department === 'Engineering')).toBe(true);
+      expect(engineeringEmployees.every((e) => e.department === 'Engineering')).toBe(true);
     });
   });
 
@@ -152,7 +152,7 @@ describe('EmployeeRepository', () => {
 
       const activeEmployees = await repository.findByStatus('active');
       expect(activeEmployees.length).toBeGreaterThanOrEqual(2);
-      expect(activeEmployees.every(e => e.status === 'active')).toBe(true);
+      expect(activeEmployees.every((e) => e.status === 'active')).toBe(true);
     });
   });
 
@@ -160,7 +160,7 @@ describe('EmployeeRepository', () => {
     it('should find employee by employee number', async () => {
       const employeeData = createTestEmployee(testOrgId);
       employeeData.employee_number = 'EMP12345';
-      
+
       const created = await repository.create(employeeData);
       createdEmployeeIds.push(created.employee_id);
 
@@ -182,12 +182,12 @@ describe('EmployeeRepository', () => {
 
       const employeeData = createTestEmployee(testOrgId);
       employeeData.hire_date = hireDate;
-      
+
       const created = await repository.create(employeeData);
       createdEmployeeIds.push(created.employee_id);
 
       const found = await repository.findHiredInDateRange(testOrgId, startDate, endDate);
-      expect(found.some(e => e.employee_id === created.employee_id)).toBe(true);
+      expect(found.some((e) => e.employee_id === created.employee_id)).toBe(true);
     });
   });
 
@@ -208,23 +208,23 @@ describe('EmployeeRepository', () => {
       const employeeData = createTestEmployee(testOrgId);
       employeeData.first_name = 'SearchableFirst';
       employeeData.last_name = 'SearchableLast';
-      
+
       const created = await repository.create(employeeData);
       createdEmployeeIds.push(created.employee_id);
 
       const results = await repository.search(testOrgId, 'Searchable');
-      expect(results.some(e => e.employee_id === created.employee_id)).toBe(true);
+      expect(results.some((e) => e.employee_id === created.employee_id)).toBe(true);
     });
 
     it('should search employees by email', async () => {
       const employeeData = createTestEmployee(testOrgId);
       employeeData.email = 'searchable@test.com';
-      
+
       const created = await repository.create(employeeData);
       createdEmployeeIds.push(created.employee_id);
 
       const results = await repository.search(testOrgId, 'searchable');
-      expect(results.some(e => e.employee_id === created.employee_id)).toBe(true);
+      expect(results.some((e) => e.employee_id === created.employee_id)).toBe(true);
     });
 
     it('should limit search results', async () => {
@@ -248,8 +248,8 @@ describe('EmployeeRepository', () => {
       }
 
       const stats = await repository.getDepartmentStats(testOrgId);
-      const engineeringStats = stats.find(s => s.department === 'Engineering');
-      
+      const engineeringStats = stats.find((s) => s.department === 'Engineering');
+
       expect(engineeringStats).toBeDefined();
       expect(engineeringStats?.totalEmployees).toBe(3);
       expect(engineeringStats?.activeEmployees).toBe(2);
@@ -287,13 +287,23 @@ describe('EmployeeRepository', () => {
           // Create first employee
           await client.query(
             'INSERT INTO employees (org_id, email, first_name, last_name) VALUES ($1, $2, $3, $4)',
-            [employeeData1.org_id, employeeData1.email, employeeData1.first_name, employeeData1.last_name]
+            [
+              employeeData1.org_id,
+              employeeData1.email,
+              employeeData1.first_name,
+              employeeData1.last_name,
+            ]
           );
-          
+
           // Try to create second employee with same email (should fail)
           await client.query(
             'INSERT INTO employees (org_id, email, first_name, last_name) VALUES ($1, $2, $3, $4)',
-            [employeeData2.org_id, employeeData2.email, employeeData2.first_name, employeeData2.last_name]
+            [
+              employeeData2.org_id,
+              employeeData2.email,
+              employeeData2.first_name,
+              employeeData2.last_name,
+            ]
           );
         })
       ).rejects.toThrow();

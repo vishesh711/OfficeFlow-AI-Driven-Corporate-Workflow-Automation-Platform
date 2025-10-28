@@ -52,6 +52,7 @@ The client-side architecture follows a modern React-based approach with TypeScri
 The primary frontend application for creating and managing workflows.
 
 #### Technology Stack
+
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS
@@ -62,6 +63,7 @@ The primary frontend application for creating and managing workflows.
 - **HTTP Client**: Axios
 
 #### Key Features
+
 - **Visual Workflow Designer**: Drag-and-drop interface for creating workflows
 - **Node Library**: Pre-built nodes for common tasks (email, calendar, AI, etc.)
 - **Real-time Collaboration**: Multiple users can edit workflows simultaneously
@@ -70,6 +72,7 @@ The primary frontend application for creating and managing workflows.
 - **Testing**: Built-in workflow testing and debugging tools
 
 #### Project Structure
+
 ```
 apps/workflow-designer/
 ├── src/
@@ -102,6 +105,7 @@ apps/workflow-designer/
 ```
 
 #### Development Setup
+
 ```bash
 # Navigate to the app directory
 cd apps/workflow-designer
@@ -129,6 +133,7 @@ npm run lint
 ```
 
 #### Environment Configuration
+
 Create `.env.local` file:
 
 ```env
@@ -152,6 +157,7 @@ VITE_ANALYTICS_ID=your_analytics_id
 Administrative interface for system management and monitoring.
 
 #### Planned Features
+
 - **User Management**: Create, edit, and manage user accounts
 - **Organization Management**: Manage organizations and teams
 - **System Monitoring**: Real-time system health and performance metrics
@@ -164,6 +170,7 @@ Administrative interface for system management and monitoring.
 ### Workflow Designer Components
 
 #### 1. Workflow Canvas (`src/pages/WorkflowDesigner.tsx`)
+
 ```typescript
 import React from 'react';
 import ReactFlow, {
@@ -209,6 +216,7 @@ const WorkflowDesigner: React.FC = () => {
 #### 2. Node Components (`src/components/nodes/`)
 
 ##### Email Node
+
 ```typescript
 import React from 'react';
 import { Handle, Position } from 'reactflow';
@@ -224,18 +232,18 @@ const EmailNode: React.FC<{ data: EmailNodeData }> = ({ data }) => {
   return (
     <div className="bg-white border-2 border-blue-500 rounded-lg p-4 min-w-[200px]">
       <Handle type="target" position={Position.Top} />
-      
+
       <div className="flex items-center gap-2 mb-2">
         <Mail className="w-5 h-5 text-blue-500" />
         <span className="font-semibold">Send Email</span>
       </div>
-      
+
       <div className="text-sm text-gray-600">
         <div>Template: {data.template}</div>
         <div>Recipients: {data.recipients.length}</div>
         <div>Subject: {data.subject}</div>
       </div>
-      
+
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -245,6 +253,7 @@ export default EmailNode;
 ```
 
 ##### AI Node
+
 ```typescript
 import React from 'react';
 import { Handle, Position } from 'reactflow';
@@ -260,18 +269,18 @@ const AINode: React.FC<{ data: AINodeData }> = ({ data }) => {
   return (
     <div className="bg-white border-2 border-purple-500 rounded-lg p-4 min-w-[200px]">
       <Handle type="target" position={Position.Top} />
-      
+
       <div className="flex items-center gap-2 mb-2">
         <Brain className="w-5 h-5 text-purple-500" />
         <span className="font-semibold">AI Processing</span>
       </div>
-      
+
       <div className="text-sm text-gray-600">
         <div>Model: {data.model}</div>
         <div>Max Tokens: {data.maxTokens}</div>
         <div className="truncate">Prompt: {data.prompt}</div>
       </div>
-      
+
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -281,6 +290,7 @@ export default AINode;
 ```
 
 #### 3. Properties Panel (`src/components/PropertiesPanel.tsx`)
+
 ```typescript
 import React from 'react';
 import { useForm } from 'react-hook-form';
@@ -318,7 +328,7 @@ const PropertiesPanel: React.FC<{ selectedNode: Node | null }> = ({ selectedNode
   return (
     <div className="w-80 bg-white border-l p-4">
       <h3 className="text-lg font-semibold mb-4">Node Properties</h3>
-      
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Template</label>
@@ -331,7 +341,7 @@ const PropertiesPanel: React.FC<{ selectedNode: Node | null }> = ({ selectedNode
             <p className="text-red-500 text-sm mt-1">{errors.template.message}</p>
           )}
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium mb-1">Subject</label>
           <input
@@ -343,7 +353,7 @@ const PropertiesPanel: React.FC<{ selectedNode: Node | null }> = ({ selectedNode
             <p className="text-red-500 text-sm mt-1">{errors.subject.message}</p>
           )}
         </div>
-        
+
         <button
           type="submit"
           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
@@ -359,6 +369,7 @@ const PropertiesPanel: React.FC<{ selectedNode: Node | null }> = ({ selectedNode
 ### State Management
 
 #### 1. Workflow Store (Zustand)
+
 ```typescript
 import { create } from 'zustand';
 import { Node, Edge } from 'reactflow';
@@ -370,7 +381,7 @@ interface WorkflowState {
   selectedNode: Node | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
@@ -389,32 +400,35 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   selectedNode: null,
   isLoading: false,
   error: null,
-  
+
   // Actions
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
-  
-  addNode: (node) => set((state) => ({
-    nodes: [...state.nodes, node]
-  })),
-  
-  updateNode: (id, data) => set((state) => ({
-    nodes: state.nodes.map(node =>
-      node.id === id ? { ...node, data: { ...node.data, ...data } } : node
-    )
-  })),
-  
-  deleteNode: (id) => set((state) => ({
-    nodes: state.nodes.filter(node => node.id !== id),
-    edges: state.edges.filter(edge => edge.source !== id && edge.target !== id)
-  })),
-  
+
+  addNode: (node) =>
+    set((state) => ({
+      nodes: [...state.nodes, node],
+    })),
+
+  updateNode: (id, data) =>
+    set((state) => ({
+      nodes: state.nodes.map((node) =>
+        node.id === id ? { ...node, data: { ...node.data, ...data } } : node
+      ),
+    })),
+
+  deleteNode: (id) =>
+    set((state) => ({
+      nodes: state.nodes.filter((node) => node.id !== id),
+      edges: state.edges.filter((edge) => edge.source !== id && edge.target !== id),
+    })),
+
   selectNode: (node) => set({ selectedNode: node }),
-  
+
   saveWorkflow: async () => {
     const { nodes, edges } = get();
     set({ isLoading: true, error: null });
-    
+
     try {
       await api.post('/workflows', { nodes, edges });
     } catch (error) {
@@ -423,26 +437,27 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       set({ isLoading: false });
     }
   },
-  
+
   loadWorkflow: async (id) => {
     set({ isLoading: true, error: null });
-    
+
     try {
       const response = await api.get(`/workflows/${id}`);
-      set({ 
-        nodes: response.data.nodes, 
-        edges: response.data.edges 
+      set({
+        nodes: response.data.nodes,
+        edges: response.data.edges,
       });
     } catch (error) {
       set({ error: error.message });
     } finally {
       set({ isLoading: false });
     }
-  }
+  },
 }));
 ```
 
 #### 2. API Client (React Query)
+
 ```typescript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
@@ -451,39 +466,38 @@ import { api } from '../lib/api';
 export const useWorkflows = () => {
   return useQuery({
     queryKey: ['workflows'],
-    queryFn: () => api.get('/workflows').then(res => res.data)
+    queryFn: () => api.get('/workflows').then((res) => res.data),
   });
 };
 
 export const useWorkflow = (id: string) => {
   return useQuery({
     queryKey: ['workflows', id],
-    queryFn: () => api.get(`/workflows/${id}`).then(res => res.data),
-    enabled: !!id
+    queryFn: () => api.get(`/workflows/${id}`).then((res) => res.data),
+    enabled: !!id,
   });
 };
 
 export const useCreateWorkflow = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (workflow: any) => api.post('/workflows', workflow),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
-    }
+    },
   });
 };
 
 export const useUpdateWorkflow = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, ...workflow }: any) => 
-      api.put(`/workflows/${id}`, workflow),
+    mutationFn: ({ id, ...workflow }: any) => api.put(`/workflows/${id}`, workflow),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
       queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] });
-    }
+    },
   });
 };
 
@@ -491,7 +505,7 @@ export const useUpdateWorkflow = () => {
 export const useTemplates = () => {
   return useQuery({
     queryKey: ['templates'],
-    queryFn: () => api.get('/templates').then(res => res.data)
+    queryFn: () => api.get('/templates').then((res) => res.data),
   });
 };
 
@@ -499,7 +513,7 @@ export const useTemplates = () => {
 export const useOrganizations = () => {
   return useQuery({
     queryKey: ['organizations'],
-    queryFn: () => api.get('/organizations').then(res => res.data)
+    queryFn: () => api.get('/organizations').then((res) => res.data),
   });
 };
 ```
@@ -507,6 +521,7 @@ export const useOrganizations = () => {
 ### UI Components
 
 #### 1. Layout Component
+
 ```typescript
 import React from 'react';
 import { Outlet } from 'react-router-dom';
@@ -518,15 +533,15 @@ const Layout: React.FC = () => {
   return (
     <div className="h-screen flex bg-gray-50">
       <Sidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <Header />
-        
+
         <main className="flex-1 overflow-hidden">
           <Outlet />
         </main>
       </div>
-      
+
       <Toaster position="top-right" />
     </div>
   );
@@ -536,6 +551,7 @@ export default Layout;
 ```
 
 #### 2. Template Gallery
+
 ```typescript
 import React from 'react';
 import { useTemplates } from '../hooks/useApi';
@@ -557,7 +573,7 @@ const TemplateGallery: React.FC = () => {
   return (
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Workflow Templates</h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {templates?.map((template: any) => (
           <div
@@ -567,7 +583,7 @@ const TemplateGallery: React.FC = () => {
           >
             <h3 className="font-medium mb-2">{template.name}</h3>
             <p className="text-sm text-gray-600 mb-3">{template.description}</p>
-            
+
             <div className="flex items-center justify-between">
               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                 {template.category}
@@ -589,13 +605,11 @@ export default TemplateGallery;
 ## 🎨 Styling & Design System
 
 ### Tailwind CSS Configuration
+
 ```javascript
 // tailwind.config.js
 module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -610,7 +624,7 @@ module.exports = {
           500: '#64748b',
           600: '#475569',
           700: '#334155',
-        }
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -618,17 +632,15 @@ module.exports = {
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
-      }
+      },
     },
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-  ],
-}
+  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')],
+};
 ```
 
 ### Design Tokens
+
 ```typescript
 // src/styles/tokens.ts
 export const colors = {
@@ -654,7 +666,7 @@ export const colors = {
     50: '#fef2f2',
     500: '#ef4444',
     600: '#dc2626',
-  }
+  },
 };
 
 export const spacing = {
@@ -679,13 +691,14 @@ export const typography = {
     medium: 500,
     semibold: 600,
     bold: 700,
-  }
+  },
 };
 ```
 
 ## 🔧 Build & Development
 
 ### Vite Configuration
+
 ```typescript
 // vite.config.ts
 import { defineConfig } from 'vite';
@@ -734,6 +747,7 @@ export default defineConfig({
 ```
 
 ### TypeScript Configuration
+
 ```json
 {
   "compilerOptions": {
@@ -770,6 +784,7 @@ export default defineConfig({
 ## 🧪 Testing
 
 ### Testing Setup
+
 ```typescript
 // vitest.config.ts
 import { defineConfig } from 'vitest/config';
@@ -792,6 +807,7 @@ export default defineConfig({
 ```
 
 ### Test Utilities
+
 ```typescript
 // src/test/setup.ts
 import '@testing-library/jest-dom';
@@ -836,6 +852,7 @@ export { customRender as render };
 ```
 
 ### Component Tests
+
 ```typescript
 // src/components/__tests__/EmailNode.test.tsx
 import { describe, it, expect } from 'vitest';
@@ -851,7 +868,7 @@ describe('EmailNode', () => {
 
   it('renders email node with correct data', () => {
     render(<EmailNode data={mockData} />);
-    
+
     expect(screen.getByText('Send Email')).toBeInTheDocument();
     expect(screen.getByText('Template: welcome')).toBeInTheDocument();
     expect(screen.getByText('Recipients: 1')).toBeInTheDocument();
@@ -860,7 +877,7 @@ describe('EmailNode', () => {
 
   it('displays mail icon', () => {
     render(<EmailNode data={mockData} />);
-    
+
     const mailIcon = screen.getByRole('img', { hidden: true });
     expect(mailIcon).toBeInTheDocument();
   });
@@ -868,6 +885,7 @@ describe('EmailNode', () => {
 ```
 
 ### Integration Tests
+
 ```typescript
 // src/pages/__tests__/WorkflowDesigner.test.tsx
 import { describe, it, expect, vi } from 'vitest';
@@ -887,7 +905,7 @@ vi.mock('reactflow', () => ({
 describe('WorkflowDesigner', () => {
   it('renders workflow designer components', () => {
     render(<WorkflowDesigner />);
-    
+
     expect(screen.getByTestId('react-flow')).toBeInTheDocument();
     expect(screen.getByTestId('controls')).toBeInTheDocument();
     expect(screen.getByTestId('minimap')).toBeInTheDocument();
@@ -899,6 +917,7 @@ describe('WorkflowDesigner', () => {
 ## 🚀 Deployment
 
 ### Docker Configuration
+
 ```dockerfile
 # apps/workflow-designer/Dockerfile
 FROM node:18-alpine AS base
@@ -967,6 +986,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 ### Nginx Configuration
+
 ```nginx
 # apps/workflow-designer/nginx.conf
 user officeflow;
@@ -1042,6 +1062,7 @@ http {
 ```
 
 ### Build Scripts
+
 ```json
 {
   "scripts": {
@@ -1062,6 +1083,7 @@ http {
 ## 📱 Responsive Design
 
 ### Mobile-First Approach
+
 ```typescript
 // Responsive breakpoints
 const breakpoints = {
@@ -1100,6 +1122,7 @@ const ResponsiveWorkflowList: React.FC = () => {
 ```
 
 ### Touch-Friendly Interface
+
 ```css
 /* Touch-friendly button sizes */
 .btn {
@@ -1111,7 +1134,7 @@ const ResponsiveWorkflowList: React.FC = () => {
   .touch-target {
     @apply min-h-[48px] min-w-[48px];
   }
-  
+
   .workflow-node {
     @apply min-w-[120px] min-h-[80px];
   }
@@ -1121,6 +1144,7 @@ const ResponsiveWorkflowList: React.FC = () => {
 ## 🔍 Performance Optimization
 
 ### Code Splitting
+
 ```typescript
 // Lazy loading for routes
 import { lazy, Suspense } from 'react';
@@ -1133,21 +1157,21 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route 
-            path="designer" 
+          <Route
+            path="designer"
             element={
               <Suspense fallback={<div>Loading...</div>}>
                 <WorkflowDesigner />
               </Suspense>
-            } 
+            }
           />
-          <Route 
-            path="admin" 
+          <Route
+            path="admin"
             element={
               <Suspense fallback={<div>Loading...</div>}>
                 <AdminDashboard />
               </Suspense>
-            } 
+            }
           />
         </Route>
       </Routes>
@@ -1157,6 +1181,7 @@ const App: React.FC = () => {
 ```
 
 ### Bundle Optimization
+
 ```typescript
 // vite.config.ts - Manual chunks for better caching
 export default defineConfig({
@@ -1177,6 +1202,7 @@ export default defineConfig({
 ```
 
 ### Image Optimization
+
 ```typescript
 // Optimized image component
 const OptimizedImage: React.FC<{
@@ -1202,6 +1228,7 @@ const OptimizedImage: React.FC<{
 ## 🚨 Error Handling
 
 ### Error Boundaries
+
 ```typescript
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
@@ -1226,7 +1253,7 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
-    
+
     // Send to error reporting service
     if (import.meta.env.PROD) {
       // Sentry.captureException(error);
@@ -1263,6 +1290,7 @@ export default ErrorBoundary;
 ```
 
 ### API Error Handling
+
 ```typescript
 // API error handling with React Query
 import { toast } from 'react-hot-toast';
@@ -1295,6 +1323,7 @@ const queryClient = new QueryClient({
 ## 📊 Analytics & Monitoring
 
 ### User Analytics
+
 ```typescript
 // Analytics service
 class AnalyticsService {
@@ -1351,17 +1380,19 @@ const WorkflowDesigner: React.FC = () => {
 ```
 
 ### Performance Monitoring
+
 ```typescript
 // Performance monitoring
 const performanceMonitor = {
   measureRender: (componentName: string) => {
     const startTime = performance.now();
-    
+
     return () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
-      
-      if (duration > 16) { // Longer than one frame
+
+      if (duration > 16) {
+        // Longer than one frame
         console.warn(`Slow render: ${componentName} took ${duration.toFixed(2)}ms`);
       }
     };
@@ -1369,30 +1400,30 @@ const performanceMonitor = {
 
   measureAPI: async (apiCall: () => Promise<any>, endpoint: string) => {
     const startTime = performance.now();
-    
+
     try {
       const result = await apiCall();
       const endTime = performance.now();
       const duration = endTime - startTime;
-      
+
       analytics.track('api_call', {
         endpoint,
         duration,
         success: true,
       });
-      
+
       return result;
     } catch (error) {
       const endTime = performance.now();
       const duration = endTime - startTime;
-      
+
       analytics.track('api_call', {
         endpoint,
         duration,
         success: false,
         error: error.message,
       });
-      
+
       throw error;
     }
   },
@@ -1402,10 +1433,11 @@ const performanceMonitor = {
 const useWorkflows = () => {
   return useQuery({
     queryKey: ['workflows'],
-    queryFn: () => performanceMonitor.measureAPI(
-      () => api.get('/workflows').then(res => res.data),
-      '/workflows'
-    ),
+    queryFn: () =>
+      performanceMonitor.measureAPI(
+        () => api.get('/workflows').then((res) => res.data),
+        '/workflows'
+      ),
   });
 };
 ```

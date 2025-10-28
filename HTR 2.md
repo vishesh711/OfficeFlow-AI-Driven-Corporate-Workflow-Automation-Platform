@@ -3,12 +3,14 @@
 ## 🚀 Quick Setup (2 minutes)
 
 ### One-Command Setup (Recommended)
+
 ```bash
 # This does everything: installs dependencies, starts infrastructure, and runs services
 ./just-run.sh
 ```
 
 ### Manual Setup (If you prefer step-by-step)
+
 ```bash
 # 1. Install dependencies
 pnpm install --no-frozen-lockfile
@@ -25,18 +27,21 @@ pnpm run dev
 ### Common Issues
 
 #### 1. "turbo: command not found" or dependency errors
+
 ```bash
 # Just run the setup script
 ./just-run.sh
 ```
 
 #### 2. Docker build fails with "packages not found"
+
 ```bash
 # Use the development compose file instead
 docker-compose -f docker-compose.dev.yml up -d
 ```
 
 #### 3. Port conflicts
+
 ```bash
 # Check what's using the ports
 lsof -i :3000-3008 :5432 :6379 :9092 :5173
@@ -53,12 +58,14 @@ kill -9 <PID>
 After running the setup, you can access:
 
 ### Infrastructure Services
+
 - **PostgreSQL**: localhost:5432 (user: officeflow, password: officeflow_dev)
 - **Redis**: localhost:6379
 - **Kafka**: localhost:9092
 - **MinIO**: localhost:9000 (console: localhost:9001)
 
 ### Application Services (when running locally)
+
 - **Workflow Engine**: http://localhost:3000
 - **Auth Service**: http://localhost:3001
 - **Identity Service**: http://localhost:3002
@@ -70,17 +77,20 @@ After running the setup, you can access:
 - **Webhook Gateway**: http://localhost:3008
 
 ### Frontend Application
+
 - **Workflow Designer**: http://localhost:5173
 
 ## 🎯 Next Steps
 
 1. **Check Service Health**:
+
    ```bash
    curl http://localhost:3000/health  # Workflow Engine
    curl http://localhost:3001/health  # Auth Service
    ```
 
 2. **View Logs**:
+
    ```bash
    # Infrastructure logs
    docker-compose -f docker-compose.dev.yml logs -f
@@ -90,6 +100,7 @@ After running the setup, you can access:
    ```
 
 3. **Stop Services**:
+
    ```bash
    # Stop infrastructure
    docker-compose -f docker-compose.dev.yml down

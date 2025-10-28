@@ -1,4 +1,10 @@
-import { EmailRequest, EmailResult, EmailTemplate, DeliveryStatus, EmailMetrics } from '../types/email-types';
+import {
+  EmailRequest,
+  EmailResult,
+  EmailTemplate,
+  DeliveryStatus,
+  EmailMetrics,
+} from '../types/email-types';
 import { TemplateEngine } from '../templates/template-engine';
 import { SMTPProvider } from '../providers/smtp-provider';
 import { EmailRepository } from '../repositories/email-repository';
@@ -15,9 +21,9 @@ export class EmailService {
   constructor() {
     this.templateEngine = new TemplateEngine(this.config.templateCacheTtl);
     this.emailRepository = new EmailRepository();
-    
+
     // Initialize SMTP provider with default config
-    const defaultProvider = this.config.providers.find(p => p.isDefault);
+    const defaultProvider = this.config.providers.find((p) => p.isDefault);
     if (defaultProvider && defaultProvider.type === 'smtp') {
       this.smtpProvider = new SMTPProvider(defaultProvider.config as any);
     }
@@ -39,7 +45,7 @@ export class EmailService {
 
         // Ensure template is compiled
         this.templateEngine.compileTemplate(template);
-        
+
         // Render template with variables
         renderedContent = this.templateEngine.renderTemplate(
           request.templateId,
@@ -92,7 +98,9 @@ export class EmailService {
     }
   }
 
-  public async createTemplate(template: Omit<EmailTemplate, 'templateId' | 'createdAt' | 'updatedAt'>): Promise<EmailTemplate> {
+  public async createTemplate(
+    template: Omit<EmailTemplate, 'templateId' | 'createdAt' | 'updatedAt'>
+  ): Promise<EmailTemplate> {
     // Validate template
     const errors = this.templateEngine.validateTemplate(
       template.htmlContent,
@@ -107,14 +115,13 @@ export class EmailService {
     // Extract variables
     const htmlVariables = this.templateEngine.extractVariables(template.htmlContent);
     const subjectVariables = this.templateEngine.extractVariables(template.subject);
-    const textVariables = template.textContent ? 
-      this.templateEngine.extractVariables(template.textContent) : [];
+    const textVariables = template.textContent
+      ? this.templateEngine.extractVariables(template.textContent)
+      : [];
 
-    const allVariables = Array.from(new Set([
-      ...htmlVariables,
-      ...subjectVariables,
-      ...textVariables,
-    ]));
+    const allVariables = Array.from(
+      new Set([...htmlVariables, ...subjectVariables, ...textVariables])
+    );
 
     const newTemplate: EmailTemplate = {
       templateId: uuidv4(),
@@ -133,7 +140,10 @@ export class EmailService {
     return newTemplate;
   }
 
-  public async updateTemplate(templateId: string, updates: Partial<EmailTemplate>): Promise<EmailTemplate> {
+  public async updateTemplate(
+    templateId: string,
+    updates: Partial<EmailTemplate>
+  ): Promise<EmailTemplate> {
     const existingTemplate = await this.emailRepository.getTemplate(templateId);
     if (!existingTemplate) {
       throw new Error(`Template ${templateId} not found`);
@@ -152,14 +162,11 @@ export class EmailService {
     // Extract variables
     const htmlVariables = this.templateEngine.extractVariables(htmlContent);
     const subjectVariables = this.templateEngine.extractVariables(subject);
-    const textVariables = textContent ? 
-      this.templateEngine.extractVariables(textContent) : [];
+    const textVariables = textContent ? this.templateEngine.extractVariables(textContent) : [];
 
-    const allVariables = Array.from(new Set([
-      ...htmlVariables,
-      ...subjectVariables,
-      ...textVariables,
-    ]));
+    const allVariables = Array.from(
+      new Set([...htmlVariables, ...subjectVariables, ...textVariables])
+    );
 
     const updatedTemplate: EmailTemplate = {
       ...existingTemplate,
@@ -197,7 +204,11 @@ export class EmailService {
     await this.emailRepository.updateDeliveryStatus(status);
   }
 
-  public async getEmailMetrics(organizationId: string, startDate: Date, endDate: Date): Promise<EmailMetrics> {
+  public async getEmailMetrics(
+    organizationId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<EmailMetrics> {
     return this.emailRepository.getEmailMetrics(organizationId, startDate, endDate);
   }
 
@@ -220,11 +231,7 @@ export class EmailService {
 
     // Validate email addresses
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const allRecipients = [
-      ...request.to,
-      ...(request.cc || []),
-      ...(request.bcc || []),
-    ];
+    const allRecipients = [...request.to, ...(request.cc || []), ...(request.bcc || [])];
 
     for (const email of allRecipients) {
       if (!emailRegex.test(email)) {

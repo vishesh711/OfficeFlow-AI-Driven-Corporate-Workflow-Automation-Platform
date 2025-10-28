@@ -105,15 +105,15 @@ describe('AI Service', () => {
       // Mock parameter validation
       const validateParams = (params: any) => {
         const errors: string[] = [];
-        
+
         if (!params.prompt) {
           errors.push('prompt is required');
         }
-        
+
         if (params.maxTokens && (params.maxTokens < 1 || params.maxTokens > 8000)) {
           errors.push('maxTokens must be between 1 and 8000');
         }
-        
+
         if (params.temperature && (params.temperature < 0 || params.temperature > 2)) {
           errors.push('temperature must be between 0 and 2');
         }
@@ -155,11 +155,13 @@ describe('AI Service', () => {
 
         const modelPricing = pricing[model as keyof typeof pricing];
         if (!modelPricing) {
-          return (promptTokens + completionTokens) / 1000 * 0.02; // Default rate
+          return ((promptTokens + completionTokens) / 1000) * 0.02; // Default rate
         }
 
-        return (promptTokens / 1000) * modelPricing.input + 
-               (completionTokens / 1000) * modelPricing.output;
+        return (
+          (promptTokens / 1000) * modelPricing.input +
+          (completionTokens / 1000) * modelPricing.output
+        );
       };
 
       const gpt4Cost = calculateCost('gpt-4', 1000, 500);

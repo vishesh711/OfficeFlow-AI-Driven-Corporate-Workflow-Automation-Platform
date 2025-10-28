@@ -3,12 +3,14 @@
 ## TL;DR - Get Running in 10 Minutes
 
 ### 1. Install Dependencies (2 minutes)
+
 ```bash
 cd services/identity-service
 npm install express winston joi axios pg googleapis @azure/msal-node
 ```
 
 ### 2. Setup Database (3 minutes)
+
 ```bash
 # Install PostgreSQL (if not installed)
 brew install postgresql  # macOS
@@ -27,6 +29,7 @@ psql -d officeflow -f migrations/003_identity_audit_events.sql
 ```
 
 ### 3. Configure Environment (2 minutes)
+
 ```bash
 # Copy example environment file
 cp .env.example .env
@@ -38,11 +41,13 @@ echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env
 ```
 
 ### 4. Start the Service (1 minute)
+
 ```bash
 npm run dev
 ```
 
 ### 5. Test It Works (2 minutes)
+
 ```bash
 # Health check
 curl http://localhost:3003/health
@@ -68,12 +73,14 @@ curl http://localhost:3003/schema
 You'll need OAuth2 credentials from:
 
 ### Google Workspace (5 minutes setup)
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Create project → Enable Admin SDK API
 3. Create OAuth2 credentials
 4. Add to `.env` file
 
 ### Office 365 (5 minutes setup)
+
 1. Go to [Azure AD Portal](https://portal.azure.com)
 2. Register application → Add Graph permissions
 3. Create client secret

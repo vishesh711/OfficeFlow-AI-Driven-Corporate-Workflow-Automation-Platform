@@ -2,11 +2,11 @@
  * Entity mapping utilities to convert between database entities and domain types
  */
 
-import { 
-  WorkflowEntity, 
-  WorkflowRunEntity, 
-  WorkflowDefinition, 
-  WorkflowRun 
+import {
+  WorkflowEntity,
+  WorkflowRunEntity,
+  WorkflowDefinition,
+  WorkflowRun,
 } from '@officeflow/types';
 
 /**
@@ -60,13 +60,15 @@ export function mapWorkflowRunEntityToRun(entity: WorkflowRunEntity): WorkflowRu
 /**
  * Map WorkflowRun to WorkflowRunEntity for creation
  */
-export function mapWorkflowRunToEntity(run: Partial<WorkflowRun>): Omit<WorkflowRunEntity, 'created_at'> {
+export function mapWorkflowRunToEntity(
+  run: Partial<WorkflowRun>
+): Omit<WorkflowRunEntity, 'created_at'> {
   return {
     run_id: run.id || '',
     org_id: run.organizationId || '',
     workflow_id: run.workflowId || '',
     employee_id: run.employeeId,
-    trigger_event: run.triggerEvent as string || 'manual',
+    trigger_event: (run.triggerEvent as string) || 'manual',
     status: run.status || 'PENDING',
     context: run.context?.variables || {},
     error_details: run.errorDetails,

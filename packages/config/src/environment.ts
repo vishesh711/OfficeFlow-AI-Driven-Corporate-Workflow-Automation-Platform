@@ -92,5 +92,8 @@ export function getEnvAsArray(key: string, defaultValue?: string[]): string[] {
     }
     throw new Error(`Environment variable ${key} is required but not set`);
   }
-  return value.split(',').map(item => item.trim()).filter(Boolean);
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
 }

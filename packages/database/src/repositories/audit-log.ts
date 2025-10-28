@@ -4,15 +4,12 @@
 
 import { AuditLogEntity, AuditLogRepository, UUID } from '@officeflow/types';
 import { BaseRepository } from './base';
-import {
-  auditLogSchema,
-  createAuditLogSchema,
-} from '../validation/schemas';
+import { auditLogSchema, createAuditLogSchema } from '../validation/schemas';
 
-export class AuditLogRepositoryImpl 
-  extends BaseRepository<AuditLogEntity> 
-  implements AuditLogRepository {
-
+export class AuditLogRepositoryImpl
+  extends BaseRepository<AuditLogEntity>
+  implements AuditLogRepository
+{
   constructor() {
     super(
       'audit_logs',
@@ -26,33 +23,42 @@ export class AuditLogRepositoryImpl
    * Find audit logs by organization
    */
   async findByOrganization(orgId: UUID): Promise<AuditLogEntity[]> {
-    return this.findAll({ org_id: orgId }, { 
-      orderBy: 'created_at', 
-      orderDirection: 'DESC' 
-    });
+    return this.findAll(
+      { org_id: orgId },
+      {
+        orderBy: 'created_at',
+        orderDirection: 'DESC',
+      }
+    );
   }
 
   /**
    * Find audit logs by entity
    */
   async findByEntity(entityType: string, entityId: UUID): Promise<AuditLogEntity[]> {
-    return this.findAll({ 
-      entity_type: entityType, 
-      entity_id: entityId 
-    }, { 
-      orderBy: 'created_at', 
-      orderDirection: 'DESC' 
-    });
+    return this.findAll(
+      {
+        entity_type: entityType,
+        entity_id: entityId,
+      },
+      {
+        orderBy: 'created_at',
+        orderDirection: 'DESC',
+      }
+    );
   }
 
   /**
    * Find audit logs by actor
    */
   async findByActor(actorId: UUID): Promise<AuditLogEntity[]> {
-    return this.findAll({ actor_id: actorId }, { 
-      orderBy: 'created_at', 
-      orderDirection: 'DESC' 
-    });
+    return this.findAll(
+      { actor_id: actorId },
+      {
+        orderBy: 'created_at',
+        orderDirection: 'DESC',
+      }
+    );
   }
 
   /**
@@ -64,22 +70,25 @@ export class AuditLogRepositoryImpl
       WHERE created_at >= $1 AND created_at <= $2
       ORDER BY created_at DESC
     `;
-    
+
     const result = await this.pool.query(query, [startDate, endDate]);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 
   /**
    * Find audit logs by action
    */
   async findByAction(orgId: UUID, action: string): Promise<AuditLogEntity[]> {
-    return this.findAll({ 
-      org_id: orgId, 
-      action 
-    }, { 
-      orderBy: 'created_at', 
-      orderDirection: 'DESC' 
-    });
+    return this.findAll(
+      {
+        org_id: orgId,
+        action,
+      },
+      {
+        orderBy: 'created_at',
+        orderDirection: 'DESC',
+      }
+    );
   }
 
   /**
@@ -114,7 +123,10 @@ export class AuditLogRepositoryImpl
   /**
    * Get audit statistics for organization
    */
-  async getAuditStats(orgId: UUID, days: number = 30): Promise<{
+  async getAuditStats(
+    orgId: UUID,
+    days: number = 30
+  ): Promise<{
     totalEvents: number;
     eventsByAction: Array<{ action: string; count: number }>;
     eventsByEntityType: Array<{ entityType: string; count: number }>;
@@ -166,15 +178,15 @@ export class AuditLogRepositoryImpl
 
     return {
       totalEvents: parseInt(totalResult.rows[0].total_events, 10),
-      eventsByAction: actionResult.rows.map(row => ({
+      eventsByAction: actionResult.rows.map((row) => ({
         action: row.action,
         count: parseInt(row.count, 10),
       })),
-      eventsByEntityType: entityResult.rows.map(row => ({
+      eventsByEntityType: entityResult.rows.map((row) => ({
         entityType: row.entity_type,
         count: parseInt(row.count, 10),
       })),
-      topActors: actorResult.rows.map(row => ({
+      topActors: actorResult.rows.map((row) => ({
         actorId: row.actor_id,
         count: parseInt(row.count, 10),
       })),
@@ -228,7 +240,7 @@ export class AuditLogRepositoryImpl
     params.push(limit);
 
     const result = await this.pool.query(query, params);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 
   /**
@@ -242,7 +254,7 @@ export class AuditLogRepositoryImpl
       DELETE FROM audit_logs 
       WHERE created_at < $1
     `;
-    
+
     const result = await this.pool.query(query, [cutoffDate]);
     return result.rowCount || 0;
   }

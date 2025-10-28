@@ -14,22 +14,25 @@ export class MockHandlebars {
     return (context: any) => {
       // Simple template replacement - in production this would use actual Handlebars
       let result = template;
-      
+
       // Replace simple variables like {{variable}}
       result = result.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
         const trimmedKey = key.trim();
-        
+
         // Handle nested properties like {{object.property}}
         const value = this.getNestedProperty(context, trimmedKey);
         return value !== undefined ? String(value) : match;
       });
-      
+
       // Handle basic conditionals like {{#if condition}}
-      result = result.replace(/\{\{#if\s+([^}]+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, condition, content) => {
-        const value = this.getNestedProperty(context, condition.trim());
-        return value ? content : '';
-      });
-      
+      result = result.replace(
+        /\{\{#if\s+([^}]+)\}\}([\s\S]*?)\{\{\/if\}\}/g,
+        (match, condition, content) => {
+          const value = this.getNestedProperty(context, condition.trim());
+          return value ? content : '';
+        }
+      );
+
       return result;
     };
   }

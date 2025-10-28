@@ -1,11 +1,11 @@
-import { NodeProps } from 'reactflow'
-import { Clock } from 'lucide-react'
-import { BaseNode } from './BaseNode'
+import { NodeProps } from 'reactflow';
+import { Clock } from 'lucide-react';
+import { BaseNode } from './BaseNode';
 
 export function DelayNode({ data, selected }: NodeProps) {
-  const duration = data.params?.duration || 1
-  const unit = data.params?.unit || 'hours'
-  
+  const duration = data.params?.duration || 1;
+  const unit = data.params?.unit || 'hours';
+
   return (
     <BaseNode
       data={data}
@@ -13,7 +13,9 @@ export function DelayNode({ data, selected }: NodeProps) {
       icon={<Clock className="h-4 w-4" />}
       color="bg-orange-500"
     >
-      <div>Wait: {duration} {unit}</div>
+      <div>
+        Wait: {duration} {unit}
+      </div>
     </BaseNode>
-  )
+  );
 }

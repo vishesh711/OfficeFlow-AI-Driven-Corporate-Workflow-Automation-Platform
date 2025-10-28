@@ -5,7 +5,7 @@ module.exports = {
         'https://staging.officeflow.com',
         'https://staging.officeflow.com/workflows',
         'https://staging.officeflow.com/dashboard',
-        'https://staging.officeflow.com/admin'
+        'https://staging.officeflow.com/admin',
       ],
       startServerCommand: 'npm run preview',
       startServerReadyPattern: 'Local:',
@@ -20,9 +20,9 @@ module.exports = {
           cpuSlowdownMultiplier: 1,
           requestLatencyMs: 0,
           downloadThroughputKbps: 0,
-          uploadThroughputKbps: 0
-        }
-      }
+          uploadThroughputKbps: 0,
+        },
+      },
     },
     assert: {
       assertions: {
@@ -30,22 +30,22 @@ module.exports = {
         'categories:accessibility': ['error', { minScore: 0.9 }],
         'categories:best-practices': ['warn', { minScore: 0.8 }],
         'categories:seo': ['warn', { minScore: 0.8 }],
-        'categories:pwa': 'off'
-      }
+        'categories:pwa': 'off',
+      },
     },
     upload: {
-      target: 'temporary-public-storage'
+      target: 'temporary-public-storage',
     },
     server: {
       port: 9001,
       storage: {
         storageMethod: 'sql',
         sqlDialect: 'sqlite',
-        sqlDatabasePath: './lhci.db'
-      }
+        sqlDatabasePath: './lhci.db',
+      },
     },
     wizard: {
       // Configuration wizard settings
-    }
-  }
+    },
+  },
 };

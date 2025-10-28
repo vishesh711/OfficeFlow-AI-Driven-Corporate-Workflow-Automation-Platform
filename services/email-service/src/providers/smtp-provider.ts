@@ -19,11 +19,14 @@ export class SMTPProvider {
     });
   }
 
-  public async sendEmail(request: EmailRequest, renderedContent: {
-    subject: string;
-    html: string;
-    text?: string;
-  }): Promise<EmailResult> {
+  public async sendEmail(
+    request: EmailRequest,
+    renderedContent: {
+      subject: string;
+      html: string;
+      text?: string;
+    }
+  ): Promise<EmailResult> {
     try {
       const mailOptions: SendMailOptions = {
         from: this.config.auth.user,
@@ -33,15 +36,15 @@ export class SMTPProvider {
         subject: renderedContent.subject,
         html: renderedContent.html,
         text: renderedContent.text,
-        attachments: request.attachments?.map(att => ({
+        attachments: request.attachments?.map((att) => ({
           filename: att.filename,
           content: att.content,
           path: att.path,
           contentType: att.contentType,
           cid: att.cid,
         })),
-        priority: request.priority === 'high' ? 'high' : 
-                 request.priority === 'low' ? 'low' : 'normal',
+        priority:
+          request.priority === 'high' ? 'high' : request.priority === 'low' ? 'low' : 'normal',
       };
 
       const info = await this.transporter.sendMail(mailOptions);

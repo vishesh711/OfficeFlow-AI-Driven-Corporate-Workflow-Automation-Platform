@@ -1,47 +1,55 @@
-import { useState, useCallback } from 'react'
-import { Search, X, Copy, Eye, Tag } from 'lucide-react'
-import { workflowTemplates, getTemplatesByCategory, searchTemplates, WorkflowTemplate } from '@/lib/templates'
+import { useState, useCallback } from 'react';
+import { Search, X, Copy, Eye, Tag } from 'lucide-react';
+import {
+  workflowTemplates,
+  getTemplatesByCategory,
+  searchTemplates,
+  WorkflowTemplate,
+} from '@/lib/templates';
 
 interface TemplateGalleryProps {
-  isOpen: boolean
-  onClose: () => void
-  onSelectTemplate: (template: WorkflowTemplate) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onSelectTemplate: (template: WorkflowTemplate) => void;
 }
 
 export function TemplateGallery({ isOpen, onClose, onSelectTemplate }: TemplateGalleryProps) {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [previewTemplate, setPreviewTemplate] = useState<WorkflowTemplate | null>(null)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [previewTemplate, setPreviewTemplate] = useState<WorkflowTemplate | null>(null);
 
-  const categories = getTemplatesByCategory()
-  const categoryNames = ['all', ...Object.keys(categories)]
+  const categories = getTemplatesByCategory();
+  const categoryNames = ['all', ...Object.keys(categories)];
 
   const filteredTemplates = useCallback(() => {
-    let templates = searchQuery ? searchTemplates(searchQuery) : workflowTemplates
-    
-    if (selectedCategory !== 'all') {
-      templates = templates.filter(template => template.category === selectedCategory)
-    }
-    
-    return templates
-  }, [searchQuery, selectedCategory])
+    let templates = searchQuery ? searchTemplates(searchQuery) : workflowTemplates;
 
-  const handleUseTemplate = useCallback((template: WorkflowTemplate) => {
-    onSelectTemplate(template)
-    onClose()
-  }, [onSelectTemplate, onClose])
+    if (selectedCategory !== 'all') {
+      templates = templates.filter((template) => template.category === selectedCategory);
+    }
+
+    return templates;
+  }, [searchQuery, selectedCategory]);
+
+  const handleUseTemplate = useCallback(
+    (template: WorkflowTemplate) => {
+      onSelectTemplate(template);
+      onClose();
+    },
+    [onSelectTemplate, onClose]
+  );
 
   const handlePreview = useCallback((template: WorkflowTemplate) => {
-    setPreviewTemplate(template)
-  }, [])
+    setPreviewTemplate(template);
+  }, []);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={onClose} />
-        
+
         <div className="relative bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -51,10 +59,7 @@ export function TemplateGallery({ isOpen, onClose, onSelectTemplate }: TemplateG
                 Choose from pre-built templates to get started quickly
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
               <X className="h-6 w-6" />
             </button>
           </div>
@@ -90,7 +95,11 @@ export function TemplateGallery({ isOpen, onClose, onSelectTemplate }: TemplateG
                     >
                       {category === 'all' ? 'All Templates' : category}
                       <span className="ml-2 text-xs text-gray-400">
-                        ({category === 'all' ? workflowTemplates.length : categories[category]?.length || 0})
+                        (
+                        {category === 'all'
+                          ? workflowTemplates.length
+                          : categories[category]?.length || 0}
+                        )
                       </span>
                     </button>
                   ))}
@@ -119,11 +128,9 @@ export function TemplateGallery({ isOpen, onClose, onSelectTemplate }: TemplateG
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {previewTemplate.name}
-                    </h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{previewTemplate.name}</h3>
                     <p className="text-gray-600 mb-4">{previewTemplate.description}</p>
-                    
+
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <span className="bg-gray-100 px-2 py-1 rounded">
                         {previewTemplate.category}
@@ -154,7 +161,9 @@ export function TemplateGallery({ isOpen, onClose, onSelectTemplate }: TemplateG
                       <div>
                         <span className="text-sm font-medium text-gray-700">Node Types: </span>
                         <span className="text-sm text-gray-600">
-                          {Array.from(new Set(previewTemplate.definition.nodes.map(n => n.type))).join(', ')}
+                          {Array.from(
+                            new Set(previewTemplate.definition.nodes.map((n) => n.type))
+                          ).join(', ')}
                         </span>
                       </div>
                     </div>
@@ -171,9 +180,7 @@ export function TemplateGallery({ isOpen, onClose, onSelectTemplate }: TemplateG
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h3 className="font-medium text-gray-900 mb-1">
-                              {template.name}
-                            </h3>
+                            <h3 className="font-medium text-gray-900 mb-1">{template.name}</h3>
                             <p className="text-sm text-gray-600 line-clamp-2">
                               {template.description}
                             </p>
@@ -181,12 +188,8 @@ export function TemplateGallery({ isOpen, onClose, onSelectTemplate }: TemplateG
                         </div>
 
                         <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                          <span className="bg-gray-100 px-2 py-1 rounded">
-                            {template.category}
-                          </span>
-                          <span>
-                            {template.definition.nodes.length} nodes
-                          </span>
+                          <span className="bg-gray-100 px-2 py-1 rounded">{template.category}</span>
+                          <span>{template.definition.nodes.length} nodes</span>
                         </div>
 
                         <div className="flex flex-wrap gap-1 mb-3">
@@ -230,12 +233,8 @@ export function TemplateGallery({ isOpen, onClose, onSelectTemplate }: TemplateG
                       <div className="text-gray-400 mb-4">
                         <Search className="h-12 w-12 mx-auto" />
                       </div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        No templates found
-                      </h3>
-                      <p className="text-gray-500">
-                        Try adjusting your search or category filter
-                      </p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No templates found</h3>
+                      <p className="text-gray-500">Try adjusting your search or category filter</p>
                     </div>
                   )}
                 </div>
@@ -245,5 +244,5 @@ export function TemplateGallery({ isOpen, onClose, onSelectTemplate }: TemplateG
         </div>
       </div>
     </div>
-  )
+  );
 }

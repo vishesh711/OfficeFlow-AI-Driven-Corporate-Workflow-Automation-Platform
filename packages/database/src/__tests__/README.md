@@ -5,10 +5,12 @@ This directory contains comprehensive unit tests for the database package, cover
 ## Test Structure
 
 ### Unit Tests (No Database Required)
+
 - **Validation Tests** (`validation/schemas.test.ts`): Tests for Zod validation schemas
 - **Repository Unit Tests** (`repositories/base-unit.test.ts`): Tests for repository logic without database
 
 ### Integration Tests (Database Required)
+
 - **Base Repository** (`repositories/base.test.ts`): Full database integration tests
 - **Employee Repository** (`repositories/employee.test.ts`): Employee-specific operations
 - **Workflow Repository** (`repositories/workflow.test.ts`): Workflow management operations
@@ -17,16 +19,19 @@ This directory contains comprehensive unit tests for the database package, cover
 ## Running Tests
 
 ### Unit Tests Only (Fast)
+
 ```bash
 npm run test:unit
 ```
 
 ### Integration Tests (Requires Database)
+
 ```bash
 npm run test:integration
 ```
 
 ### All Tests
+
 ```bash
 npm test
 ```
@@ -36,6 +41,7 @@ npm test
 The tests cover:
 
 ### Data Validation
+
 - ✅ Schema validation for all entity types
 - ✅ Required field enforcement
 - ✅ Data type validation
@@ -43,6 +49,7 @@ The tests cover:
 - ✅ Constraint enforcement
 
 ### Repository Operations
+
 - ✅ CRUD operations (Create, Read, Update, Delete)
 - ✅ Query building and filtering
 - ✅ Pagination and sorting
@@ -51,6 +58,7 @@ The tests cover:
 - ✅ Data mapping (snake_case ↔ camelCase)
 
 ### Business Logic
+
 - ✅ Employee lifecycle operations
 - ✅ Workflow management
 - ✅ Workflow execution tracking
@@ -58,6 +66,7 @@ The tests cover:
 - ✅ Search and filtering
 
 ### Edge Cases
+
 - ✅ Empty result sets
 - ✅ Null and undefined values
 - ✅ Invalid input handling
@@ -73,6 +82,7 @@ CREATE DATABASE officeflow_test;
 ```
 
 Set the connection string in environment variable:
+
 ```bash
 export TEST_DATABASE_URL="postgresql://postgres:password@localhost:5432/officeflow_test"
 ```
@@ -80,6 +90,7 @@ export TEST_DATABASE_URL="postgresql://postgres:password@localhost:5432/officefl
 ## Test Utilities
 
 The `setup.ts` file provides:
+
 - Test database connection management
 - Test data factories
 - Cleanup utilities

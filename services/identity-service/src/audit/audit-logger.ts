@@ -25,7 +25,7 @@ export interface AuditEvent {
   userAgent?: string;
 }
 
-export type IdentityAction = 
+export type IdentityAction =
   | 'account.create'
   | 'account.update'
   | 'account.disable'
@@ -62,7 +62,11 @@ export interface AuditDetails {
 
 export interface ComplianceReport {
   organizationId: string;
-  reportType: 'access_review' | 'provisioning_audit' | 'deprovisioning_audit' | 'permission_changes';
+  reportType:
+    | 'access_review'
+    | 'provisioning_audit'
+    | 'deprovisioning_audit'
+    | 'permission_changes';
   startDate: Date;
   endDate: Date;
   events: AuditEvent[];
@@ -90,13 +94,13 @@ export class AuditLogger {
     const auditEvent: AuditEvent = {
       ...event,
       id: this.generateEventId(),
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     try {
       // Store in database
       await this.storeAuditEvent(auditEvent);
-      
+
       // Log to application logs for real-time monitoring
       this.logger.info('Identity audit event', {
         eventId: auditEvent.id,
@@ -105,7 +109,7 @@ export class AuditLogger {
         resource: auditEvent.resource,
         status: auditEvent.status,
         actorId: auditEvent.actorId,
-        correlationId: auditEvent.correlationId
+        correlationId: auditEvent.correlationId,
       });
 
       return auditEvent.id!;
@@ -115,8 +119,8 @@ export class AuditLogger {
         event: {
           organizationId: auditEvent.organizationId,
           action: auditEvent.action,
-          resource: auditEvent.resource
-        }
+          resource: auditEvent.resource,
+        },
       });
       throw error;
     }
@@ -144,18 +148,20 @@ export class AuditLogger {
       status: result.success ? 'success' : 'failed',
       details: {
         after: result.success ? userDetails : undefined,
-        error: result.error ? {
-          code: 'ACCOUNT_CREATION_FAILED',
-          message: result.error
-        } : undefined
+        error: result.error
+          ? {
+              code: 'ACCOUNT_CREATION_FAILED',
+              message: result.error,
+            }
+          : undefined,
       },
       metadata: {
         ...metadata,
         userEmail: userDetails.email,
         department: userDetails.department,
-        role: userDetails.role
+        role: userDetails.role,
       },
-      correlationId
+      correlationId,
     });
   }
 
@@ -182,13 +188,15 @@ export class AuditLogger {
       status: result.success ? 'success' : 'failed',
       details: {
         changes,
-        error: result.error ? {
-          code: 'ACCOUNT_UPDATE_FAILED',
-          message: result.error
-        } : undefined
+        error: result.error
+          ? {
+              code: 'ACCOUNT_UPDATE_FAILED',
+              message: result.error,
+            }
+          : undefined,
       },
       metadata,
-      correlationId
+      correlationId,
     });
   }
 
@@ -216,16 +224,18 @@ export class AuditLogger {
       details: {
         before: { active: true },
         after: result.success ? { active: false, reason } : undefined,
-        error: result.error ? {
-          code: 'ACCOUNT_DEACTIVATION_FAILED',
-          message: result.error
-        } : undefined
+        error: result.error
+          ? {
+              code: 'ACCOUNT_DEACTIVATION_FAILED',
+              message: result.error,
+            }
+          : undefined,
       },
       metadata: {
         ...metadata,
-        deactivationReason: reason
+        deactivationReason: reason,
       },
-      correlationId
+      correlationId,
     });
   }
 
@@ -236,12 +246,19 @@ export class AuditLogger {
     provider: string,
     userId: string,
     groups: string[],
-    result: { success: boolean; successfulGroups?: string[]; failedGroups?: Array<{ group: string; error: string }> },
+    result: {
+      success: boolean;
+      successfulGroups?: string[];
+      failedGroups?: Array<{ group: string; error: string }>;
+    },
     correlationId: string,
     metadata: Record<string, any> = {}
   ): Promise<string> {
-    const status = result.success ? 'success' : 
-      (result.successfulGroups && result.successfulGroups.length > 0) ? 'partial' : 'failed';
+    const status = result.success
+      ? 'success'
+      : result.successfulGroups && result.successfulGroups.length > 0
+        ? 'partial'
+        : 'failed';
 
     return this.logEvent({
       organizationId,
@@ -256,21 +273,24 @@ export class AuditLogger {
       details: {
         after: {
           assignedGroups: result.successfulGroups || [],
-          requestedGroups: groups
+          requestedGroups: groups,
         },
-        error: result.failedGroups && result.failedGroups.length > 0 ? {
-          code: 'GROUP_ASSIGNMENT_PARTIAL_FAILURE',
-          message: 'Some group assignments failed',
-          details: result.failedGroups
-        } : undefined
+        error:
+          result.failedGroups && result.failedGroups.length > 0
+            ? {
+                code: 'GROUP_ASSIGNMENT_PARTIAL_FAILURE',
+                message: 'Some group assignments failed',
+                details: result.failedGroups,
+              }
+            : undefined,
       },
       metadata: {
         ...metadata,
         totalGroups: groups.length,
         successfulGroups: result.successfulGroups?.length || 0,
-        failedGroups: result.failedGroups?.length || 0
+        failedGroups: result.failedGroups?.length || 0,
       },
-      correlationId
+      correlationId,
     });
   }
 
@@ -297,17 +317,19 @@ export class AuditLogger {
       status: result.success ? 'success' : 'failed',
       details: {
         after: result.success ? { licenses: result.assignedLicenses || licenses } : undefined,
-        error: result.error ? {
-          code: 'LICENSE_ASSIGNMENT_FAILED',
-          message: result.error
-        } : undefined
+        error: result.error
+          ? {
+              code: 'LICENSE_ASSIGNMENT_FAILED',
+              message: result.error,
+            }
+          : undefined,
       },
       metadata: {
         ...metadata,
         requestedLicenses: licenses,
-        assignedLicenses: result.assignedLicenses || []
+        assignedLicenses: result.assignedLicenses || [],
       },
-      correlationId
+      correlationId,
     });
   }
 
@@ -386,14 +408,14 @@ export class AuditLogger {
       params.push(limit, offset);
 
       const result = await this.db.query(query, params);
-      const events = result.rows.map(row => this.mapRowToAuditEvent(row));
+      const events = result.rows.map((row) => this.mapRowToAuditEvent(row));
 
       return { events, total };
     } catch (error) {
       this.logger.error('Failed to retrieve audit trail', {
         organizationId,
         filters,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -420,10 +442,10 @@ export class AuditLogger {
       // Generate summary statistics
       const summary = {
         totalEvents: filteredEvents.length,
-        successfulOperations: filteredEvents.filter(e => e.status === 'success').length,
-        failedOperations: filteredEvents.filter(e => e.status === 'failed').length,
-        uniqueUsers: new Set(filteredEvents.map(e => e.employeeId)).size,
-        uniqueActors: new Set(filteredEvents.map(e => e.actorId)).size
+        successfulOperations: filteredEvents.filter((e) => e.status === 'success').length,
+        failedOperations: filteredEvents.filter((e) => e.status === 'failed').length,
+        uniqueUsers: new Set(filteredEvents.map((e) => e.employeeId)).size,
+        uniqueActors: new Set(filteredEvents.map((e) => e.actorId)).size,
       };
 
       const report: ComplianceReport = {
@@ -434,14 +456,14 @@ export class AuditLogger {
         events: filteredEvents,
         summary,
         generatedAt: new Date(),
-        generatedBy
+        generatedBy,
       };
 
       this.logger.info('Compliance report generated', {
         organizationId,
         reportType,
         eventsCount: filteredEvents.length,
-        generatedBy
+        generatedBy,
       });
 
       return report;
@@ -449,7 +471,7 @@ export class AuditLogger {
       this.logger.error('Failed to generate compliance report', {
         organizationId,
         reportType,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -481,7 +503,7 @@ export class AuditLogger {
       event.correlationId,
       event.sessionId,
       event.ipAddress,
-      event.userAgent
+      event.userAgent,
     ];
 
     await this.db.query(query, values);
@@ -505,40 +527,45 @@ export class AuditLogger {
       correlationId: row.correlation_id,
       sessionId: row.session_id,
       ipAddress: row.ip_address,
-      userAgent: row.user_agent
+      userAgent: row.user_agent,
     };
   }
 
-  private filterEventsForReport(events: AuditEvent[], reportType: ComplianceReport['reportType']): AuditEvent[] {
+  private filterEventsForReport(
+    events: AuditEvent[],
+    reportType: ComplianceReport['reportType']
+  ): AuditEvent[] {
     switch (reportType) {
       case 'access_review':
-        return events.filter(e => 
-          e.action.includes('group.') || 
-          e.action.includes('permission.') || 
-          e.action.includes('license.')
+        return events.filter(
+          (e) =>
+            e.action.includes('group.') ||
+            e.action.includes('permission.') ||
+            e.action.includes('license.')
         );
-      
+
       case 'provisioning_audit':
-        return events.filter(e => 
-          e.action === 'account.create' || 
-          e.action === 'group.assign' || 
-          e.action === 'license.assign'
+        return events.filter(
+          (e) =>
+            e.action === 'account.create' ||
+            e.action === 'group.assign' ||
+            e.action === 'license.assign'
         );
-      
+
       case 'deprovisioning_audit':
-        return events.filter(e => 
-          e.action === 'account.disable' || 
-          e.action === 'account.delete' || 
-          e.action === 'group.remove' || 
-          e.action === 'license.revoke'
+        return events.filter(
+          (e) =>
+            e.action === 'account.disable' ||
+            e.action === 'account.delete' ||
+            e.action === 'group.remove' ||
+            e.action === 'license.revoke'
         );
-      
+
       case 'permission_changes':
-        return events.filter(e => 
-          e.action.includes('permission.') || 
-          e.action.includes('group.')
+        return events.filter(
+          (e) => e.action.includes('permission.') || e.action.includes('group.')
         );
-      
+
       default:
         return events;
     }

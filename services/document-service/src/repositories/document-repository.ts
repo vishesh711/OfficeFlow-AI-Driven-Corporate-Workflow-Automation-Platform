@@ -190,7 +190,7 @@ export class DocumentRepository {
       ]);
 
       const total = parseInt(countResult.rows[0].total);
-      const documents = searchResult.rows.map(row => this.mapRowToDocument(row));
+      const documents = searchResult.rows.map((row) => this.mapRowToDocument(row));
 
       return {
         documents,
@@ -237,7 +237,10 @@ export class DocumentRepository {
     }
   }
 
-  public async getDocumentVersion(documentId: string, version: number): Promise<DocumentVersion | null> {
+  public async getDocumentVersion(
+    documentId: string,
+    version: number
+  ): Promise<DocumentVersion | null> {
     const query = `
       SELECT version_id, document_id, version, storage_key, size, checksum, uploaded_by, created_at, change_log
       FROM document_versions 
@@ -312,7 +315,7 @@ export class DocumentRepository {
 
     try {
       const result = await this.db.query(query, [documentId]);
-      return result.rows.map(row => ({
+      return result.rows.map((row) => ({
         accessId: row.access_id,
         documentId: row.document_id,
         userId: row.user_id,
@@ -372,17 +375,17 @@ export class DocumentRepository {
       ]);
 
       const documentsByType: Record<string, number> = {};
-      byTypeResult.rows.forEach(row => {
+      byTypeResult.rows.forEach((row) => {
         documentsByType[row.mime_type] = parseInt(row.count);
       });
 
       const uploadsByMonth: Record<string, number> = {};
-      byMonthResult.rows.forEach(row => {
+      byMonthResult.rows.forEach((row) => {
         const month = new Date(row.month).toISOString().substring(0, 7);
         uploadsByMonth[month] = parseInt(row.count);
       });
 
-      const topTags = topTagsResult.rows.map(row => ({
+      const topTags = topTagsResult.rows.map((row) => ({
         tag: row.tag,
         count: parseInt(row.count),
       }));
@@ -424,6 +427,6 @@ export class DocumentRepository {
   }
 
   private camelToSnake(str: string): string {
-    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
   }
 }

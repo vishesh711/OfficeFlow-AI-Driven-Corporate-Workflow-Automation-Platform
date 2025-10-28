@@ -132,7 +132,7 @@ export class EmailRepository {
 
     try {
       const result = await this.db.query(query, [organizationId]);
-      return result.rows.map(row => ({
+      return result.rows.map((row) => ({
         templateId: row.template_id,
         organizationId: row.organization_id,
         name: row.name,
@@ -259,7 +259,11 @@ export class EmailRepository {
     }
   }
 
-  public async getEmailMetrics(organizationId: string, startDate: Date, endDate: Date): Promise<EmailMetrics> {
+  public async getEmailMetrics(
+    organizationId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<EmailMetrics> {
     const query = `
       SELECT 
         COUNT(*) as sent,

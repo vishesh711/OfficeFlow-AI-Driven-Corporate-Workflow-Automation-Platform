@@ -23,7 +23,7 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     service: 'calendar-service',
     timestamp: new Date().toISOString(),
-    providers: config.providers.map(p => ({
+    providers: config.providers.map((p) => ({
       name: p.name,
       type: p.type,
       isDefault: p.isDefault,
@@ -58,7 +58,7 @@ const server = app.listen(config.port, () => {
   logger.info(`Calendar service started on port ${config.port}`, {
     port: config.port,
     environment: process.env.NODE_ENV || 'development',
-    providers: config.providers.map(p => p.name),
+    providers: config.providers.map((p) => p.name),
     defaultTimezone: config.defaultTimezone,
   });
 });

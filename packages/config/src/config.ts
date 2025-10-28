@@ -1,9 +1,9 @@
-import { 
-  getEnv, 
-  getEnvAsNumber, 
-  getEnvAsBoolean, 
+import {
+  getEnv,
+  getEnvAsNumber,
+  getEnvAsBoolean,
   getEnvAsArray,
-  loadEnvironment 
+  loadEnvironment,
 } from './environment';
 import {
   validateConfig,
@@ -115,12 +115,12 @@ export interface AppConfig {
 export function createDatabaseConfig(): DatabaseConfig {
   // Support both URL and individual connection parameters
   const url = process.env.DATABASE_URL || process.env.DB_URL;
-  
+
   let constructedUrl;
   if (!url && process.env.DB_USER) {
     constructedUrl = `postgresql://${getEnv('DB_USER')}:${getEnv('DB_PASSWORD')}@${getEnv('DB_HOST')}:${getEnvAsNumber('DB_PORT', 5432)}/${getEnv('DB_NAME')}`;
   }
-  
+
   const config = {
     url: url || constructedUrl,
     host: process.env.DB_HOST,
@@ -157,11 +157,14 @@ export function createKafkaConfig(): KafkaConfig {
     clientId: getEnv('KAFKA_CLIENT_ID'),
     groupId: getEnv('KAFKA_GROUP_ID'),
     ssl: getEnvAsBoolean('KAFKA_SSL', false),
-    sasl: process.env.KAFKA_SASL_MECHANISM && process.env.KAFKA_SASL_MECHANISM.trim() ? {
-      mechanism: getEnv('KAFKA_SASL_MECHANISM') as any,
-      username: getEnv('KAFKA_SASL_USERNAME'),
-      password: getEnv('KAFKA_SASL_PASSWORD'),
-    } : undefined,
+    sasl:
+      process.env.KAFKA_SASL_MECHANISM && process.env.KAFKA_SASL_MECHANISM.trim()
+        ? {
+            mechanism: getEnv('KAFKA_SASL_MECHANISM') as any,
+            username: getEnv('KAFKA_SASL_USERNAME'),
+            password: getEnv('KAFKA_SASL_PASSWORD'),
+          }
+        : undefined,
     connectionTimeout: getEnvAsNumber('KAFKA_CONNECTION_TIMEOUT', 30000),
     requestTimeout: getEnvAsNumber('KAFKA_REQUEST_TIMEOUT', 30000),
   };
@@ -204,7 +207,10 @@ export function createObservabilityConfig(serviceName: string): ObservabilityCon
       format: getEnv('LOG_FORMAT', 'json'),
       enableConsole: getEnvAsBoolean('LOG_ENABLE_CONSOLE', true),
       enableFile: getEnvAsBoolean('LOG_ENABLE_FILE', false),
-      filePath: process.env.LOG_FILE_PATH && process.env.LOG_FILE_PATH.trim() ? process.env.LOG_FILE_PATH : undefined,
+      filePath:
+        process.env.LOG_FILE_PATH && process.env.LOG_FILE_PATH.trim()
+          ? process.env.LOG_FILE_PATH
+          : undefined,
     },
     metrics: {
       enabled: getEnvAsBoolean('METRICS_ENABLED', true),
@@ -214,7 +220,10 @@ export function createObservabilityConfig(serviceName: string): ObservabilityCon
     tracing: {
       enabled: getEnvAsBoolean('TRACING_ENABLED', true),
       serviceName,
-      jaegerEndpoint: process.env.JAEGER_ENDPOINT && process.env.JAEGER_ENDPOINT.trim() ? process.env.JAEGER_ENDPOINT : undefined,
+      jaegerEndpoint:
+        process.env.JAEGER_ENDPOINT && process.env.JAEGER_ENDPOINT.trim()
+          ? process.env.JAEGER_ENDPOINT
+          : undefined,
       sampleRate: getEnvAsNumber('TRACING_SAMPLE_RATE', 0.1),
     },
   };

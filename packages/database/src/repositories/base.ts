@@ -45,7 +45,7 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
   async findById(id: UUID): Promise<T | null> {
     const query = `SELECT * FROM ${this.tableName} WHERE ${this.primaryKey} = $1`;
     const result = await this.pool.query(query, [id]);
-    
+
     if (result.rows.length === 0) {
       return null;
     }
@@ -64,7 +64,7 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
     // Add WHERE clause for filters
     if (filters && Object.keys(filters).length > 0) {
       const conditions: string[] = [];
-      
+
       for (const [key, value] of Object.entries(filters)) {
         if (value !== undefined && value !== null) {
           if (Array.isArray(value)) {
@@ -77,7 +77,7 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
           }
         }
       }
-      
+
       if (conditions.length > 0) {
         query += ` WHERE ${conditions.join(' AND ')}`;
       }
@@ -101,7 +101,7 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
     }
 
     const result = await this.pool.query(query, params);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 
   /**
@@ -110,7 +110,7 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
   async create(data: Omit<T, 'created_at' | 'updated_at'>): Promise<T> {
     // Validate input data
     const validatedData = this.createSchema.parse(data);
-    
+
     // Generate UUID for primary key if not provided
     if (!validatedData[this.primaryKey]) {
       validatedData[this.primaryKey] = uuidv4();
@@ -143,7 +143,7 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
   async update(id: UUID, updates: Partial<T>): Promise<T | null> {
     // Validate update data
     const validatedUpdates = this.updateSchema.parse(updates);
-    
+
     // Add updated_at timestamp if the table has this column
     if ('updated_at' in validatedUpdates) {
       validatedUpdates.updated_at = new Date();
@@ -151,7 +151,7 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
 
     const columns = Object.keys(validatedUpdates);
     const values = Object.values(validatedUpdates);
-    
+
     if (columns.length === 0) {
       return this.findById(id);
     }
@@ -165,7 +165,7 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
     `;
 
     const result = await this.pool.query(query, [id, ...values]);
-    
+
     if (result.rows.length === 0) {
       return null;
     }
@@ -192,14 +192,14 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
 
     if (filters && Object.keys(filters).length > 0) {
       const conditions: string[] = [];
-      
+
       for (const [key, value] of Object.entries(filters)) {
         if (value !== undefined && value !== null) {
           conditions.push(`${key} = $${paramIndex++}`);
           params.push(value);
         }
       }
-      
+
       if (conditions.length > 0) {
         query += ` WHERE ${conditions.join(' AND ')}`;
       }
@@ -229,7 +229,7 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
   protected mapRowToEntity(row: any): T {
     // Convert snake_case to camelCase and handle JSON fields
     const entity: any = {};
-    
+
     for (const [key, value] of Object.entries(row)) {
       const camelKey = this.snakeToCamel(key);
       entity[camelKey] = value;
@@ -249,6 +249,6 @@ export abstract class BaseRepository<T extends { [key: string]: any }> {
    * Convert camelCase to snake_case
    */
   protected camelToSnake(str: string): string {
-    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
   }
 }

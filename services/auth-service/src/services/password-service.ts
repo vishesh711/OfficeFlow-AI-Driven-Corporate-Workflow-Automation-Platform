@@ -48,8 +48,16 @@ export class PasswordService {
 
     // Check for common weak passwords
     const commonPasswords = [
-      'password', 'password123', '123456', '123456789', 'qwerty',
-      'abc123', 'password1', 'admin', 'letmein', 'welcome'
+      'password',
+      'password123',
+      '123456',
+      '123456789',
+      'qwerty',
+      'abc123',
+      'password1',
+      'admin',
+      'letmein',
+      'welcome',
     ];
 
     if (commonPasswords.includes(password.toLowerCase())) {
@@ -65,24 +73,27 @@ export class PasswordService {
     const lowercase = 'abcdefghijklmnopqrstuvwxyz';
     const numbers = '0123456789';
     const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-    
+
     const allChars = uppercase + lowercase + numbers + symbols;
-    
+
     let password = '';
-    
+
     // Ensure at least one character from each category
     password += uppercase[Math.floor(Math.random() * uppercase.length)];
     password += lowercase[Math.floor(Math.random() * lowercase.length)];
     password += numbers[Math.floor(Math.random() * numbers.length)];
     password += symbols[Math.floor(Math.random() * symbols.length)];
-    
+
     // Fill the rest randomly
     for (let i = 4; i < length; i++) {
       password += allChars[Math.floor(Math.random() * allChars.length)];
     }
-    
+
     // Shuffle the password
-    return password.split('').sort(() => Math.random() - 0.5).join('');
+    return password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('');
   }
 
   /**
@@ -92,10 +103,18 @@ export class PasswordService {
     // TODO: Implement integration with HaveIBeenPwned API
     // For now, just check against a small list of known compromised passwords
     const compromisedPasswords = [
-      'password', '123456', '123456789', 'qwerty', 'password123',
-      'abc123', 'password1', 'admin', 'letmein', 'welcome123'
+      'password',
+      '123456',
+      '123456789',
+      'qwerty',
+      'password123',
+      'abc123',
+      'password1',
+      'admin',
+      'letmein',
+      'welcome123',
     ];
-    
+
     return compromisedPasswords.includes(password.toLowerCase());
   }
 }

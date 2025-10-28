@@ -2,7 +2,12 @@
  * Workflow run repository implementation
  */
 
-import { WorkflowRunEntity, WorkflowRunRepository, UUID, WorkflowRunStatus } from '@officeflow/types';
+import {
+  WorkflowRunEntity,
+  WorkflowRunRepository,
+  UUID,
+  WorkflowRunStatus,
+} from '@officeflow/types';
 import { BaseRepository } from './base';
 import {
   workflowRunSchema,
@@ -10,57 +15,64 @@ import {
   updateWorkflowRunSchema,
 } from '../validation/schemas';
 
-export class WorkflowRunRepositoryImpl 
-  extends BaseRepository<WorkflowRunEntity> 
-  implements WorkflowRunRepository {
-
+export class WorkflowRunRepositoryImpl
+  extends BaseRepository<WorkflowRunEntity>
+  implements WorkflowRunRepository
+{
   constructor() {
-    super(
-      'workflow_runs',
-      'run_id',
-      createWorkflowRunSchema,
-      updateWorkflowRunSchema
-    );
+    super('workflow_runs', 'run_id', createWorkflowRunSchema, updateWorkflowRunSchema);
   }
 
   /**
    * Find workflow runs by organization
    */
   async findByOrganization(orgId: UUID): Promise<WorkflowRunEntity[]> {
-    return this.findAll({ org_id: orgId }, { 
-      orderBy: 'started_at', 
-      orderDirection: 'DESC' 
-    });
+    return this.findAll(
+      { org_id: orgId },
+      {
+        orderBy: 'started_at',
+        orderDirection: 'DESC',
+      }
+    );
   }
 
   /**
    * Find workflow runs by workflow
    */
   async findByWorkflow(workflowId: UUID): Promise<WorkflowRunEntity[]> {
-    return this.findAll({ workflow_id: workflowId }, { 
-      orderBy: 'started_at', 
-      orderDirection: 'DESC' 
-    });
+    return this.findAll(
+      { workflow_id: workflowId },
+      {
+        orderBy: 'started_at',
+        orderDirection: 'DESC',
+      }
+    );
   }
 
   /**
    * Find workflow runs by employee
    */
   async findByEmployee(employeeId: UUID): Promise<WorkflowRunEntity[]> {
-    return this.findAll({ employee_id: employeeId }, { 
-      orderBy: 'started_at', 
-      orderDirection: 'DESC' 
-    });
+    return this.findAll(
+      { employee_id: employeeId },
+      {
+        orderBy: 'started_at',
+        orderDirection: 'DESC',
+      }
+    );
   }
 
   /**
    * Find workflow runs by status
    */
   async findByStatus(status: WorkflowRunStatus): Promise<WorkflowRunEntity[]> {
-    return this.findAll({ status }, { 
-      orderBy: 'started_at', 
-      orderDirection: 'DESC' 
-    });
+    return this.findAll(
+      { status },
+      {
+        orderBy: 'started_at',
+        orderDirection: 'DESC',
+      }
+    );
   }
 
   /**
@@ -72,9 +84,9 @@ export class WorkflowRunRepositoryImpl
       WHERE status IN ('PENDING', 'RUNNING')
       ORDER BY started_at ASC
     `;
-    
+
     const result = await this.pool.query(query);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 
   /**
@@ -87,9 +99,9 @@ export class WorkflowRunRepositoryImpl
         AND started_at < NOW() - INTERVAL '${timeoutMinutes} minutes'
       ORDER BY started_at ASC
     `;
-    
+
     const result = await this.pool.query(query);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 
   /**
@@ -111,7 +123,7 @@ export class WorkflowRunRepositoryImpl
       WHERE nr.run_id = $1
       ORDER BY nr.created_at
     `;
-    
+
     const result = await this.pool.query(nodeRunsQuery, [runId]);
 
     return {
@@ -123,18 +135,22 @@ export class WorkflowRunRepositoryImpl
   /**
    * Update workflow run status and end time
    */
-  async updateStatus(runId: UUID, status: WorkflowRunStatus, errorDetails?: any): Promise<WorkflowRunEntity | null> {
+  async updateStatus(
+    runId: UUID,
+    status: WorkflowRunStatus,
+    errorDetails?: any
+  ): Promise<WorkflowRunEntity | null> {
     const updates: any = { status };
-    
+
     // Set end time for terminal states
     if (['COMPLETED', 'FAILED', 'CANCELLED', 'TIMEOUT'].includes(status)) {
       updates.ended_at = new Date();
     }
-    
+
     if (errorDetails) {
       updates.error_details = errorDetails;
     }
-    
+
     return this.update(runId, updates);
   }
 
@@ -142,8 +158,8 @@ export class WorkflowRunRepositoryImpl
    * Get execution statistics for date range
    */
   async getExecutionStats(
-    orgId: UUID, 
-    startDate: Date, 
+    orgId: UUID,
+    startDate: Date,
     endDate: Date
   ): Promise<{
     totalRuns: number;
@@ -164,7 +180,7 @@ export class WorkflowRunRepositoryImpl
         AND started_at >= $2 
         AND started_at <= $3
     `;
-    
+
     const statsResult = await this.pool.query(statsQuery, [orgId, startDate, endDate]);
     const stats = statsResult.rows[0];
 
@@ -180,7 +196,7 @@ export class WorkflowRunRepositoryImpl
       GROUP BY DATE(started_at)
       ORDER BY date
     `;
-    
+
     const dailyResult = await this.pool.query(dailyQuery, [orgId, startDate, endDate]);
 
     return {
@@ -188,7 +204,7 @@ export class WorkflowRunRepositoryImpl
       completedRuns: parseInt(stats.completed_runs, 10),
       failedRuns: parseInt(stats.failed_runs, 10),
       averageDurationMs: stats.avg_duration_ms ? parseFloat(stats.avg_duration_ms) : 0,
-      runsByDay: dailyResult.rows.map(row => ({
+      runsByDay: dailyResult.rows.map((row) => ({
         date: row.date,
         count: parseInt(row.count, 10),
       })),
@@ -208,9 +224,9 @@ export class WorkflowRunRepositoryImpl
       ORDER BY wr.started_at DESC
       LIMIT $2
     `;
-    
+
     const result = await this.pool.query(query, [orgId, limit]);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 
   /**
@@ -234,6 +250,4 @@ export class WorkflowRunRepositoryImpl
   async resume(runId: UUID): Promise<WorkflowRunEntity | null> {
     return this.updateStatus(runId, 'RUNNING');
   }
-
-
 }

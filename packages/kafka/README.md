@@ -36,20 +36,16 @@ await producer.sendMessage('employee.onboard', {
   payload: {
     employeeId: 'emp-123',
     name: 'John Doe',
-    department: 'Engineering'
+    department: 'Engineering',
   },
   metadata: {
     source: 'hr-system',
-    organizationId: 'org-456'
-  }
+    organizationId: 'org-456',
+  },
 });
 
 // Send to organization-specific topic
-await producer.sendToOrganizationTopic(
-  'employee.onboard',
-  'org-456',
-  message
-);
+await producer.sendToOrganizationTopic('employee.onboard', 'org-456', message);
 ```
 
 ### Consumer
@@ -87,14 +83,17 @@ await consumer.run();
 ```typescript
 import { DLQHandler } from '@officeflow/kafka';
 
-const dlqHandler = new DLQHandler({
-  clientId: 'dlq-processor',
-  brokers: ['localhost:9092'],
-}, {
-  maxReprocessAttempts: 3,
-  reprocessDelayMs: 60000,
-  quarantineAfterAttempts: 5,
-});
+const dlqHandler = new DLQHandler(
+  {
+    clientId: 'dlq-processor',
+    brokers: ['localhost:9092'],
+  },
+  {
+    maxReprocessAttempts: 3,
+    reprocessDelayMs: 60000,
+    quarantineAfterAttempts: 5,
+  }
+);
 
 await dlqHandler.start();
 ```
@@ -133,14 +132,14 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - '2181:2181'
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+      - '9092:9092'
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181

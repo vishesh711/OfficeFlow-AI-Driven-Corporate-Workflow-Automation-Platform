@@ -31,11 +31,7 @@ export interface OAuth2Credentials {
   updatedAt: Date;
 }
 
-export type IdentityProvider = 
-  | 'okta'
-  | 'google_workspace'
-  | 'office365'
-  | 'active_directory';
+export type IdentityProvider = 'okta' | 'google_workspace' | 'office365' | 'active_directory';
 
 export interface ProviderConfig {
   provider: IdentityProvider;

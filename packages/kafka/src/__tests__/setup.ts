@@ -27,24 +27,24 @@ beforeAll(async () => {
   // Create test topics if they don't exist
   const kafka = new Kafka(TEST_KAFKA_CONFIG);
   const admin = kafka.admin();
-  
+
   try {
     await admin.connect();
-    
+
     const existingTopics = await admin.listTopics();
     const topicsToCreate = Object.values(TEST_TOPICS).filter(
-      topic => !existingTopics.includes(topic)
+      (topic) => !existingTopics.includes(topic)
     );
-    
+
     if (topicsToCreate.length > 0) {
       await admin.createTopics({
-        topics: topicsToCreate.map(topic => ({
+        topics: topicsToCreate.map((topic) => ({
           topic,
           numPartitions: 3,
           replicationFactor: 1,
         })),
       });
-      
+
       console.log(`Created test topics: ${topicsToCreate.join(', ')}`);
     }
   } catch (error) {
@@ -59,7 +59,7 @@ afterAll(async () => {
   // Clean up test topics
   const kafka = new Kafka(TEST_KAFKA_CONFIG);
   const admin = kafka.admin();
-  
+
   try {
     await admin.connect();
     await admin.deleteTopics({
@@ -75,7 +75,7 @@ afterAll(async () => {
 
 // Utility function to wait for messages
 export const waitForMessages = (timeoutMs: number = 5000): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, timeoutMs));
+  return new Promise((resolve) => setTimeout(resolve, timeoutMs));
 };
 
 // Utility function to generate test message

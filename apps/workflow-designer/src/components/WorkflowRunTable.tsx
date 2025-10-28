@@ -1,88 +1,85 @@
-
-import { 
-  Play, 
-  Pause, 
-  Square, 
-  RefreshCw, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Play,
+  Pause,
+  Square,
+  RefreshCw,
+  Clock,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
-  Eye
-} from 'lucide-react'
-import { WorkflowRun } from '../lib/api'
+  Eye,
+} from 'lucide-react';
+import { WorkflowRun } from '../lib/api';
 
 interface WorkflowRunTableProps {
-  runs: WorkflowRun[]
-  onSelectRun: (run: WorkflowRun) => void
-  onRunAction: (runId: string, action: 'pause' | 'resume' | 'cancel' | 'retry') => void
+  runs: WorkflowRun[];
+  onSelectRun: (run: WorkflowRun) => void;
+  onRunAction: (runId: string, action: 'pause' | 'resume' | 'cancel' | 'retry') => void;
 }
 
 export function WorkflowRunTable({ runs, onSelectRun, onRunAction }: WorkflowRunTableProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'RUNNING':
-        return <Play className="h-4 w-4 text-blue-500" />
+        return <Play className="h-4 w-4 text-blue-500" />;
       case 'COMPLETED':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'FAILED':
-        return <XCircle className="h-4 w-4 text-red-500" />
+        return <XCircle className="h-4 w-4 text-red-500" />;
       case 'CANCELLED':
-        return <Square className="h-4 w-4 text-gray-500" />
+        return <Square className="h-4 w-4 text-gray-500" />;
       case 'PENDING':
-        return <Clock className="h-4 w-4 text-yellow-500" />
+        return <Clock className="h-4 w-4 text-yellow-500" />;
       default:
-        return <AlertTriangle className="h-4 w-4 text-orange-500" />
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'RUNNING':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800';
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'FAILED':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       case 'CANCELLED':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
       case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800';
       default:
-        return 'bg-orange-100 text-orange-800'
+        return 'bg-orange-100 text-orange-800';
     }
-  }
+  };
 
   const formatDuration = (startTime: string, endTime?: string) => {
-    const start = new Date(startTime)
-    const end = endTime ? new Date(endTime) : new Date()
-    const duration = end.getTime() - start.getTime()
-    
-    if (duration < 1000) return `${duration}ms`
-    if (duration < 60000) return `${(duration / 1000).toFixed(1)}s`
-    return `${(duration / 60000).toFixed(1)}m`
-  }
+    const start = new Date(startTime);
+    const end = endTime ? new Date(endTime) : new Date();
+    const duration = end.getTime() - start.getTime();
+
+    if (duration < 1000) return `${duration}ms`;
+    if (duration < 60000) return `${(duration / 1000).toFixed(1)}s`;
+    return `${(duration / 60000).toFixed(1)}m`;
+  };
 
   const getAvailableActions = (status: string) => {
     switch (status) {
       case 'RUNNING':
-        return ['pause', 'cancel']
+        return ['pause', 'cancel'];
       case 'PENDING':
-        return ['cancel']
+        return ['cancel'];
       case 'FAILED':
-        return ['retry']
+        return ['retry'];
       default:
-        return []
+        return [];
     }
-  }
+  };
 
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-          Workflow Runs
-        </h3>
-        
+        <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Workflow Runs</h3>
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -123,7 +120,9 @@ export function WorkflowRunTable({ runs, onSelectRun, onRunAction }: WorkflowRun
                     {run.context.employeeName || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(run.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(run.status)}`}
+                    >
                       {getStatusIcon(run.status)}
                       <span className="ml-1">{run.status}</span>
                     </span>
@@ -143,7 +142,7 @@ export function WorkflowRunTable({ runs, onSelectRun, onRunAction }: WorkflowRun
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      
+
                       {getAvailableActions(run.status).map((action) => (
                         <button
                           key={action}
@@ -162,7 +161,7 @@ export function WorkflowRunTable({ runs, onSelectRun, onRunAction }: WorkflowRun
               ))}
             </tbody>
           </table>
-          
+
           {runs.length === 0 && (
             <div className="text-center py-8">
               <p className="text-gray-500">No workflow runs found</p>
@@ -171,5 +170,5 @@ export function WorkflowRunTable({ runs, onSelectRun, onRunAction }: WorkflowRun
         </div>
       </div>
     </div>
-  )
+  );
 }

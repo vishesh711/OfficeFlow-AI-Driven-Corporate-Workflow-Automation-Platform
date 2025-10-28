@@ -5,6 +5,7 @@ Welcome to the OfficeFlow Platform! This guide will help you get up and running 
 ## 🚀 Quick Start (30 seconds)
 
 ### Option 1: Using Run Scripts (Recommended)
+
 ```bash
 # Clone and setup
 git clone <repository-url>
@@ -18,6 +19,7 @@ cd OfficeFlow-AI-Driven-Corporate-Workflow-Automation-Platform
 ```
 
 ### Option 2: Using npm scripts
+
 ```bash
 # Setup
 npm run setup
@@ -27,6 +29,7 @@ npm start
 ```
 
 ### Option 3: Manual setup
+
 ```bash
 # Install dependencies
 npm install
@@ -46,7 +49,7 @@ npm run dev
 After running the setup, you'll have:
 
 - **Workflow Engine** running on `http://localhost:3000`
-- **AI Service** running on `http://localhost:3001`  
+- **AI Service** running on `http://localhost:3001`
 - **Identity Service** running on `http://localhost:3002`
 - All tests passing ✅
 - TypeScript compilation working ✅
@@ -54,15 +57,15 @@ After running the setup, you'll have:
 
 ## 🛠️ Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `./run.sh setup` | Complete project setup |
-| `./run.sh dev` | Start all services |
+| Command                   | Description            |
+| ------------------------- | ---------------------- |
+| `./run.sh setup`          | Complete project setup |
+| `./run.sh dev`            | Start all services     |
 | `./run.sh dev ai-service` | Start specific service |
-| `./run.sh test` | Run all tests |
-| `./run.sh build` | Build for production |
-| `./run.sh clean` | Clean build artifacts |
-| `./run.sh help` | Show all commands |
+| `./run.sh test`           | Run all tests          |
+| `./run.sh build`          | Build for production   |
+| `./run.sh clean`          | Clean build artifacts  |
+| `./run.sh help`           | Show all commands      |
 
 ## 📁 Project Structure
 
@@ -85,6 +88,7 @@ OfficeFlow-Platform/
 ## 🔧 Development Workflow
 
 ### Starting Development
+
 ```bash
 # Start all services with hot reload
 ./run.sh dev
@@ -96,6 +100,7 @@ OfficeFlow-Platform/
 ```
 
 ### Running Tests
+
 ```bash
 # Run all tests
 ./run.sh test
@@ -105,6 +110,7 @@ OfficeFlow-Platform/
 ```
 
 ### Building for Production
+
 ```bash
 # Build all services
 ./run.sh build
@@ -134,6 +140,7 @@ Once running, you can access:
 ### Common Issues
 
 **Port conflicts:**
+
 ```bash
 # Check what's using the ports
 lsof -i :3000
@@ -145,11 +152,13 @@ kill -9 <PID>
 ```
 
 **Permission denied (Unix/Linux/macOS):**
+
 ```bash
 chmod +x run.sh
 ```
 
 **Node.js version issues:**
+
 ```bash
 # Check version (need 18+)
 node --version
@@ -158,6 +167,7 @@ node --version
 ```
 
 **Dependencies issues:**
+
 ```bash
 # Clean and reinstall
 ./run.sh clean
@@ -175,6 +185,7 @@ rm -rf node_modules
 ## 🎨 Customization
 
 ### Environment Variables
+
 Create `.env` files in service directories:
 
 ```bash
@@ -188,6 +199,7 @@ ENCRYPTION_KEY=your_32_character_key_here
 ```
 
 ### Adding New Services
+
 1. Create service in `services/` directory
 2. Add to `run.sh` script
 3. Update `turbo.json` configuration
@@ -196,6 +208,7 @@ ENCRYPTION_KEY=your_32_character_key_here
 ## 🐳 Docker & Kubernetes Deployment
 
 ### Local Docker Development
+
 ```bash
 # Start all services with Docker Compose
 docker-compose up -d
@@ -210,6 +223,7 @@ docker-compose down
 ### Production Deployment
 
 #### Quick Kubernetes Deployment
+
 ```bash
 # Deploy to staging
 ./scripts/k8s-deploy.sh --namespace officeflow-staging
@@ -219,6 +233,7 @@ docker-compose down
 ```
 
 #### Advanced Deployment Strategies
+
 ```bash
 # Blue-green deployment (zero downtime)
 ./scripts/deploy.sh --strategy blue-green --environment production
@@ -231,6 +246,7 @@ docker-compose down
 ```
 
 #### Container Security & Building
+
 ```bash
 # Build and scan all containers
 ./scripts/docker-build-push.sh --local-only

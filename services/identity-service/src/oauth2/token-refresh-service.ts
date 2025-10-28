@@ -28,11 +28,15 @@ export class TokenRefreshService {
     }
 
     // Run every 30 minutes
-    this.refreshJob = cron.schedule('*/30 * * * *', async () => {
-      await this.refreshExpiredTokens();
-    }, {
-      scheduled: false
-    });
+    this.refreshJob = cron.schedule(
+      '*/30 * * * *',
+      async () => {
+        await this.refreshExpiredTokens();
+      },
+      {
+        scheduled: false,
+      }
+    );
 
     this.refreshJob.start();
     this.isRunning = true;
@@ -64,7 +68,7 @@ export class TokenRefreshService {
       this.logger.debug('Token refresh cycle completed');
     } catch (error) {
       this.logger.error('Error during token refresh cycle', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -81,12 +85,15 @@ export class TokenRefreshService {
     } catch (error) {
       this.logger.error('Failed to refresh tokens for organization', {
         organizationId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
-  async refreshCredentialTokens(credentialId: string, provider: IdentityProvider): Promise<boolean> {
+  async refreshCredentialTokens(
+    credentialId: string,
+    provider: IdentityProvider
+  ): Promise<boolean> {
     try {
       const providerConfig = this.providerConfigs.get(provider);
       if (!providerConfig) {
@@ -108,11 +115,11 @@ export class TokenRefreshService {
       if (refreshResult.success && refreshResult.tokens) {
         // Update stored credentials with new tokens
         await this.credentialManager.updateTokens(credentialId, refreshResult.tokens);
-        
+
         this.logger.info('Tokens refreshed successfully', {
           credentialId,
           provider,
-          expiresAt: refreshResult.tokens.expiresAt
+          expiresAt: refreshResult.tokens.expiresAt,
         });
 
         return true;
@@ -120,7 +127,7 @@ export class TokenRefreshService {
         this.logger.error('Failed to refresh tokens', {
           credentialId,
           provider,
-          error: refreshResult.error
+          error: refreshResult.error,
         });
 
         return false;
@@ -129,7 +136,7 @@ export class TokenRefreshService {
       this.logger.error('Error refreshing credential tokens', {
         credentialId,
         provider,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return false;
@@ -142,7 +149,7 @@ export class TokenRefreshService {
       if (!credentials) {
         this.logger.error('Credentials not found for force refresh', {
           organizationId,
-          provider
+          provider,
         });
         return false;
       }
@@ -152,7 +159,7 @@ export class TokenRefreshService {
       this.logger.error('Error during force token refresh', {
         organizationId,
         provider,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return false;

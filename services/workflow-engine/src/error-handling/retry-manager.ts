@@ -33,20 +33,20 @@ export class RetryManager {
     const baseDelay = policy.backoffMs;
     const multiplier = policy.backoffMultiplier;
     const maxDelay = policy.maxBackoffMs;
-    
+
     // Calculate exponential backoff
     let delay = baseDelay * Math.pow(multiplier, attempt - 1);
-    
+
     // Apply maximum delay cap
     delay = Math.min(delay, maxDelay);
-    
+
     // Add jitter to prevent thundering herd
     if (policy.jitter) {
       const jitterRange = delay * 0.1; // 10% jitter
       const jitter = (Math.random() - 0.5) * 2 * jitterRange;
       delay = Math.max(0, delay + jitter);
     }
-    
+
     return Math.floor(delay);
   }
 
@@ -84,7 +84,7 @@ export class RetryManager {
     ];
 
     const errorMessage = error.message || error.toString();
-    if (retryablePatterns.some(pattern => pattern.test(errorMessage))) {
+    if (retryablePatterns.some((pattern) => pattern.test(errorMessage))) {
       return true;
     }
 
@@ -156,7 +156,7 @@ export class RetryManager {
       maxBackoffMs: 300000, // 5 minutes
       jitter: true,
     };
-    
+
     return {
       ...DEFAULT_RETRY_POLICY,
       ...overrides,
@@ -199,7 +199,7 @@ export class RetryManager {
     };
 
     const nodePolicy = nodeSpecificPolicies[nodeType] || {};
-    
+
     // Allow node parameters to override retry policy
     const paramOverrides = nodeParams?.retryPolicy || {};
 
@@ -246,7 +246,7 @@ export class RetryManager {
 
       // Group retries by node type (would need additional state tracking)
       const retrysByNodeType: Record<string, number> = {};
-      
+
       // Calculate average retry delay (simplified)
       const avgRetryDelay = 5000; // Would calculate from actual retry schedules
 

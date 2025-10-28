@@ -18,11 +18,7 @@ export {
 } from './tracing';
 
 // Metrics exports
-export {
-  MetricLabels,
-  MetricsService,
-  metricsService,
-} from './metrics';
+export { MetricLabels, MetricsService, metricsService } from './metrics';
 
 // Middleware exports
 export {

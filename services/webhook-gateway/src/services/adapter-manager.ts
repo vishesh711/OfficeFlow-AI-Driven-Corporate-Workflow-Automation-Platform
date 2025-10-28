@@ -38,7 +38,7 @@ export class AdapterManager {
       await this.createBambooHRAdapter();
     }
 
-    logger.info('HRMS adapters initialized', { 
+    logger.info('HRMS adapters initialized', {
       adapterCount: this.adapters.size,
       adapters: Array.from(this.adapters.keys()),
     });
@@ -62,7 +62,7 @@ export class AdapterManager {
       };
 
       const adapter = new WorkdayAdapter(config);
-      
+
       // Test connection
       const healthCheck = await adapter.healthCheck();
       if (!healthCheck.healthy) {
@@ -97,7 +97,7 @@ export class AdapterManager {
       };
 
       const adapter = new SuccessFactorsAdapter(config);
-      
+
       // Test connection
       const healthCheck = await adapter.healthCheck();
       if (!healthCheck.healthy) {
@@ -130,7 +130,7 @@ export class AdapterManager {
       };
 
       const adapter = new BambooHRAdapter(config);
-      
+
       // Test connection
       const healthCheck = await adapter.healthCheck();
       if (!healthCheck.healthy) {
@@ -196,17 +196,21 @@ export class AdapterManager {
     // Create cron expression for polling interval
     const cronExpression = `*/${intervalMinutes} * * * *`; // Every N minutes
 
-    const job = cron.schedule(cronExpression, async () => {
-      await this.pollAdapter(source);
-    }, {
-      scheduled: false, // Don't start immediately
-    });
+    const job = cron.schedule(
+      cronExpression,
+      async () => {
+        await this.pollAdapter(source);
+      },
+      {
+        scheduled: false, // Don't start immediately
+      }
+    );
 
     this.pollingJobs.set(source, job);
     job.start();
 
-    logger.info('Polling started for adapter', { 
-      source, 
+    logger.info('Polling started for adapter', {
+      source,
       intervalMinutes,
       cronExpression,
     });
@@ -239,10 +243,10 @@ export class AdapterManager {
       logger.debug('Starting poll for adapter', { source });
 
       const events = await adapter.poll();
-      
+
       if (events.length > 0) {
         await this.publishEvents(events);
-        
+
         logger.info('Polling completed successfully', {
           source,
           eventsFound: events.length,
@@ -263,20 +267,22 @@ export class AdapterManager {
       try {
         const topic = `${event.type}.${event.organizationId}`;
         const key = event.employeeId;
-        
+
         await this.kafkaProducer.send({
           topic,
-          messages: [{
-            key,
-            value: JSON.stringify(event),
-            headers: {
-              'correlation-id': event.correlationId,
-              'event-type': event.type,
-              'source': event.source,
-              'organization-id': event.organizationId,
-              'employee-id': event.employeeId,
+          messages: [
+            {
+              key,
+              value: JSON.stringify(event),
+              headers: {
+                'correlation-id': event.correlationId,
+                'event-type': event.type,
+                source: event.source,
+                'organization-id': event.organizationId,
+                'employee-id': event.employeeId,
+              },
             },
-          }],
+          ],
         });
 
         logger.debug('Event published to Kafka', {
@@ -323,12 +329,10 @@ export class AdapterManager {
   async pollAll(): Promise<void> {
     logger.info('Manually triggering poll for all adapters');
 
-    const promises = Array.from(this.adapters.keys()).map(source => 
-      this.pollAdapter(source)
-    );
+    const promises = Array.from(this.adapters.keys()).map((source) => this.pollAdapter(source));
 
     await Promise.allSettled(promises);
-    
+
     logger.info('Manual polling completed for all adapters');
   }
 

@@ -37,7 +37,10 @@ export class AdapterFactory {
   /**
    * Validate adapter configuration
    */
-  static validateConfig(source: string, config: PollingConfig): { isValid: boolean; errors: string[] } {
+  static validateConfig(
+    source: string,
+    config: PollingConfig
+  ): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     // Common validation

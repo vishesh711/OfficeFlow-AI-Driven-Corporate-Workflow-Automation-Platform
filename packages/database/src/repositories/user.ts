@@ -4,23 +4,11 @@
 
 import { UserEntity, UserRepository, UUID } from '@officeflow/types';
 import { BaseRepository } from './base';
-import {
-  userSchema,
-  createUserSchema,
-  updateUserSchema,
-} from '../validation/schemas';
+import { userSchema, createUserSchema, updateUserSchema } from '../validation/schemas';
 
-export class UserRepositoryImpl 
-  extends BaseRepository<UserEntity> 
-  implements UserRepository {
-
+export class UserRepositoryImpl extends BaseRepository<UserEntity> implements UserRepository {
   constructor() {
-    super(
-      'users',
-      'user_id',
-      createUserSchema,
-      updateUserSchema
-    );
+    super('users', 'user_id', createUserSchema, updateUserSchema);
   }
 
   /**
@@ -29,7 +17,7 @@ export class UserRepositoryImpl
   async findByEmail(email: string): Promise<UserEntity | null> {
     const query = 'SELECT * FROM users WHERE email = $1';
     const result = await this.pool.query(query, [email]);
-    
+
     if (result.rows.length === 0) {
       return null;
     }
@@ -48,9 +36,9 @@ export class UserRepositoryImpl
    * Find active users by organization
    */
   async findActiveByOrganization(orgId: UUID): Promise<UserEntity[]> {
-    return this.findAll({ 
-      org_id: orgId, 
-      is_active: true 
+    return this.findAll({
+      org_id: orgId,
+      is_active: true,
     });
   }
 
@@ -58,9 +46,9 @@ export class UserRepositoryImpl
    * Find users by role
    */
   async findByRole(orgId: UUID, role: string): Promise<UserEntity[]> {
-    return this.findAll({ 
-      org_id: orgId, 
-      role 
+    return this.findAll({
+      org_id: orgId,
+      role,
     });
   }
 

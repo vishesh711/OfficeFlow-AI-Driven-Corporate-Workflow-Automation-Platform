@@ -90,7 +90,6 @@ export class AINodeExecutor implements NodeExecutor {
           correlationId: input.context.correlationId,
         },
       };
-
     } catch (error) {
       const executionTime = Date.now() - startTime;
 
@@ -142,7 +141,15 @@ export class AINodeExecutor implements NodeExecutor {
       outputFormat: MockJoi.string().valid('text', 'json', 'markdown').default('text'),
 
       // AI-specific parameters
-      aiType: MockJoi.string().valid('welcome_message', 'role_specific_content', 'document_summary', 'sentiment_analysis', 'custom').optional(),
+      aiType: MockJoi.string()
+        .valid(
+          'welcome_message',
+          'role_specific_content',
+          'document_summary',
+          'sentiment_analysis',
+          'custom'
+        )
+        .optional(),
       employee: MockJoi.object().optional(),
       company: MockJoi.object().optional(),
       document: MockJoi.object().optional(),
@@ -155,7 +162,7 @@ export class AINodeExecutor implements NodeExecutor {
     if (error) {
       return {
         isValid: false,
-        errors: error.details.map(detail => detail.message),
+        errors: error.details.map((detail) => detail.message),
       };
     }
 
@@ -242,7 +249,13 @@ export class AINodeExecutor implements NodeExecutor {
           description: 'Type of AI content to generate',
           required: false,
           validation: {
-            enum: ['welcome_message', 'role_specific_content', 'document_summary', 'sentiment_analysis', 'custom'],
+            enum: [
+              'welcome_message',
+              'role_specific_content',
+              'document_summary',
+              'sentiment_analysis',
+              'custom',
+            ],
           },
         },
       ],
@@ -284,7 +297,8 @@ export class AINodeExecutor implements NodeExecutor {
             },
           },
           expectedOutput: {
-            content: 'Welcome to TechCorp, John! We are excited to have you join our Engineering team as a Software Engineer...',
+            content:
+              'Welcome to TechCorp, John! We are excited to have you join our Engineering team as a Software Engineer...',
             metadata: {
               model: 'gpt-4',
               tokensUsed: 150,
@@ -344,7 +358,9 @@ export class AINodeExecutor implements NodeExecutor {
     const options = (params as any).options || {};
 
     if (!employee || !company) {
-      throw new Error('Employee and company information required for role-specific content generation');
+      throw new Error(
+        'Employee and company information required for role-specific content generation'
+      );
     }
 
     return this.contentGenerator.generateRoleSpecificContent(
@@ -364,12 +380,10 @@ export class AINodeExecutor implements NodeExecutor {
       throw new Error('Document with content required for summarization');
     }
 
-    return this.contentGenerator.summarizeDocument(
-      input.organizationId,
-      document,
-      options,
-      { workflowId: input.context.correlationId, runId: input.runId }
-    );
+    return this.contentGenerator.summarizeDocument(input.organizationId, document, options, {
+      workflowId: input.context.correlationId,
+      runId: input.runId,
+    });
   }
 
   private async executeSentimentAnalysis(input: NodeInput, params: AINodeParams): Promise<any> {
@@ -380,12 +394,10 @@ export class AINodeExecutor implements NodeExecutor {
       throw new Error('Text content required for sentiment analysis');
     }
 
-    return this.contentGenerator.analyzeSentiment(
-      input.organizationId,
-      text,
-      options,
-      { workflowId: input.context.correlationId, runId: input.runId }
-    );
+    return this.contentGenerator.analyzeSentiment(input.organizationId, text, options, {
+      workflowId: input.context.correlationId,
+      runId: input.runId,
+    });
   }
 
   private async executeCustomPrompt(input: NodeInput, params: AINodeParams): Promise<any> {

@@ -13,10 +13,7 @@ export { DLQHandler } from './dlq-handler';
 export { CorrelationTracker } from './correlation-tracker';
 
 // Types
-export type { 
-  OfficeFlowMessage, 
-  MessageMetadata
-} from './producer';
+export type { OfficeFlowMessage, MessageMetadata } from './producer';
 export type { MessageHandler, MessageContext } from './consumer';
 export type { CorrelationContext, TraceEvent } from './correlation-tracker';
 

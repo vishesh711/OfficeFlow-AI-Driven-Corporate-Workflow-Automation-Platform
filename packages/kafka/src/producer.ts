@@ -102,8 +102,8 @@ export class OfficeFlowProducer {
       headers: {
         'correlation-id': fullMessage.metadata.correlationId,
         'message-type': fullMessage.type,
-        'source': fullMessage.metadata.source,
-        'version': fullMessage.metadata.version,
+        source: fullMessage.metadata.source,
+        version: fullMessage.metadata.version,
         ...(fullMessage.metadata.organizationId && {
           'organization-id': fullMessage.metadata.organizationId,
         }),
@@ -138,15 +138,17 @@ export class OfficeFlowProducer {
    */
   async sendMessages<T>(
     topic: string,
-    messages: Array<Omit<OfficeFlowMessage<T>, 'id' | 'metadata'> & {
-      metadata?: Partial<MessageMetadata>;
-      partition?: number;
-      key?: string;
-    }>
+    messages: Array<
+      Omit<OfficeFlowMessage<T>, 'id' | 'metadata'> & {
+        metadata?: Partial<MessageMetadata>;
+        partition?: number;
+        key?: string;
+      }
+    >
   ): Promise<RecordMetadata[]> {
     await this.ensureConnected();
 
-    const kafkaMessages: Message[] = messages.map(message => {
+    const kafkaMessages: Message[] = messages.map((message) => {
       const fullMessage: OfficeFlowMessage<T> = {
         id: uuidv4(),
         type: message.type,
@@ -169,8 +171,8 @@ export class OfficeFlowProducer {
         headers: {
           'correlation-id': fullMessage.metadata.correlationId,
           'message-type': fullMessage.type,
-          'source': fullMessage.metadata.source,
-          'version': fullMessage.metadata.version,
+          source: fullMessage.metadata.source,
+          version: fullMessage.metadata.version,
           ...(fullMessage.metadata.organizationId && {
             'organization-id': fullMessage.metadata.organizationId,
           }),
@@ -207,7 +209,7 @@ export class OfficeFlowProducer {
     key?: string
   ): Promise<RecordMetadata[]> {
     const topic = `${baseTopicName}.${organizationId}`;
-    
+
     // Ensure organizationId is in metadata
     const messageWithOrgId = {
       ...message,
@@ -230,7 +232,7 @@ export class OfficeFlowProducer {
     attemptCount: number
   ): Promise<RecordMetadata[]> {
     const dlqTopic = `dlq.${originalTopic}`;
-    
+
     const dlqMessage = {
       type: 'dlq.message',
       payload: {

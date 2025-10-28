@@ -129,7 +129,7 @@
     - Implement document summarization capabilities
     - _Requirements: 4.1, 4.2, 4.4_
 
-  - [ ]* 6.3 Add tests for AI Service functionality
+  - [ ]\* 6.3 Add tests for AI Service functionality
     - Mock LLM API responses for consistent testing
     - Test prompt generation and response processing
     - Verify content personalization logic
@@ -151,7 +151,7 @@
     - Create role-based document access controls
     - _Requirements: 4.2, 4.3, 5.4_
 
-  - [ ]* 7.3 Test email and document operations
+  - [ ]\* 7.3 Test email and document operations
     - Test email sending with various templates and attachments
     - Verify document upload, storage, and retrieval
     - Test access control and URL expiration
@@ -172,7 +172,7 @@
     - Implement user lookup and profile synchronization
     - _Requirements: 4.3, 8.2_
 
-  - [ ]* 8.3 Test calendar and communication integrations
+  - [ ]\* 8.3 Test calendar and communication integrations
     - Test meeting scheduling across different calendar systems
     - Verify Slack channel operations and messaging
     - Test timezone handling and availability checking
@@ -193,7 +193,7 @@
     - Create polling mechanisms for systems without webhooks
     - _Requirements: 8.1, 2.1_
 
-  - [ ]* 9.3 Test webhook processing and HRMS integration
+  - [ ]\* 9.3 Test webhook processing and HRMS integration
     - Test webhook signature verification and event processing
     - Verify HRMS event transformation and publishing
     - Test rate limiting and error handling
@@ -221,7 +221,7 @@
     - Implement workflow validation and error highlighting
     - _Requirements: 1.4, 1.5_
 
-  - [ ]* 10.4 Create frontend component tests
+  - [ ]\* 10.4 Create frontend component tests
     - Test React Flow integration and node interactions
     - Verify workflow validation and error handling
     - Test template management and cloning features
@@ -242,7 +242,7 @@
     - Implement audit log viewing and compliance reporting
     - _Requirements: 5.4, 5.5, 8.4_
 
-  - [ ]* 11.3 Test admin dashboard functionality
+  - [ ]\* 11.3 Test admin dashboard functionality
     - Test real-time updates and data visualization
     - Verify user management and access controls
     - Test monitoring and alerting features
@@ -263,7 +263,7 @@
     - Implement resource-level access controls
     - _Requirements: 5.5, 5.4_
 
-  - [ ]* 12.3 Test authentication and authorization
+  - [ ]\* 12.3 Test authentication and authorization
     - Test JWT token lifecycle and validation
     - Verify RBAC enforcement across all endpoints
     - Test security scenarios and access violations
@@ -284,7 +284,7 @@
     - Implement PagerDuty integration for critical alerts
     - _Requirements: 6.1, 7.4_
 
-  - [ ]* 13.3 Test monitoring and alerting systems
+  - [ ]\* 13.3 Test monitoring and alerting systems
     - Test health check endpoints and failure scenarios
     - Verify metrics collection and dashboard accuracy
     - Test alerting thresholds and notification delivery
@@ -312,7 +312,7 @@
     - Create environment promotion and rollback procedures
     - _Requirements: 6.1, 6.4_
 
-  - [ ]* 14.4 Test deployment and infrastructure
+  - [ ]\* 14.4 Test deployment and infrastructure
     - Test container builds and security scanning
     - Verify Kubernetes deployments and scaling behavior
     - Test CI/CD pipeline and deployment strategies

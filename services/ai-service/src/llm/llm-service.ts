@@ -2,12 +2,12 @@ import { OpenAIClient } from './openai-client';
 import { AnthropicClient } from './anthropic-client';
 import { TemplateManager } from '../templates/template-manager';
 import { CostTracker } from '../monitoring/cost-tracker';
-import { 
-  LLMRequest, 
-  LLMResponse, 
-  ContentGenerationRequest, 
+import {
+  LLMRequest,
+  LLMResponse,
+  ContentGenerationRequest,
   ContentGenerationResult,
-  CostMetrics 
+  CostMetrics,
 } from '../types/ai-types';
 import { AIServiceConfig } from '../config/ai-config';
 import { Logger } from '../utils/logger';
@@ -25,7 +25,7 @@ export class LLMService {
   constructor(config: AIServiceConfig, logger: Logger) {
     this.config = config;
     this.logger = logger;
-    
+
     // Initialize the appropriate client based on provider
     if (config.provider === 'anthropic' && config.anthropic.apiKey) {
       this.anthropicClient = new AnthropicClient(config.anthropic, logger);
@@ -40,7 +40,7 @@ export class LLMService {
         hasOpenAIKey: !!config.openai.apiKey,
       });
     }
-    
+
     this.templateManager = new TemplateManager(logger);
     this.costTracker = new CostTracker(logger);
   }
@@ -79,14 +79,16 @@ export class LLMService {
       );
 
       if (!rateLimitCheck.allowed) {
-        throw new Error(`Rate limit exceeded: ${rateLimitCheck.reason}. Reset at ${rateLimitCheck.resetTime}`);
+        throw new Error(
+          `Rate limit exceeded: ${rateLimitCheck.reason}. Reset at ${rateLimitCheck.resetTime}`
+        );
       }
 
       // Check cache if enabled
       if (this.config.caching.enabled) {
         const cacheKey = this.generateCacheKey(request);
         const cached = this.cache.get(cacheKey);
-        
+
         if (cached && this.isCacheValid(cached.timestamp)) {
           this.logger.info('Returning cached AI content', { requestId, cacheKey });
           return cached.result;
@@ -121,7 +123,7 @@ export class LLMService {
       // Generate completion
       const activeClient = this.getActiveClient();
       const llmResponse = await activeClient.generateCompletion(llmRequest);
-      
+
       // Track costs
       if (this.config.costTracking.enabled) {
         const costMetrics: CostMetrics = {
@@ -137,7 +139,7 @@ export class LLMService {
           workflowId: context?.workflowId,
           runId: context?.runId,
         };
-        
+
         this.costTracker.trackUsage(costMetrics);
         this.costTracker.updateRateLimit(organizationId, llmResponse.usage.totalTokens);
       }
@@ -172,7 +174,7 @@ export class LLMService {
       if (this.config.caching.enabled) {
         const cacheKey = this.generateCacheKey(request);
         this.cache.set(cacheKey, { result, timestamp: new Date() });
-        
+
         // Clean up old cache entries
         this.cleanupCache();
       }
@@ -187,7 +189,6 @@ export class LLMService {
       });
 
       return result;
-
     } catch (error) {
       this.logger.error('AI content generation failed', {
         requestId,
@@ -255,7 +256,7 @@ export class LLMService {
       data: request.data,
       options: request.options,
     };
-    
+
     return Buffer.from(JSON.stringify(keyData)).toString('base64');
   }
 
@@ -283,7 +284,7 @@ export class LLMService {
     if (this.cache.size > 1000) {
       const entries = Array.from(this.cache.entries());
       entries.sort((a, b) => a[1].timestamp.getTime() - b[1].timestamp.getTime());
-      
+
       // Remove oldest 20% of entries
       const toRemove = Math.floor(entries.length * 0.2);
       for (let i = 0; i < toRemove; i++) {

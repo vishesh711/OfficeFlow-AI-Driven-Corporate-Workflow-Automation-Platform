@@ -10,15 +10,12 @@ describe('Event Streaming Integration Tests', () => {
 
   beforeEach(async () => {
     producer = new OfficeFlowProducer(TEST_KAFKA_CONFIG);
-    consumer = new OfficeFlowConsumer(
-      TEST_KAFKA_CONFIG,
-      {
-        groupId: `test-consumer-${Date.now()}`,
-        sessionTimeout: 30000,
-        rebalanceTimeout: 60000,
-        heartbeatInterval: 3000,
-      }
-    );
+    consumer = new OfficeFlowConsumer(TEST_KAFKA_CONFIG, {
+      groupId: `test-consumer-${Date.now()}`,
+      sessionTimeout: 30000,
+      rebalanceTimeout: 60000,
+      heartbeatInterval: 3000,
+    });
     dlqHandler = new DLQHandler(TEST_KAFKA_CONFIG);
 
     await producer.connect();
@@ -112,7 +109,7 @@ describe('Event Streaming Integration Tests', () => {
 
       // Verify all messages were received
       expect(receivedMessages).toHaveLength(3);
-      const employeeIds = receivedMessages.map(m => m.message.payload.employeeId);
+      const employeeIds = receivedMessages.map((m) => m.message.payload.employeeId);
       expect(employeeIds).toContain('emp-1');
       expect(employeeIds).toContain('emp-2');
       expect(employeeIds).toContain('emp-3');
@@ -164,13 +161,13 @@ describe('Event Streaming Integration Tests', () => {
 
       // Verify order is preserved within the same partition
       const messagesFromSamePartition = receivedMessages.filter(
-        m => m.message.metadata.organizationId === organizationId
+        (m) => m.message.metadata.organizationId === organizationId
       );
-      
+
       for (let i = 1; i < messagesFromSamePartition.length; i++) {
         const current = messagesFromSamePartition[i];
         const previous = messagesFromSamePartition[i - 1];
-        
+
         // If messages are in the same partition, they should be ordered
         if (current.context.partition === previous.context.partition) {
           expect(parseInt(current.context.offset)).toBeGreaterThan(
@@ -188,14 +185,18 @@ describe('Event Streaming Integration Tests', () => {
       const groupId = `test-group-${Date.now()}`;
 
       // Create two consumers in the same group
-      const consumer1 = new OfficeFlowConsumer(
-        TEST_KAFKA_CONFIG,
-        { groupId, sessionTimeout: 30000, rebalanceTimeout: 60000, heartbeatInterval: 3000 }
-      );
-      const consumer2 = new OfficeFlowConsumer(
-        TEST_KAFKA_CONFIG,
-        { groupId, sessionTimeout: 30000, rebalanceTimeout: 60000, heartbeatInterval: 3000 }
-      );
+      const consumer1 = new OfficeFlowConsumer(TEST_KAFKA_CONFIG, {
+        groupId,
+        sessionTimeout: 30000,
+        rebalanceTimeout: 60000,
+        heartbeatInterval: 3000,
+      });
+      const consumer2 = new OfficeFlowConsumer(TEST_KAFKA_CONFIG, {
+        groupId,
+        sessionTimeout: 30000,
+        rebalanceTimeout: 60000,
+        heartbeatInterval: 3000,
+      });
 
       await consumer1.connect();
       await consumer2.connect();
@@ -248,12 +249,11 @@ describe('Event Streaming Integration Tests', () => {
 
         // Verify no duplicate processing
         const allNodeIds = [
-          ...consumer1Messages.map(m => m.message.payload.nodeId),
-          ...consumer2Messages.map(m => m.message.payload.nodeId),
+          ...consumer1Messages.map((m) => m.message.payload.nodeId),
+          ...consumer2Messages.map((m) => m.message.payload.nodeId),
         ];
         const uniqueNodeIds = new Set(allNodeIds);
         expect(uniqueNodeIds.size).toBe(6);
-
       } finally {
         await consumer1.disconnect();
         await consumer2.disconnect();
@@ -265,10 +265,12 @@ describe('Event Streaming Integration Tests', () => {
       const receivedMessages: any[] = [];
 
       // Start with one consumer
-      const consumer1 = new OfficeFlowConsumer(
-        TEST_KAFKA_CONFIG,
-        { groupId, sessionTimeout: 30000, rebalanceTimeout: 60000, heartbeatInterval: 3000 }
-      );
+      const consumer1 = new OfficeFlowConsumer(TEST_KAFKA_CONFIG, {
+        groupId,
+        sessionTimeout: 30000,
+        rebalanceTimeout: 60000,
+        heartbeatInterval: 3000,
+      });
 
       await consumer1.connect();
 
@@ -298,10 +300,12 @@ describe('Event Streaming Integration Tests', () => {
         await waitForMessages(3000);
 
         // Add second consumer to trigger rebalancing
-        const consumer2 = new OfficeFlowConsumer(
-          TEST_KAFKA_CONFIG,
-          { groupId, sessionTimeout: 30000, rebalanceTimeout: 60000, heartbeatInterval: 3000 }
-        );
+        const consumer2 = new OfficeFlowConsumer(TEST_KAFKA_CONFIG, {
+          groupId,
+          sessionTimeout: 30000,
+          rebalanceTimeout: 60000,
+          heartbeatInterval: 3000,
+        });
 
         await consumer2.connect();
 
@@ -330,20 +334,19 @@ describe('Event Streaming Integration Tests', () => {
         await waitForMessages(5000);
 
         // Verify initial messages were processed by consumer1
-        const initialMessages = receivedMessages.filter(
-          m => m.message.payload.nodeId.startsWith('initial-')
+        const initialMessages = receivedMessages.filter((m) =>
+          m.message.payload.nodeId.startsWith('initial-')
         );
         expect(initialMessages.length).toBe(3);
-        expect(initialMessages.every(m => m.consumer === 1)).toBe(true);
+        expect(initialMessages.every((m) => m.consumer === 1)).toBe(true);
 
         // Verify rebalanced messages were distributed
-        const rebalancedMessages = receivedMessages.filter(
-          m => m.message.payload.nodeId.startsWith('rebalanced-')
+        const rebalancedMessages = receivedMessages.filter((m) =>
+          m.message.payload.nodeId.startsWith('rebalanced-')
         );
         expect(rebalancedMessages.length).toBe(4);
 
         await consumer2.disconnect();
-
       } finally {
         await consumer1.disconnect();
       }
@@ -356,15 +359,12 @@ describe('Event Streaming Integration Tests', () => {
       const failingMessages: any[] = [];
 
       // Set up DLQ consumer
-      const dlqConsumer = new OfficeFlowConsumer(
-        TEST_KAFKA_CONFIG,
-        {
-          groupId: `dlq-test-${Date.now()}`,
-          sessionTimeout: 30000,
-          rebalanceTimeout: 60000,
-          heartbeatInterval: 3000,
-        }
-      );
+      const dlqConsumer = new OfficeFlowConsumer(TEST_KAFKA_CONFIG, {
+        groupId: `dlq-test-${Date.now()}`,
+        sessionTimeout: 30000,
+        rebalanceTimeout: 60000,
+        heartbeatInterval: 3000,
+      });
 
       await dlqConsumer.connect();
 
@@ -399,10 +399,10 @@ describe('Event Streaming Integration Tests', () => {
         await waitForMessages(3000);
 
         // Send a message that will fail
-        const testMessage = createTestMessage(
-          'employee.exit',
-          { employeeId: 'emp-fail', reason: 'termination' }
-        );
+        const testMessage = createTestMessage('employee.exit', {
+          employeeId: 'emp-fail',
+          reason: 'termination',
+        });
 
         await producer.sendMessage(TEST_TOPICS.EMPLOYEE_EXIT, testMessage);
 
@@ -416,7 +416,6 @@ describe('Event Streaming Integration Tests', () => {
         // The actual DLQ message might be sent after max retries
         console.log('Failing messages:', failingMessages.length);
         console.log('DLQ messages:', dlqMessages.length);
-
       } finally {
         await dlqConsumer.disconnect();
       }
@@ -430,15 +429,12 @@ describe('Event Streaming Integration Tests', () => {
       await dlqHandler.start();
 
       // Set up consumer for reprocessed messages
-      const reprocessConsumer = new OfficeFlowConsumer(
-        TEST_KAFKA_CONFIG,
-        {
-          groupId: `reprocess-test-${Date.now()}`,
-          sessionTimeout: 30000,
-          rebalanceTimeout: 60000,
-          heartbeatInterval: 3000,
-        }
-      );
+      const reprocessConsumer = new OfficeFlowConsumer(TEST_KAFKA_CONFIG, {
+        groupId: `reprocess-test-${Date.now()}`,
+        sessionTimeout: 30000,
+        rebalanceTimeout: 60000,
+        heartbeatInterval: 3000,
+      });
 
       await reprocessConsumer.connect();
 
@@ -463,10 +459,7 @@ describe('Event Streaming Integration Tests', () => {
         await waitForMessages(3000);
 
         // Manually create a DLQ message (simulating a transient failure)
-        const originalMessage = createTestMessage(
-          'node.execute',
-          { nodeId: 'node-dlq-test' }
-        );
+        const originalMessage = createTestMessage('node.execute', { nodeId: 'node-dlq-test' });
 
         const dlqMessage = {
           type: 'dlq.message',
@@ -498,7 +491,6 @@ describe('Event Streaming Integration Tests', () => {
 
         // At minimum, we should see the DLQ handler processing the message
         expect(processedMessages.length + reprocessedMessages.length).toBeGreaterThanOrEqual(0);
-
       } finally {
         await reprocessConsumer.disconnect();
       }
@@ -508,15 +500,12 @@ describe('Event Streaming Integration Tests', () => {
       const quarantineMessages: any[] = [];
 
       // Set up quarantine consumer
-      const quarantineConsumer = new OfficeFlowConsumer(
-        TEST_KAFKA_CONFIG,
-        {
-          groupId: `quarantine-test-${Date.now()}`,
-          sessionTimeout: 30000,
-          rebalanceTimeout: 60000,
-          heartbeatInterval: 3000,
-        }
-      );
+      const quarantineConsumer = new OfficeFlowConsumer(TEST_KAFKA_CONFIG, {
+        groupId: `quarantine-test-${Date.now()}`,
+        sessionTimeout: 30000,
+        rebalanceTimeout: 60000,
+        heartbeatInterval: 3000,
+      });
 
       await quarantineConsumer.connect();
 
@@ -537,10 +526,9 @@ describe('Event Streaming Integration Tests', () => {
         await waitForMessages(3000);
 
         // Create a DLQ message that exceeds retry limits
-        const originalMessage = createTestMessage(
-          'node.execute',
-          { nodeId: 'node-quarantine-test' }
-        );
+        const originalMessage = createTestMessage('node.execute', {
+          nodeId: 'node-quarantine-test',
+        });
 
         const dlqMessage = {
           type: 'dlq.message',
@@ -574,7 +562,6 @@ describe('Event Streaming Integration Tests', () => {
 
         // The message should be quarantined due to high attempt count
         expect(quarantineMessages.length).toBeGreaterThanOrEqual(0);
-
       } finally {
         await quarantineConsumer.disconnect();
       }

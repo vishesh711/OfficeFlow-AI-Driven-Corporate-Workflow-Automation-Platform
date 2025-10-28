@@ -1,18 +1,28 @@
-import { Link } from 'react-router-dom'
-import { Plus, GitBranch, Play, Clock, CheckCircle, XCircle, Loader2, TrendingUp, Sparkles } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { monitoringApi } from '@/lib/api'
+import { Link } from 'react-router-dom';
+import {
+  Plus,
+  GitBranch,
+  Play,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  TrendingUp,
+  Sparkles,
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { monitoringApi } from '@/lib/api';
 
 export function Dashboard() {
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['metrics'],
-    queryFn: () => monitoringApi.getWorkflowMetrics().then(res => res.data),
-  })
+    queryFn: () => monitoringApi.getWorkflowMetrics().then((res) => res.data),
+  });
 
   const { data: runs, isLoading: runsLoading } = useQuery({
     queryKey: ['recent-runs'],
-    queryFn: () => monitoringApi.getWorkflowRuns({ limit: 5 }).then(res => res.data),
-  })
+    queryFn: () => monitoringApi.getWorkflowRuns({ limit: 5 }).then((res) => res.data),
+  });
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -20,7 +30,7 @@ export function Dashboard() {
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl p-8 mb-8 border border-gray-200 shadow-sm">
         <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
         <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        
+
         <div className="relative sm:flex sm:items-center sm:justify-between">
           <div className="sm:flex-auto">
             <div className="flex items-center gap-3 mb-2">
@@ -52,11 +62,13 @@ export function Dashboard() {
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-500 mb-2">
-                  Total Workflows
-                </p>
+                <p className="text-sm font-medium text-gray-500 mb-2">Total Workflows</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {metricsLoading ? <Loader2 className="h-7 w-7 animate-spin text-gray-400" /> : (metrics?.totalRuns || 0)}
+                  {metricsLoading ? (
+                    <Loader2 className="h-7 w-7 animate-spin text-gray-400" />
+                  ) : (
+                    metrics?.totalRuns || 0
+                  )}
                 </p>
               </div>
               <div className="p-3 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl group-hover:from-blue-100 group-hover:to-blue-200 transition-colors">
@@ -70,11 +82,13 @@ export function Dashboard() {
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-500 mb-2">
-                  Running
-                </p>
+                <p className="text-sm font-medium text-gray-500 mb-2">Running</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {metricsLoading ? <Loader2 className="h-7 w-7 animate-spin text-gray-400" /> : (metrics?.runningRuns || 0)}
+                  {metricsLoading ? (
+                    <Loader2 className="h-7 w-7 animate-spin text-gray-400" />
+                  ) : (
+                    metrics?.runningRuns || 0
+                  )}
                 </p>
               </div>
               <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl group-hover:from-blue-200 group-hover:to-blue-300 transition-colors">
@@ -88,11 +102,13 @@ export function Dashboard() {
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-500 mb-2">
-                  Completed
-                </p>
+                <p className="text-sm font-medium text-gray-500 mb-2">Completed</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {metricsLoading ? <Loader2 className="h-7 w-7 animate-spin text-gray-400" /> : (metrics?.completedRuns || 0)}
+                  {metricsLoading ? (
+                    <Loader2 className="h-7 w-7 animate-spin text-gray-400" />
+                  ) : (
+                    metrics?.completedRuns || 0
+                  )}
                 </p>
               </div>
               <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl group-hover:from-green-200 group-hover:to-green-300 transition-colors">
@@ -106,11 +122,13 @@ export function Dashboard() {
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-500 mb-2">
-                  Failed
-                </p>
+                <p className="text-sm font-medium text-gray-500 mb-2">Failed</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {metricsLoading ? <Loader2 className="h-7 w-7 animate-spin text-gray-400" /> : (metrics?.failedRuns || 0)}
+                  {metricsLoading ? (
+                    <Loader2 className="h-7 w-7 animate-spin text-gray-400" />
+                  ) : (
+                    metrics?.failedRuns || 0
+                  )}
                 </p>
               </div>
               <div className="p-3 bg-gradient-to-br from-red-100 to-red-200 rounded-xl group-hover:from-red-200 group-hover:to-red-300 transition-colors">
@@ -138,12 +156,11 @@ export function Dashboard() {
               <div className="text-center py-8">
                 <GitBranch className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">No workflow runs</h3>
-                <p className="mt-1 text-sm text-gray-500">Get started by creating your first workflow.</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Get started by creating your first workflow.
+                </p>
                 <div className="mt-6">
-                  <Link
-                    to="/workflows/new"
-                    className="btn btn-primary"
-                  >
+                  <Link to="/workflows/new" className="btn btn-primary">
                     <Plus className="h-4 w-4 mr-2" />
                     Create Workflow
                   </Link>
@@ -155,7 +172,7 @@ export function Dashboard() {
                   {runs?.runs?.map((run, runIdx) => (
                     <li key={run.id}>
                       <div className="relative pb-8">
-                        {runIdx !== (runs.runs.length - 1) ? (
+                        {runIdx !== runs.runs.length - 1 ? (
                           <span
                             className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
                             aria-hidden="true"
@@ -168,10 +185,10 @@ export function Dashboard() {
                                 run.status === 'COMPLETED'
                                   ? 'bg-green-500'
                                   : run.status === 'RUNNING'
-                                  ? 'bg-blue-500'
-                                  : run.status === 'FAILED'
-                                  ? 'bg-red-500'
-                                  : 'bg-gray-500'
+                                    ? 'bg-blue-500'
+                                    : run.status === 'FAILED'
+                                      ? 'bg-red-500'
+                                      : 'bg-gray-500'
                               }`}
                             >
                               {run.status === 'COMPLETED' ? (
@@ -209,5 +226,5 @@ export function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,373 +1,287 @@
-# GitHub Actions Workflows
+# GitHub Actions CI/CD Workflows
 
-This directory contains all CI/CD automation workflows for the OfficeFlow platform.
+This directory contains the GitHub Actions workflows for the OfficeFlow platform.
 
-## 📋 Workflow Overview
+## Workflows Overview
 
-### **Active Workflows**
+### 🔄 Continuous Integration & Deployment
 
-| Workflow | File | Trigger | Purpose | Secrets Required |
-|----------|------|---------|---------|------------------|
-| 🔄 **Basic CI** | `basic-ci.yml` | Push, PR | Quick validation, no secrets needed | None ✅ |
-| 🏗️ **CI Pipeline** | `ci.yml` | Push, PR | Full testing and building | None ✅ |
-| 🚀 **Continuous Deployment** | `cd.yml` | Push to main | Build & push Docker images | `GITHUB_TOKEN` (auto) ✅ |
-| 🔒 **Security Scanning** | `security.yml` | Daily, Push | Security vulnerability scans | Optional ⚠️ |
-| 📊 **Performance Testing** | `performance.yml` | Daily, Manual | Load and performance tests | Optional ⚠️ |
-| 🚢 **Deploy to Production** | `deploy.yml` | Tags, Manual | Production deployment | AWS/K8s required ❌ |
-| ✅ **PR Checks** | `pr-checks.yml` | Pull Request | PR validation | None ✅ |
+#### 1. `ci.yml` - Continuous Integration
+**Triggers:** Push to main/develop, Pull Requests
 
-### **Workflow Status**
+**Jobs:**
+- **Lint & Type Check** - ESLint and TypeScript checking
+- **Test** - Run unit and integration tests with PostgreSQL and Redis
+- **Build** - Build all services and packages
+- **Docker Build** - Build and push Docker images (main branch only)
+- **Security Scan** - Trivy vulnerability scanning
+- **Lighthouse** - Performance testing for frontend (PRs only)
 
-- ✅ = Works without configuration
-- ⚠️ = Works with warnings, full features need secrets
-- ❌ = Requires configuration to work
+#### 2. `cd.yml` - Continuous Deployment ⭐ (Production-Ready)
+**Triggers:** Push to main, version tags, manual dispatch
 
-## 🚀 Quick Start
-
-### **Minimal Setup (No secrets required):**
-
-These workflows will work immediately:
-
-1. **basic-ci.yml** - Simple validation
-2. **ci.yml** - Full CI pipeline  
-3. **cd.yml** - Docker image builds
-4. **pr-checks.yml** - Pull request validation
-
-### **Full Setup (All features):**
-
-See [GITHUB_ACTIONS_FIX.md](./GITHUB_ACTIONS_FIX.md) for complete setup guide.
-
-## 🔧 Recent Fixes Applied
-
-### **January 2024 - Docker Build Context Fix**
-
-**Problem**: Docker builds were failing because the build context was set to individual service directories, but Dockerfiles expect root context to access shared packages.
-
-**Solution**:
-- Changed `context: services/auth-service` → `context: .`
-- Updated `file: services/auth-service/Dockerfile`
-- Fixed in both `cd.yml` and `security.yml`
-
-**Files Modified**:
-- ✅ `.github/workflows/cd.yml` (line 82-84)
-- ✅ `.github/workflows/security.yml` (line 149-150)
-
-### **January 2024 - Security Policy Added**
-
-**Problem**: Security compliance checks were failing due to missing SECURITY.md
-
-**Solution**:
-- ✅ Created `/SECURITY.md` with comprehensive security policy
-
-### **January 2024 - Multi-arch Build Optimized**
-
-**Problem**: ARM64 builds were taking too long and not needed for most deployments
-
-**Solution**:
-- Changed `platforms: linux/amd64,linux/arm64` → `platforms: linux/amd64`
-- Reduced build time by ~50%
-- Can be re-enabled if ARM64 support needed
-
-## 📖 Workflow Details
-
-### **basic-ci.yml** (Recommended for testing)
-
-Simple workflow with no external dependencies:
-
-```yaml
-Triggers: Push, Pull Request
-Jobs:
-  - Quick Checks (type-check, lint, format)
-  - Build Services
-  - Docker Build Verification (sample services)
-  - CI Summary
-```
-
-**Why use this:**
-- No secrets required
-- Fast execution (~5-10 minutes)
-- Good for development validation
-
-### **ci.yml** (Standard CI)
-
-Full CI pipeline with comprehensive checks:
-
-```yaml
-Triggers: Push to main/develop, Pull Requests
-Jobs:
-  - Lint & Type Check
-  - Run Tests (with PostgreSQL & Redis)
-  - Build All Services
-  - Build Docker Images (on main branch)
-  - Security Scan
-  - Lighthouse Performance
-```
-
-**Services Used:**
-- PostgreSQL 15 (for integration tests)
-- Redis 7 (for caching tests)
-
-### **cd.yml** (Continuous Deployment)
-
-Builds and pushes Docker images to GitHub Container Registry:
-
-```yaml
-Triggers: Push to main, Version tags
-Registry: ghcr.io
-Services Built:
-  - workflow-engine
-  - auth-service
-  - identity-service
-  - ai-service
-  - email-service
-  - document-service
-  - calendar-service
-  - slack-service
-  - webhook-gateway
-  - workflow-designer
-```
+**Jobs:**
+- **Build and Push** - Build Docker images to GitHub Container Registry (ghcr.io)
+- **Security Scan Images** - Trivy scanning of built images
+- **Deploy Staging** - Deploy to staging environment with smoke tests
+- **Deploy Production** - Blue-green deployment to production
+- **Rollback** - Automatic rollback on failure
+- **Notify Deployment** - Slack notifications and GitHub releases
+- **Generate SBOM** - Software Bill of Materials for compliance
 
 **Features:**
-- Multi-service matrix builds
-- SBOM generation
-- Security scanning
-- Automatic staging deployment
-- Blue-green production deployment
+- Multi-platform builds (amd64, arm64)
+- Blue-green deployment strategy
+- Automatic rollback on failure
+- Production smoke tests
+- SBOM generation for supply chain security
 
-### **security.yml** (Security Scanning)
+#### 3. `deploy.yml` - Kubernetes Deployment (Alternative)
+**Triggers:** Push to main, version tags, manual dispatch
 
-Comprehensive security scanning suite:
+**Jobs:**
+- **Deploy to Kubernetes** - Deploy services to AWS EKS cluster
+- **Deploy Monitoring** - Setup Prometheus, Grafana, Jaeger
+- **Notify** - Send Slack notifications
 
-```yaml
-Triggers: Daily at 2 AM UTC, Push to main, Manual
-Scans:
-  - Dependency vulnerabilities (npm audit, Snyk)
-  - SAST (CodeQL, Semgrep)
-  - Secret scanning (TruffleHog, GitLeaks)
-  - Container scanning (Trivy, Grype, Docker Scout)
-  - IaC scanning (Checkov, Terrascan, kube-score)
-  - License compliance
-  - Security policy compliance
+### ✅ Code Quality & Review
+
+#### 4. `pr-checks.yml` - Pull Request Validation
+**Triggers:** Pull Request opened/updated
+
+**Jobs:**
+- **PR Labels** - Ensure PR has required labels
+- **Conventional Commits** - Check commit message format
+- **Code Quality** - Format checking, TODO/FIXME detection
+- **Bundle Size** - Monitor frontend bundle size
+- **Dependency Review** - Check for vulnerable dependencies
+- **Auto-approve Dependabot** - Automatically approve Dependabot PRs
+
+### 🔒 Security & Compliance
+
+#### 5. `security.yml` - Comprehensive Security Scanning ⭐
+**Triggers:** Daily at 2 AM UTC, Push to main, Pull Requests, Manual
+
+**Jobs:**
+- **Dependency Scan** - npm audit + Snyk vulnerability scanning
+- **SAST Scan** - CodeQL + Semgrep static analysis
+- **Secret Scan** - TruffleHog + GitLeaks secret detection
+- **Container Scan** - Trivy + Grype + Docker Scout image scanning
+- **IaC Scan** - Checkov + Terrascan + kube-score for K8s manifests
+- **License Scan** - License compliance + SBOM generation
+- **Compliance Check** - Validate security policies and best practices
+- **Security Report** - Consolidated security report
+- **Notify Security Team** - Slack alerts for security issues
+
+**Security Tools:**
+- CodeQL (SAST)
+- Semgrep (SAST)
+- Snyk (Dependency vulnerabilities)
+- TruffleHog (Secret detection)
+- GitLeaks (Secret detection)
+- Trivy (Container & filesystem scanning)
+- Grype (Container vulnerabilities)
+- Docker Scout (Container CVEs)
+- Checkov (IaC security)
+- Terrascan (K8s security)
+
+### 📊 Performance & Monitoring
+
+#### 6. `performance.yml` - Performance Testing Suite ⭐
+**Triggers:** Daily at 3 AM UTC, Push to main, Manual dispatch
+
+**Jobs:**
+- **Load Testing** - Artillery load tests for all services
+- **Stress Testing** - k6 stress tests with up to 300 concurrent users
+- **Database Performance** - PostgreSQL query performance testing
+- **Frontend Performance** - Lighthouse CI performance audits
+- **Performance Analysis** - Consolidated performance reports
+- **Notify Performance Issues** - Alerts for performance degradation
+
+**Performance Metrics:**
+- API response times
+- Database query performance
+- Frontend bundle size & load times
+- Concurrent user handling
+- Error rates under load
+
+### ⏰ Scheduled Maintenance
+
+#### 7. `cron-jobs.yml` - Scheduled Maintenance
+**Triggers:** Weekly (Mondays 9 AM UTC), Manual dispatch
+
+**Jobs:**
+- **Dependency Updates** - Check for outdated packages
+- **Database Backup** - Trigger production backups
+- **Security Audit** - Run security vulnerability scans
+
+## Required Secrets
+
+Configure these in GitHub Settings → Secrets and variables → Actions:
+
+### Essential Secrets
+
+#### For Deployment (cd.yml)
+- `STAGING_KUBECONFIG` - Kubernetes config for staging (base64 encoded)
+- `PRODUCTION_KUBECONFIG` - Kubernetes config for production (base64 encoded)
+- `GITHUB_TOKEN` - Automatically provided by GitHub
+
+#### For Deployment (deploy.yml - Alternative)
+- `AWS_ACCESS_KEY_ID` - AWS access key for EKS
+- `AWS_SECRET_ACCESS_KEY` - AWS secret key
+- `AWS_REGION` - AWS region (e.g., us-east-1)
+
+### Optional Secrets
+
+#### Security Scanning
+- `SNYK_TOKEN` - Snyk API token for vulnerability scanning
+- `SEMGREP_APP_TOKEN` - Semgrep token for SAST
+- `SECURITY_SLACK_WEBHOOK_URL` - Slack webhook for security alerts
+
+#### Performance Testing
+- `TEST_AUTH_TOKEN` - Auth token for performance tests
+- `PERFORMANCE_SLACK_WEBHOOK_URL` - Slack webhook for performance alerts
+
+#### General
+- `SLACK_WEBHOOK_URL` - Slack webhook for deployment notifications
+- `LHCI_GITHUB_APP_TOKEN` - Lighthouse CI GitHub app token
+
+> **Note:** The workflows use GitHub Container Registry (ghcr.io) by default, which requires no additional secrets as `GITHUB_TOKEN` is automatically provided.
+
+## Setup Instructions
+
+### 1. Enable GitHub Actions
+Go to your repository → Settings → Actions → General
+- Select "Allow all actions and reusable workflows"
+- Enable "Allow GitHub Actions to create and approve pull requests"
+- Enable "Allow GitHub Actions to create pull requests" (for Dependabot)
+
+### 2. Enable GitHub Container Registry
+Go to Settings → Packages
+- Make sure packages are visible
+- The workflows will automatically push to `ghcr.io/YOUR_USERNAME/officeflow-*`
+
+### 3. Add Required Secrets
+Go to Settings → Secrets and variables → Actions → New repository secret
+
+**Minimum for CI/CD:**
+```
+STAGING_KUBECONFIG=<your-base64-encoded-kubeconfig>
+PRODUCTION_KUBECONFIG=<your-base64-encoded-kubeconfig>
 ```
 
-**Optional Secrets:**
-- `SNYK_TOKEN` - For Snyk scanning
-- `SEMGREP_APP_TOKEN` - For Semgrep SAST
-- `SECURITY_SLACK_WEBHOOK_URL` - For notifications
-
-### **deploy.yml** (Production Deployment)
-
-Production deployment to Kubernetes:
-
-```yaml
-Triggers: Push to main, Version tags, Manual
-Environments: staging, production
-Strategy: Blue-Green deployment
+**Recommended for full functionality:**
+```
+SNYK_TOKEN=<your-snyk-token>
+SLACK_WEBHOOK_URL=<your-slack-webhook>
+SECURITY_SLACK_WEBHOOK_URL=<your-security-slack-webhook>
+PERFORMANCE_SLACK_WEBHOOK_URL=<your-performance-slack-webhook>
 ```
 
-**Required Secrets:**
-- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (if using AWS EKS)
-- `STAGING_KUBECONFIG`, `PRODUCTION_KUBECONFIG`
-- `SLACK_WEBHOOK_URL` (optional, for notifications)
+### 4. Enable GitHub Security Features
+Go to Settings → Code security and analysis
+- Enable **Dependency graph**
+- Enable **Dependabot alerts**
+- Enable **Dependabot security updates**
+- Enable **Code scanning** (CodeQL will run automatically)
+- Enable **Secret scanning**
 
-### **performance.yml** (Performance Testing)
+### 5. Configure Branch Protection
+Settings → Branches → Add branch protection rule for `main`:
+- Require a pull request before merging
+- Require approvals: 1
+- Require status checks to pass before merging:
+  - `Lint & Type Check`
+  - `Run Tests`
+  - `Build All Services`
+  - `Static Application Security Testing`
+  - `Secret Scanning`
+- Require branches to be up to date before merging
+- Require conversation resolution before merging
 
-Automated performance and load testing:
+### 6. Set Up Environments
+Settings → Environments → New environment
 
-```yaml
-Triggers: Daily, Push to main, Manual
-Tests:
-  - Load testing (Artillery)
-  - Database performance
-  - Frontend performance (Lighthouse)
-  - API response time
-```
+**Staging Environment:**
+- Name: `staging`
+- Protection rules: No wait timer
+- Deployment branches: `main` only
+- Add secret: `STAGING_KUBECONFIG`
 
-### **pr-checks.yml** (Pull Request Validation)
+**Production Environment:**
+- Name: `production`
+- Protection rules: Required reviewers (1-2 people)
+- Wait timer: 5 minutes
+- Deployment branches: Tags matching `v*` or `main`
+- Add secret: `PRODUCTION_KUBECONFIG`
 
-Validates pull requests before merging:
+### 7. Test the Workflows
+1. Create a new branch: `git checkout -b feature/test-ci`
+2. Make a change: `echo "test" >> README.md`
+3. Commit: `git commit -am "feat: test CI/CD"`
+4. Push: `git push origin feature/test-ci`
+5. Create a PR on GitHub
+6. Watch the workflows run!
 
-```yaml
-Triggers: Pull Request
-Checks:
-  - Code quality
-  - Test coverage
-  - Breaking changes
-  - Documentation
-  - Commit messages
-```
+## Workflow Status Badges
 
-## 🎯 Common Tasks
-
-### **Trigger a Manual Deployment**
-
-1. Go to `Actions` tab
-2. Select `Deploy to Production` workflow
-3. Click `Run workflow`
-4. Select environment: `staging` or `production`
-5. Enter version (or leave empty for latest)
-6. Click `Run workflow`
-
-### **Trigger Security Scan**
-
-1. Go to `Actions` tab
-2. Select `Security Scanning` workflow
-3. Click `Run workflow`
-4. Select branch: `main`
-5. Click `Run workflow`
-
-### **View Container Images**
-
-Images are published to: `ghcr.io/<your-username>/officeflow/<service>:<tag>`
-
-```bash
-# Pull an image
-docker pull ghcr.io/<username>/officeflow/workflow-engine:latest
-
-# List all images
-https://github.com/users/<username>/packages?repo_name=OfficeFlow-AI-Driven-Corporate-Workflow-Automation-Platform
-```
-
-## 🐛 Troubleshooting
-
-### **Workflow fails with "Docker build context not found"**
-
-✅ **Fixed** in latest update. Ensure you have the latest version of `cd.yml` and `security.yml`.
-
-### **Security scan fails with "SNYK_TOKEN not found"**
-
-⚠️ **Expected** if you haven't configured Snyk. The scan will continue with other tools.
-
-**To fix:** Add `SNYK_TOKEN` secret in repository settings.
-
-### **Deployment fails with "kubeconfig not found"**
-
-❌ **Expected** if you haven't configured Kubernetes access.
-
-**To fix:** Add `STAGING_KUBECONFIG` and/or `PRODUCTION_KUBECONFIG` secrets.
-
-### **Build fails with "pnpm: command not found"**
-
-Check if `pnpm/action-setup@v2` step is present in the workflow.
-
-### **Tests fail with "Cannot connect to database"**
-
-Ensure PostgreSQL and Redis services are properly configured in the workflow:
-
-```yaml
-services:
-  postgres:
-    image: postgres:15-alpine
-    # ... configuration
-  redis:
-    image: redis:7-alpine
-    # ... configuration
-```
-
-## 📊 Monitoring Workflows
-
-### **View Workflow Status**
-
-Add status badges to your README.md:
+Add these to your README.md:
 
 ```markdown
-![CI Pipeline](https://github.com/<username>/OfficeFlow/actions/workflows/ci.yml/badge.svg)
-![CD Pipeline](https://github.com/<username>/OfficeFlow/actions/workflows/cd.yml/badge.svg)
-![Security](https://github.com/<username>/OfficeFlow/actions/workflows/security.yml/badge.svg)
+![CI Pipeline](https://github.com/YOUR_USERNAME/OfficeFlow-AI-Driven-Corporate-Workflow-Automation-Platform/workflows/CI%20Pipeline/badge.svg)
+![Continuous Deployment](https://github.com/YOUR_USERNAME/OfficeFlow-AI-Driven-Corporate-Workflow-Automation-Platform/workflows/Continuous%20Deployment/badge.svg)
+![Security Scanning](https://github.com/YOUR_USERNAME/OfficeFlow-AI-Driven-Corporate-Workflow-Automation-Platform/workflows/Security%20Scanning/badge.svg)
+![Performance Testing](https://github.com/YOUR_USERNAME/OfficeFlow-AI-Driven-Corporate-Workflow-Automation-Platform/workflows/Performance%20Testing/badge.svg)
 ```
 
-### **Check Build Logs**
+## Local Testing
 
-1. Go to `Actions` tab
-2. Click on the workflow run
-3. Click on the failing job
-4. Expand the failing step to see detailed logs
+Test workflows locally using [act](https://github.com/nektos/act):
 
-### **Download Artifacts**
+```bash
+# Install act
+brew install act
 
-Security reports and build artifacts are available for download:
+# Run CI workflow
+act push
 
-1. Go to workflow run
-2. Scroll to `Artifacts` section
-3. Download desired artifacts
+# Run specific job
+act -j test
 
-## 🔐 Security Best Practices
+# Run with secrets
+act --secret-file .secrets
+```
 
-### **Secrets Management**
+## Troubleshooting
 
-- ✅ Never commit secrets to repository
-- ✅ Use GitHub Secrets for sensitive data
-- ✅ Rotate secrets regularly
-- ✅ Use environment-specific secrets
+### Workflows not running
+- Check Actions tab for error messages
+- Verify branch protection rules
+- Ensure workflows are enabled in repository settings
 
-### **Workflow Security**
+### Docker build fails
+- Verify Docker Hub credentials are correct
+- Check Dockerfile paths in workflow
+- Ensure sufficient disk space
 
-- ✅ Pin action versions (e.g., `@v4` instead of `@main`)
-- ✅ Review workflow permissions
-- ✅ Use `GITHUB_TOKEN` with minimal permissions
-- ✅ Enable branch protection rules
+### Deployment fails
+- Verify AWS credentials
+- Check EKS cluster is accessible
+- Review kubectl commands in logs
 
-### **Container Security**
+## Best Practices
 
-- ✅ Multi-stage builds to minimize image size
-- ✅ Run containers as non-root user
-- ✅ Scan images for vulnerabilities
-- ✅ Sign images (future enhancement)
+1. **Keep workflows fast** - Use caching, parallel jobs
+2. **Fail fast** - Run quick checks before slow ones
+3. **Use matrix builds** - Test multiple versions/services
+4. **Monitor costs** - Review Actions usage regularly
+5. **Secure secrets** - Never commit secrets, use GitHub Secrets
+6. **Document changes** - Update this README when modifying workflows
 
-## 📈 Optimization Tips
+## Support
 
-### **Speed Up Builds**
+For issues with workflows:
+1. Check the Actions tab for detailed logs
+2. Review this documentation
+3. Create an issue with workflow run link
 
-1. **Use caching**:
-   ```yaml
-   cache-from: type=gha
-   cache-to: type=gha,mode=max
-   ```
-
-2. **Parallelize jobs**:
-   ```yaml
-   strategy:
-     matrix:
-       service: [auth, workflow, ai]
-     max-parallel: 3
-   ```
-
-3. **Skip unnecessary jobs**:
-   ```yaml
-   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-   ```
-
-### **Reduce Workflow Minutes**
-
-- Run security scans only on schedule (daily) or main branch
-- Skip performance tests on PRs
-- Use `continue-on-error: true` for non-critical jobs
-
-## 📞 Getting Help
-
-### **Resources**
-
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Docker Build Push Action](https://github.com/docker/build-push-action)
-- [Setup Node Action](https://github.com/actions/setup-node)
-
-### **Internal Documentation**
-
-- [GITHUB_ACTIONS_FIX.md](./GITHUB_ACTIONS_FIX.md) - Detailed fix guide
-- [../../DEPLOYMENT.md](../../DEPLOYMENT.md) - Deployment guide
-- [../../SECURITY.md](../../SECURITY.md) - Security policy
-
-### **Support**
-
-If you encounter issues:
-
-1. Check workflow logs for detailed error messages
-2. Review [GITHUB_ACTIONS_FIX.md](./GITHUB_ACTIONS_FIX.md)
-3. Search GitHub Discussions
-4. Open an issue with workflow logs
-
----
-
-**Last Updated**: January 2024  
-**Maintained By**: OfficeFlow Team  
-**Version**: 1.0.0

@@ -79,8 +79,9 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.service == 'workflow-designer' && 'apps' || 'services' }}/${{ matrix.service }}
-          platforms: linux/amd64,linux/arm64
+          context: .
+          file: ${{ matrix.service == 'workflow-designer' && 'apps/workflow-designer/Dockerfile' || format('services/{0}/Dockerfile', matrix.service) }}
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

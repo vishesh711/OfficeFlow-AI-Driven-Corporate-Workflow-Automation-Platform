@@ -41,7 +41,7 @@ describe('Validation Schemas', () => {
           '00000000-0000-0000-0000-000000000000',
         ];
 
-        validUuids.forEach(uuid => {
+        validUuids.forEach((uuid) => {
           expect(() => uuidSchema.parse(uuid)).not.toThrow();
         });
       });
@@ -57,7 +57,7 @@ describe('Validation Schemas', () => {
           undefined,
         ];
 
-        invalidUuids.forEach(uuid => {
+        invalidUuids.forEach((uuid) => {
           expect(() => uuidSchema.parse(uuid)).toThrow();
         });
       });
@@ -65,27 +65,17 @@ describe('Validation Schemas', () => {
 
     describe('timestampSchema', () => {
       it('should validate Date objects', () => {
-        const validDates = [
-          new Date(),
-          new Date('2024-01-01'),
-          new Date(0),
-        ];
+        const validDates = [new Date(), new Date('2024-01-01'), new Date(0)];
 
-        validDates.forEach(date => {
+        validDates.forEach((date) => {
           expect(() => timestampSchema.parse(date)).not.toThrow();
         });
       });
 
       it('should reject invalid dates', () => {
-        const invalidDates = [
-          'not-a-date',
-          '2024-01-01',
-          123456789,
-          null,
-          undefined,
-        ];
+        const invalidDates = ['not-a-date', '2024-01-01', 123456789, null, undefined];
 
-        invalidDates.forEach(date => {
+        invalidDates.forEach((date) => {
           expect(() => timestampSchema.parse(date)).toThrow();
         });
       });
@@ -101,7 +91,7 @@ describe('Validation Schemas', () => {
           { mixed: { string: 'test', number: 42, boolean: true } },
         ];
 
-        validJson.forEach(json => {
+        validJson.forEach((json) => {
           expect(() => jsonSchema.parse(json)).not.toThrow();
         });
       });
@@ -138,7 +128,7 @@ describe('Validation Schemas', () => {
           { ...validOrgData, name: 'a'.repeat(256) }, // Too long
         ];
 
-        invalidCases.forEach(data => {
+        invalidCases.forEach((data) => {
           expect(() => organizationSchema.parse(data)).toThrow();
         });
       });
@@ -230,7 +220,7 @@ describe('Validation Schemas', () => {
           { ...validEmployeeData, first_name: 'a'.repeat(101) }, // Too long
         ];
 
-        invalidCases.forEach(data => {
+        invalidCases.forEach((data) => {
           expect(() => employeeSchema.parse(data)).toThrow();
         });
       });
@@ -293,7 +283,7 @@ describe('Validation Schemas', () => {
           { ...validWorkflowData, version: -1 },
         ];
 
-        invalidCases.forEach(data => {
+        invalidCases.forEach((data) => {
           expect(() => workflowSchema.parse(data)).toThrow();
         });
       });
@@ -362,17 +352,25 @@ describe('Validation Schemas', () => {
 
     describe('workflowRunStatusSchema', () => {
       it('should validate valid statuses', () => {
-        const validStatuses = ['PENDING', 'RUNNING', 'PAUSED', 'COMPLETED', 'FAILED', 'CANCELLED', 'TIMEOUT'];
-        
-        validStatuses.forEach(status => {
+        const validStatuses = [
+          'PENDING',
+          'RUNNING',
+          'PAUSED',
+          'COMPLETED',
+          'FAILED',
+          'CANCELLED',
+          'TIMEOUT',
+        ];
+
+        validStatuses.forEach((status) => {
           expect(() => workflowRunStatusSchema.parse(status)).not.toThrow();
         });
       });
 
       it('should reject invalid statuses', () => {
         const invalidStatuses = ['INVALID', 'pending', 'Running', ''];
-        
-        invalidStatuses.forEach(status => {
+
+        invalidStatuses.forEach((status) => {
           expect(() => workflowRunStatusSchema.parse(status)).toThrow();
         });
       });
@@ -380,17 +378,25 @@ describe('Validation Schemas', () => {
 
     describe('nodeRunStatusSchema', () => {
       it('should validate valid node run statuses', () => {
-        const validStatuses = ['QUEUED', 'RUNNING', 'COMPLETED', 'FAILED', 'SKIPPED', 'TIMEOUT', 'CANCELLED'];
-        
-        validStatuses.forEach(status => {
+        const validStatuses = [
+          'QUEUED',
+          'RUNNING',
+          'COMPLETED',
+          'FAILED',
+          'SKIPPED',
+          'TIMEOUT',
+          'CANCELLED',
+        ];
+
+        validStatuses.forEach((status) => {
           expect(() => nodeRunStatusSchema.parse(status)).not.toThrow();
         });
       });
 
       it('should reject invalid node run statuses', () => {
         const invalidStatuses = ['INVALID', 'queued', 'Running', ''];
-        
-        invalidStatuses.forEach(status => {
+
+        invalidStatuses.forEach((status) => {
           expect(() => nodeRunStatusSchema.parse(status)).toThrow();
         });
       });
@@ -413,7 +419,7 @@ describe('Validation Schemas', () => {
 
       it('should use default values', () => {
         const result = retryPolicySchema.parse({});
-        
+
         expect(result.maxRetries).toBe(3);
         expect(result.backoffMs).toBe(1000);
         expect(result.backoffMultiplier).toBe(2);
@@ -428,7 +434,7 @@ describe('Validation Schemas', () => {
           { maxBackoffMs: -1000 },
         ];
 
-        invalidCases.forEach(policy => {
+        invalidCases.forEach((policy) => {
           expect(() => retryPolicySchema.parse(policy)).toThrow();
         });
       });
@@ -519,7 +525,7 @@ describe('Validation Schemas', () => {
     it('should validate UUID references between schemas', () => {
       const orgId = uuidv4();
       const workflowId = uuidv4();
-      
+
       const workflowData = {
         org_id: orgId,
         name: 'Cross-reference Test',

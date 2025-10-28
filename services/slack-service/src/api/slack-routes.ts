@@ -3,7 +3,7 @@ import Joi from 'joi';
 import { SlackService } from '../services/slack-service';
 import { getSlackConfig } from '../config/slack-config';
 import { logger } from '../utils/logger';
-import { 
+import {
   SendMessageRequest,
   CreateChannelRequest,
   InviteToChannelRequest,
@@ -14,7 +14,7 @@ import {
   GetChannelRequest,
   ListChannelsRequest,
   GetChannelMembersRequest,
-  SlackCredentials
+  SlackCredentials,
 } from '../types/slack-types';
 
 const router = express.Router();
@@ -43,11 +43,15 @@ const attachmentSchema = Joi.object({
   title: Joi.string().optional(),
   titleLink: Joi.string().uri().optional(),
   text: Joi.string().optional(),
-  fields: Joi.array().items(Joi.object({
-    title: Joi.string().required(),
-    value: Joi.string().required(),
-    short: Joi.boolean().optional(),
-  })).optional(),
+  fields: Joi.array()
+    .items(
+      Joi.object({
+        title: Joi.string().required(),
+        value: Joi.string().required(),
+        short: Joi.boolean().optional(),
+      })
+    )
+    .optional(),
   imageUrl: Joi.string().uri().optional(),
   thumbUrl: Joi.string().uri().optional(),
   footer: Joi.string().optional(),
@@ -69,7 +73,10 @@ const sendMessageSchema = Joi.object({
 }).or('text', 'blocks', 'attachments');
 
 const createChannelSchema = Joi.object({
-  name: Joi.string().pattern(/^[a-z0-9\-_]+$/).max(21).required(),
+  name: Joi.string()
+    .pattern(/^[a-z0-9\-_]+$/)
+    .max(21)
+    .required(),
   isPrivate: Joi.boolean().default(false),
   topic: Joi.string().max(250).optional(),
   purpose: Joi.string().max(250).optional(),
@@ -120,7 +127,11 @@ const getChannelMembersSchema = Joi.object({
 });
 
 // Middleware to extract credentials (in a real implementation, this would validate JWT tokens)
-const extractCredentials = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const extractCredentials = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
   // This is a simplified version - in production, you'd validate JWT tokens
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

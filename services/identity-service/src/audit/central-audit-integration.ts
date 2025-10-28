@@ -50,7 +50,7 @@ export class CentralAuditIntegration {
     this.producer = producer || {
       publish: async (topic: string, message: any, options?: any) => {
         logger.debug('Mock Kafka publish', { topic, messageType: typeof message });
-      }
+      },
     };
     this.logger = logger;
   }
@@ -75,32 +75,32 @@ export class CentralAuditIntegration {
           `provider:${auditEvent.provider}`,
           `action:${auditEvent.action}`,
           `status:${auditEvent.status}`,
-          `resource_type:${auditEvent.resourceType}`
-        ]
+          `resource_type:${auditEvent.resourceType}`,
+        ],
       };
 
       await this.producer.publish('audit.events', centralEvent, {
         key: auditEvent.organizationId,
         headers: {
           'event-type': 'identity-audit',
-          'service': this.serviceName,
-          'severity': severity,
-          'correlation-id': auditEvent.correlationId
-        }
+          service: this.serviceName,
+          severity: severity,
+          'correlation-id': auditEvent.correlationId,
+        },
       });
 
       this.logger.debug('Audit event published to central service', {
         eventId: auditEvent.id,
         organizationId: auditEvent.organizationId,
         action: auditEvent.action,
-        severity
+        severity,
       });
     } catch (error) {
       this.logger.error('Failed to publish audit event to central service', {
         eventId: auditEvent.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       // Don't throw error to avoid breaking the main audit flow
       // Central audit is supplementary to local audit logging
     }
@@ -119,32 +119,32 @@ export class CentralAuditIntegration {
         summary: report.summary,
         period: {
           start: report.startDate,
-          end: report.endDate
+          end: report.endDate,
         },
         generatedBy: report.generatedBy,
-        correlationId: `compliance_${report.organizationId}_${report.reportType}_${report.generatedAt.getTime()}`
+        correlationId: `compliance_${report.organizationId}_${report.reportType}_${report.generatedAt.getTime()}`,
       };
 
       await this.producer.publish('audit.compliance-reports', reportEvent, {
         key: report.organizationId,
         headers: {
           'event-type': 'compliance-report',
-          'service': this.serviceName,
+          service: this.serviceName,
           'report-type': report.reportType,
-          'organization-id': report.organizationId
-        }
+          'organization-id': report.organizationId,
+        },
       });
 
       this.logger.info('Compliance report published to central service', {
         organizationId: report.organizationId,
         reportType: report.reportType,
-        eventsCount: report.events.length
+        eventsCount: report.events.length,
       });
     } catch (error) {
       this.logger.error('Failed to publish compliance report to central service', {
         organizationId: report.organizationId,
         reportType: report.reportType,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -155,27 +155,31 @@ export class CentralAuditIntegration {
         key: metrics.organizationId,
         headers: {
           'event-type': 'audit-metrics',
-          'service': this.serviceName,
-          'organization-id': metrics.organizationId
-        }
+          service: this.serviceName,
+          'organization-id': metrics.organizationId,
+        },
       });
 
       this.logger.debug('Audit metrics published to central service', {
         organizationId: metrics.organizationId,
         totalEvents: metrics.metrics.totalEvents,
-        successRate: metrics.metrics.successRate
+        successRate: metrics.metrics.successRate,
       });
     } catch (error) {
       this.logger.error('Failed to publish audit metrics to central service', {
         organizationId: metrics.organizationId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
   async publishSecurityAlert(
     organizationId: string,
-    alertType: 'suspicious_activity' | 'failed_authentication' | 'privilege_escalation' | 'data_breach',
+    alertType:
+      | 'suspicious_activity'
+      | 'failed_authentication'
+      | 'privilege_escalation'
+      | 'data_breach',
     details: Record<string, any>,
     correlationId: string
   ): Promise<void> {
@@ -190,34 +194,30 @@ export class CentralAuditIntegration {
         alertType,
         details,
         correlationId,
-        tags: [
-          'security-alert',
-          `alert-type:${alertType}`,
-          `service:${this.serviceName}`
-        ]
+        tags: ['security-alert', `alert-type:${alertType}`, `service:${this.serviceName}`],
       };
 
       await this.producer.publish('security.alerts', alertEvent, {
         key: organizationId,
         headers: {
           'event-type': 'security-alert',
-          'service': this.serviceName,
+          service: this.serviceName,
           'alert-type': alertType,
-          'severity': 'critical',
-          'organization-id': organizationId
-        }
+          severity: 'critical',
+          'organization-id': organizationId,
+        },
       });
 
       this.logger.warn('Security alert published to central service', {
         organizationId,
         alertType,
-        correlationId
+        correlationId,
       });
     } catch (error) {
       this.logger.error('Failed to publish security alert to central service', {
         organizationId,
         alertType,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -237,9 +237,11 @@ export class CentralAuditIntegration {
     }
 
     // Critical actions always get high severity
-    if (auditEvent.action === 'account.delete' || 
-        auditEvent.action === 'permission.grant' ||
-        auditEvent.actorType === 'system' && auditEvent.status === 'failed') {
+    if (
+      auditEvent.action === 'account.delete' ||
+      auditEvent.action === 'permission.grant' ||
+      (auditEvent.actorType === 'system' && auditEvent.status === 'failed')
+    ) {
       return 'high';
     }
 
@@ -269,40 +271,40 @@ export class AuditAnalyzer {
     const alerts = [];
 
     // Detect multiple failed login attempts
-    const failedLogins = events.filter(e => 
-      e.action === 'oauth.authorize' && e.status === 'failed'
+    const failedLogins = events.filter(
+      (e) => e.action === 'oauth.authorize' && e.status === 'failed'
     );
-    
+
     if (failedLogins.length >= 5) {
       alerts.push({
         type: 'multiple_failed_logins',
         description: `${failedLogins.length} failed login attempts detected`,
         events: failedLogins,
-        severity: 'medium' as const
+        severity: 'medium' as const,
       });
     }
 
     // Detect privilege escalation attempts
-    const privilegeChanges = events.filter(e => 
-      e.action === 'permission.grant' || e.action === 'group.assign'
+    const privilegeChanges = events.filter(
+      (e) => e.action === 'permission.grant' || e.action === 'group.assign'
     );
-    
-    const suspiciousPrivilegeChanges = privilegeChanges.filter(e => 
-      e.actorType === 'user' && e.metadata.elevated === true
+
+    const suspiciousPrivilegeChanges = privilegeChanges.filter(
+      (e) => e.actorType === 'user' && e.metadata.elevated === true
     );
-    
+
     if (suspiciousPrivilegeChanges.length > 0) {
       alerts.push({
         type: 'privilege_escalation',
         description: 'Suspicious privilege escalation detected',
         events: suspiciousPrivilegeChanges,
-        severity: 'high' as const
+        severity: 'high' as const,
       });
     }
 
     // Detect unusual activity patterns
     const actorActivity = new Map<string, AuditEvent[]>();
-    events.forEach(event => {
+    events.forEach((event) => {
       if (!actorActivity.has(event.actorId)) {
         actorActivity.set(event.actorId, []);
       }
@@ -310,12 +312,13 @@ export class AuditAnalyzer {
     });
 
     actorActivity.forEach((actorEvents, actorId) => {
-      if (actorEvents.length > 50) { // Threshold for unusual activity
+      if (actorEvents.length > 50) {
+        // Threshold for unusual activity
         alerts.push({
           type: 'unusual_activity_volume',
           description: `Actor ${actorId} performed ${actorEvents.length} actions`,
           events: actorEvents,
-          severity: 'low' as const
+          severity: 'low' as const,
         });
       }
     });
@@ -329,23 +332,21 @@ export class AuditAnalyzer {
     timeWindow: { start: Date; end: Date }
   ): AuditMetrics {
     const totalEvents = events.length;
-    const successfulEvents = events.filter(e => e.status === 'success').length;
-    const failedEvents = events.filter(e => e.status === 'failed').length;
-    const criticalEvents = events.filter(e => 
-      e.action.includes('delete') || 
-      e.action.includes('permission') ||
-      e.status === 'failed'
+    const successfulEvents = events.filter((e) => e.status === 'success').length;
+    const failedEvents = events.filter((e) => e.status === 'failed').length;
+    const criticalEvents = events.filter(
+      (e) => e.action.includes('delete') || e.action.includes('permission') || e.status === 'failed'
     ).length;
 
     // Count actions
     const actionCounts = new Map<string, number>();
-    events.forEach(event => {
+    events.forEach((event) => {
       actionCounts.set(event.action, (actionCounts.get(event.action) || 0) + 1);
     });
 
     // Count actors
     const actorCounts = new Map<string, number>();
-    events.forEach(event => {
+    events.forEach((event) => {
       actorCounts.set(event.actorId, (actorCounts.get(event.actorId) || 0) + 1);
     });
 
@@ -365,9 +366,9 @@ export class AuditAnalyzer {
         topActors: Array.from(actorCounts.entries())
           .map(([actorId, count]) => ({ actorId, count }))
           .sort((a, b) => b.count - a.count)
-          .slice(0, 10)
+          .slice(0, 10),
       },
-      generatedAt: new Date()
+      generatedAt: new Date(),
     };
   }
 }

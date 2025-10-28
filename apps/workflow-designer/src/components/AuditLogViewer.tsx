@@ -1,101 +1,101 @@
-import { useState, useEffect } from 'react'
-import { Search, Download, Filter, Calendar, User, FileText } from 'lucide-react'
-import { adminApi, AuditLog, AuditLogFilter } from '../lib/api'
+import { useState, useEffect } from 'react';
+import { Search, Download, Filter, Calendar, User, FileText } from 'lucide-react';
+import { adminApi, AuditLog, AuditLogFilter } from '../lib/api';
 
 export function AuditLogViewer() {
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
-  const [loading, setLoading] = useState(true)
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<AuditLogFilter>({
     limit: 50,
-    offset: 0
-  })
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedAction, setSelectedAction] = useState('')
-  const [selectedResource, setSelectedResource] = useState('')
-  const [dateRange, setDateRange] = useState({ start: '', end: '' })
-  const [total, setTotal] = useState(0)
+    offset: 0,
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAction, setSelectedAction] = useState('');
+  const [selectedResource, setSelectedResource] = useState('');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    loadAuditLogs()
-  }, [filter])
+    loadAuditLogs();
+  }, [filter]);
 
   const loadAuditLogs = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await adminApi.getAuditLogs(filter)
-      setAuditLogs(response.data.logs)
-      setTotal(response.data.total)
+      const response = await adminApi.getAuditLogs(filter);
+      setAuditLogs(response.data.logs);
+      setTotal(response.data.total);
     } catch (error) {
-      console.error('Failed to load audit logs:', error)
+      console.error('Failed to load audit logs:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSearch = () => {
     const newFilter: AuditLogFilter = {
       ...filter,
-      offset: 0
-    }
+      offset: 0,
+    };
 
     if (searchTerm) {
       // In a real implementation, you'd search across multiple fields
-      newFilter.userId = searchTerm
+      newFilter.userId = searchTerm;
     }
 
     if (selectedAction) {
-      newFilter.action = selectedAction
+      newFilter.action = selectedAction;
     }
 
     if (selectedResource) {
-      newFilter.resource = selectedResource
+      newFilter.resource = selectedResource;
     }
 
     if (dateRange.start) {
-      newFilter.startDate = dateRange.start
+      newFilter.startDate = dateRange.start;
     }
 
     if (dateRange.end) {
-      newFilter.endDate = dateRange.end
+      newFilter.endDate = dateRange.end;
     }
 
-    setFilter(newFilter)
-  }
+    setFilter(newFilter);
+  };
 
   const handleExport = async () => {
     try {
-      const response = await adminApi.exportAuditLogs(filter)
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', `audit-logs-${new Date().toISOString().split('T')[0]}.csv`)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
+      const response = await adminApi.exportAuditLogs(filter);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `audit-logs-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } catch (error) {
-      console.error('Failed to export audit logs:', error)
+      console.error('Failed to export audit logs:', error);
     }
-  }
+  };
 
   const getActionColor = (action: string) => {
     switch (action.toLowerCase()) {
       case 'create':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'update':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800';
       case 'delete':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       case 'login':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-100 text-purple-800';
       case 'logout':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
-  const uniqueActions = [...new Set(auditLogs.map(log => log.action))]
-  const uniqueResources = [...new Set(auditLogs.map(log => log.resource))]
+  const uniqueActions = [...new Set(auditLogs.map((log) => log.action))];
+  const uniqueResources = [...new Set(auditLogs.map((log) => log.resource))];
 
   return (
     <div className="space-y-6">
@@ -107,10 +107,7 @@ export function AuditLogViewer() {
           </p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-          <button
-            onClick={handleExport}
-            className="btn btn-secondary"
-          >
+          <button onClick={handleExport} className="btn btn-secondary">
             <Download className="h-4 w-4 mr-2" />
             Export
           </button>
@@ -144,8 +141,10 @@ export function AuditLogViewer() {
               onChange={(e) => setSelectedAction(e.target.value)}
             >
               <option value="">All Actions</option>
-              {uniqueActions.map(action => (
-                <option key={action} value={action}>{action}</option>
+              {uniqueActions.map((action) => (
+                <option key={action} value={action}>
+                  {action}
+                </option>
               ))}
             </select>
           </div>
@@ -158,8 +157,10 @@ export function AuditLogViewer() {
               onChange={(e) => setSelectedResource(e.target.value)}
             >
               <option value="">All Resources</option>
-              {uniqueResources.map(resource => (
-                <option key={resource} value={resource}>{resource}</option>
+              {uniqueResources.map((resource) => (
+                <option key={resource} value={resource}>
+                  {resource}
+                </option>
               ))}
             </select>
           </div>
@@ -184,10 +185,7 @@ export function AuditLogViewer() {
         </div>
 
         <div className="mt-4 flex justify-end">
-          <button
-            onClick={handleSearch}
-            className="btn btn-primary"
-          >
+          <button onClick={handleSearch} className="btn btn-primary">
             <Filter className="h-4 w-4 mr-2" />
             Apply Filters
           </button>
@@ -202,7 +200,7 @@ export function AuditLogViewer() {
               Audit Events ({total} total)
             </h3>
           </div>
-          
+
           {loading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -248,7 +246,9 @@ export function AuditLogViewer() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getActionColor(log.action)}`}>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getActionColor(log.action)}`}
+                        >
                           {log.action}
                         </span>
                       </td>
@@ -284,7 +284,7 @@ export function AuditLogViewer() {
                   ))}
                 </tbody>
               </table>
-              
+
               {auditLogs.length === 0 && (
                 <div className="text-center py-8">
                   <FileText className="mx-auto h-12 w-12 text-gray-400" />
@@ -297,5 +297,5 @@ export function AuditLogViewer() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,31 +1,31 @@
-import { Node, Edge } from 'reactflow'
+import { Node, Edge } from 'reactflow';
 
 export interface ValidationError {
-  id: string
-  type: 'error' | 'warning'
-  message: string
-  nodeId?: string
-  edgeId?: string
+  id: string;
+  type: 'error' | 'warning';
+  message: string;
+  nodeId?: string;
+  edgeId?: string;
 }
 
 export interface ValidationResult {
-  isValid: boolean
-  errors: ValidationError[]
-  warnings: ValidationError[]
+  isValid: boolean;
+  errors: ValidationError[];
+  warnings: ValidationError[];
 }
 
 export function validateWorkflow(nodes: Node[], edges: Edge[]): ValidationResult {
-  const errors: ValidationError[] = []
-  const warnings: ValidationError[] = []
+  const errors: ValidationError[] = [];
+  const warnings: ValidationError[] = [];
 
   // Check for at least one trigger node
-  const triggerNodes = nodes.filter(node => node.type === 'trigger' || node.type === 'schedule')
+  const triggerNodes = nodes.filter((node) => node.type === 'trigger' || node.type === 'schedule');
   if (triggerNodes.length === 0) {
     errors.push({
       id: 'no-trigger',
       type: 'error',
       message: 'Workflow must have at least one trigger node (Event Trigger or Schedule)',
-    })
+    });
   }
 
   // Check for multiple trigger nodes (warning)
@@ -34,79 +34,77 @@ export function validateWorkflow(nodes: Node[], edges: Edge[]): ValidationResult
       id: 'multiple-triggers',
       type: 'warning',
       message: 'Multiple trigger nodes detected. Only one will be active at a time.',
-    })
+    });
   }
 
   // Check for orphaned nodes
   const connectedNodeIds = new Set([
-    ...edges.map(edge => edge.source),
-    ...edges.map(edge => edge.target)
-  ])
+    ...edges.map((edge) => edge.source),
+    ...edges.map((edge) => edge.target),
+  ]);
 
-  const orphanedNodes = nodes.filter(node => 
-    !connectedNodeIds.has(node.id) && 
-    node.type !== 'trigger' && 
-    node.type !== 'schedule'
-  )
+  const orphanedNodes = nodes.filter(
+    (node) => !connectedNodeIds.has(node.id) && node.type !== 'trigger' && node.type !== 'schedule'
+  );
 
-  orphanedNodes.forEach(node => {
+  orphanedNodes.forEach((node) => {
     warnings.push({
       id: `orphaned-${node.id}`,
       type: 'warning',
       message: `Node "${node.data.label}" is not connected to the workflow`,
       nodeId: node.id,
-    })
-  })
+    });
+  });
 
   // Check for circular dependencies
-  const hasCycle = detectCycles(nodes, edges)
+  const hasCycle = detectCycles(nodes, edges);
   if (hasCycle.length > 0) {
-    hasCycle.forEach(cycle => {
+    hasCycle.forEach((cycle) => {
       errors.push({
         id: `cycle-${cycle.join('-')}`,
         type: 'error',
-        message: `Circular dependency detected: ${cycle.map(id => {
-          const node = nodes.find(n => n.id === id)
-          return node?.data.label || id
-        }).join(' → ')}`,
-      })
-    })
+        message: `Circular dependency detected: ${cycle
+          .map((id) => {
+            const node = nodes.find((n) => n.id === id);
+            return node?.data.label || id;
+          })
+          .join(' → ')}`,
+      });
+    });
   }
 
   // Validate individual nodes
-  nodes.forEach(node => {
-    const nodeErrors = validateNode(node)
-    errors.push(...nodeErrors.filter(e => e.type === 'error'))
-    warnings.push(...nodeErrors.filter(e => e.type === 'warning'))
-  })
+  nodes.forEach((node) => {
+    const nodeErrors = validateNode(node);
+    errors.push(...nodeErrors.filter((e) => e.type === 'error'));
+    warnings.push(...nodeErrors.filter((e) => e.type === 'warning'));
+  });
 
   // Check for unreachable nodes
-  const reachableNodes = findReachableNodes(nodes, edges, triggerNodes)
-  const unreachableNodes = nodes.filter(node => 
-    !reachableNodes.has(node.id) && 
-    node.type !== 'trigger' && 
-    node.type !== 'schedule'
-  )
+  const reachableNodes = findReachableNodes(nodes, edges, triggerNodes);
+  const unreachableNodes = nodes.filter(
+    (node) => !reachableNodes.has(node.id) && node.type !== 'trigger' && node.type !== 'schedule'
+  );
 
-  unreachableNodes.forEach(node => {
+  unreachableNodes.forEach((node) => {
     warnings.push({
       id: `unreachable-${node.id}`,
       type: 'warning',
       message: `Node "${node.data.label}" is not reachable from any trigger`,
       nodeId: node.id,
-    })
-  })
+    });
+  });
 
   return {
     isValid: errors.length === 0,
     errors,
     warnings,
-  }
+  };
 }
 
 function validateNode(node: Node): ValidationError[] {
-  const errors: ValidationError[] = []
-  const { type, data } = node
+  const errors: ValidationError[] = [];
+  const { type, data } = node;
 
   // Common validations
   if (!data.label || data.label.trim() === '') {
@@ -115,7 +113,7 @@ function validateNode(node: Node): ValidationError[] {
       type: 'warning',
       message: `Node "${node.id}" has no label`,
       nodeId: node.id,
-    })
+    });
   }
 
   // Type-specific validations
@@ -127,7 +125,7 @@ function validateNode(node: Node): ValidationError[] {
           type: 'error',
           message: `Email node "${data.label}" has no recipients configured`,
           nodeId: node.id,
-        })
+        });
       }
       if (!data.params?.template) {
         errors.push({
@@ -135,9 +133,9 @@ function validateNode(node: Node): ValidationError[] {
           type: 'error',
           message: `Email node "${data.label}" has no template selected`,
           nodeId: node.id,
-        })
+        });
       }
-      break
+      break;
 
     case 'condition':
       if (!data.params?.expression) {
@@ -146,9 +144,9 @@ function validateNode(node: Node): ValidationError[] {
           type: 'error',
           message: `Condition node "${data.label}" has no expression configured`,
           nodeId: node.id,
-        })
+        });
       }
-      break
+      break;
 
     case 'delay':
       if (!data.params?.duration || data.params.duration < 1) {
@@ -157,9 +155,9 @@ function validateNode(node: Node): ValidationError[] {
           type: 'error',
           message: `Delay node "${data.label}" has invalid duration`,
           nodeId: node.id,
-        })
+        });
       }
-      break
+      break;
 
     case 'identity':
       if (!data.params?.action) {
@@ -168,7 +166,7 @@ function validateNode(node: Node): ValidationError[] {
           type: 'error',
           message: `Identity node "${data.label}" has no action configured`,
           nodeId: node.id,
-        })
+        });
       }
       if (!data.params?.provider) {
         errors.push({
@@ -176,9 +174,9 @@ function validateNode(node: Node): ValidationError[] {
           type: 'error',
           message: `Identity node "${data.label}" has no provider configured`,
           nodeId: node.id,
-        })
+        });
       }
-      break
+      break;
 
     case 'ai':
       if (!data.params?.contentType) {
@@ -187,7 +185,7 @@ function validateNode(node: Node): ValidationError[] {
           type: 'error',
           message: `AI node "${data.label}" has no content type configured`,
           nodeId: node.id,
-        })
+        });
       }
       if (data.params?.contentType === 'custom' && !data.params?.prompt) {
         errors.push({
@@ -195,9 +193,9 @@ function validateNode(node: Node): ValidationError[] {
           type: 'error',
           message: `AI node "${data.label}" requires a custom prompt`,
           nodeId: node.id,
-        })
+        });
       }
-      break
+      break;
   }
 
   // Validate retry policy
@@ -208,7 +206,7 @@ function validateNode(node: Node): ValidationError[] {
         type: 'warning',
         message: `Node "${data.label}" has invalid max retries (should be 0-10)`,
         nodeId: node.id,
-      })
+      });
     }
     if (data.retryPolicy.backoffMs < 100) {
       errors.push({
@@ -216,7 +214,7 @@ function validateNode(node: Node): ValidationError[] {
         type: 'warning',
         message: `Node "${data.label}" has invalid backoff time (should be at least 100ms)`,
         nodeId: node.id,
-      })
+      });
     }
   }
 
@@ -227,72 +225,72 @@ function validateNode(node: Node): ValidationError[] {
       type: 'warning',
       message: `Node "${data.label}" has very short timeout (less than 1 second)`,
       nodeId: node.id,
-    })
+    });
   }
 
-  return errors
+  return errors;
 }
 
 function detectCycles(nodes: Node[], edges: Edge[]): string[][] {
-  const cycles: string[][] = []
-  const visited = new Set<string>()
-  const recursionStack = new Set<string>()
-  const path: string[] = []
+  const cycles: string[][] = [];
+  const visited = new Set<string>();
+  const recursionStack = new Set<string>();
+  const path: string[] = [];
 
   const dfs = (nodeId: string): boolean => {
     if (recursionStack.has(nodeId)) {
       // Found a cycle
-      const cycleStart = path.indexOf(nodeId)
-      cycles.push([...path.slice(cycleStart), nodeId])
-      return true
+      const cycleStart = path.indexOf(nodeId);
+      cycles.push([...path.slice(cycleStart), nodeId]);
+      return true;
     }
 
     if (visited.has(nodeId)) {
-      return false
+      return false;
     }
 
-    visited.add(nodeId)
-    recursionStack.add(nodeId)
-    path.push(nodeId)
+    visited.add(nodeId);
+    recursionStack.add(nodeId);
+    path.push(nodeId);
 
-    const outgoingEdges = edges.filter(edge => edge.source === nodeId)
+    const outgoingEdges = edges.filter((edge) => edge.source === nodeId);
     for (const edge of outgoingEdges) {
       if (dfs(edge.target)) {
-        return true
+        return true;
       }
     }
 
-    recursionStack.delete(nodeId)
-    path.pop()
-    return false
-  }
+    recursionStack.delete(nodeId);
+    path.pop();
+    return false;
+  };
 
   for (const node of nodes) {
     if (!visited.has(node.id)) {
-      dfs(node.id)
+      dfs(node.id);
     }
   }
 
-  return cycles
+  return cycles;
 }
 
 function findReachableNodes(_nodes: Node[], edges: Edge[], triggerNodes: Node[]): Set<string> {
-  const reachable = new Set<string>()
-  const queue = [...triggerNodes.map(n => n.id)]
+  const reachable = new Set<string>();
+  const queue = [...triggerNodes.map((n) => n.id)];
 
   while (queue.length > 0) {
-    const nodeId = queue.shift()!
-    if (reachable.has(nodeId)) continue
+    const nodeId = queue.shift()!;
+    if (reachable.has(nodeId)) continue;
 
-    reachable.add(nodeId)
+    reachable.add(nodeId);
 
-    const outgoingEdges = edges.filter(edge => edge.source === nodeId)
+    const outgoingEdges = edges.filter((edge) => edge.source === nodeId);
     for (const edge of outgoingEdges) {
       if (!reachable.has(edge.target)) {
-        queue.push(edge.target)
+        queue.push(edge.target);
       }
     }
   }
 
-  return reachable
+  return reachable;
 }

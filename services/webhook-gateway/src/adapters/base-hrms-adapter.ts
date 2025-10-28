@@ -1,11 +1,16 @@
-import { HRMSAdapter, WebhookPayload, NormalizedLifecycleEvent, PollingConfig } from '../types/webhook-types';
+import {
+  HRMSAdapter,
+  WebhookPayload,
+  NormalizedLifecycleEvent,
+  PollingConfig,
+} from '../types/webhook-types';
 import { EventTransformer } from '../services/event-transformer';
 import { SignatureVerifier } from '../utils/signature-verifier';
 import { logger } from '../utils/logger';
 
 export abstract class BaseHRMSAdapter implements HRMSAdapter {
   protected config: PollingConfig;
-  
+
   constructor(config: PollingConfig) {
     this.config = config;
   }
@@ -31,14 +36,17 @@ export abstract class BaseHRMSAdapter implements HRMSAdapter {
         );
 
         if (!isValid) {
-          logger.warn('Invalid webhook signature', { source: this.source, organizationId: payload.organizationId });
+          logger.warn('Invalid webhook signature', {
+            source: this.source,
+            organizationId: payload.organizationId,
+          });
           throw new Error('Invalid webhook signature');
         }
       }
 
       // Transform to normalized events
       const events = await EventTransformer.transformToLifecycleEvent(payload);
-      
+
       logger.info('Webhook processed by HRMS adapter', {
         source: this.source,
         organizationId: payload.organizationId,

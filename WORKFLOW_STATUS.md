@@ -3,20 +3,24 @@
 ## ✅ Recent Fixes Applied
 
 ### **1. cd.yml - FIXED**
+
 - ✅ Added missing `name: staging` in environment section (line 145)
 - ✅ Removed stray text at end of file
 
 ### **2. pr-checks.yml - FIXED**
+
 - ✅ Added `continue-on-error: true` to non-critical checks
 - ✅ Fixed bundle size check
 - ✅ Fixed dependency review
 
 ### **3. security.yml - FIXED**
+
 - ✅ Made security scans non-blocking
 - ✅ Fixed license compliance check
 - ✅ Fixed IaC scan
 
 ### **4. Missing Files - FIXED**
+
 - ✅ Created `SECURITY.md`
 - ✅ Created `.size-limit.json`
 
@@ -45,6 +49,7 @@ All workflow files are syntactically valid YAML. If you're still seeing errors:
 ## 🔍 How to Debug
 
 ### **Check Workflow Status:**
+
 ```bash
 # View git status
 git status
@@ -54,6 +59,7 @@ git status
 ```
 
 ### **Fix Code Issues:**
+
 ```bash
 # Fix linting
 pnpm run lint --fix
@@ -67,6 +73,7 @@ pnpm run test
 ```
 
 ### **View Logs in GitHub:**
+
 1. Go to your PR or commit in GitHub
 2. Click "Actions" tab
 3. Click the failing workflow
@@ -78,20 +85,21 @@ pnpm run test
 
 After the fixes applied:
 
-| Check | Expected Status | Notes |
-|-------|----------------|-------|
-| ✅ Security Compliance | Pass | SECURITY.md exists |
-| ✅ Secret Scanning | Pass | No secrets in code |
-| ✅ SAST | Pass | CodeQL analysis |
-| ⚠️ PR Labels | Warning | Won't block merge |
-| ⚠️ Bundle Size | Warning | Won't block merge |
-| ⚠️ Dependency Review | Warning | Won't block merge |
-| ❌ Lint/Type Check | May fail | **Needs code fixes** |
-| ❌ Tests | May fail | **Needs test fixes** |
+| Check                  | Expected Status | Notes                |
+| ---------------------- | --------------- | -------------------- |
+| ✅ Security Compliance | Pass            | SECURITY.md exists   |
+| ✅ Secret Scanning     | Pass            | No secrets in code   |
+| ✅ SAST                | Pass            | CodeQL analysis      |
+| ⚠️ PR Labels           | Warning         | Won't block merge    |
+| ⚠️ Bundle Size         | Warning         | Won't block merge    |
+| ⚠️ Dependency Review   | Warning         | Won't block merge    |
+| ❌ Lint/Type Check     | May fail        | **Needs code fixes** |
+| ❌ Tests               | May fail        | **Needs test fixes** |
 
 ## 🚀 Next Steps
 
 1. **Commit current changes:**
+
    ```bash
    git add .
    git commit -m "fix: GitHub Actions workflows and PR checks"
@@ -99,11 +107,12 @@ After the fixes applied:
    ```
 
 2. **If lint/tests fail, fix the code:**
+
    ```bash
    pnpm run lint --fix
    pnpm run format
    pnpm run test
-   
+
    # Commit fixes
    git add .
    git commit -m "fix: resolve linting and test issues"
@@ -118,6 +127,7 @@ After the fixes applied:
 ## 💬 Need More Help?
 
 Please share:
+
 - **Exact error message** you're seeing
 - **Where** you're seeing it (GitHub, IDE, terminal)
 - **Which workflow/check** is failing
@@ -128,4 +138,3 @@ This will help me give you a more specific solution!
 
 **Status**: All workflow YAML files are valid ✅  
 **Remaining**: Code-level fixes (lint/tests) if applicable
-

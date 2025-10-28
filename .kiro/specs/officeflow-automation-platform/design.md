@@ -17,27 +17,27 @@ graph TB
         IdP[Identity Providers]
         Comm[Communication Platforms]
     end
-    
+
     subgraph "OfficeFlow Platform"
         subgraph "Frontend Layer"
             WD[Workflow Designer]
             Admin[Admin Dashboard]
         end
-        
+
         subgraph "API Gateway"
             Gateway[API Gateway]
         end
-        
+
         subgraph "Core Services"
             WE[Workflow Engine]
             Scheduler[Scheduler Service]
             Webhook[Webhook Gateway]
         end
-        
+
         subgraph "Event Bus"
             Kafka[Apache Kafka]
         end
-        
+
         subgraph "Node Executors"
             Identity[Identity Service]
             Email[Email Service]
@@ -47,26 +47,26 @@ graph TB
             AI[AI Service]
             Audit[Audit Service]
         end
-        
+
         subgraph "Data Layer"
             Postgres[(PostgreSQL)]
             Redis[(Redis Cluster)]
             S3[(Object Storage)]
         end
     end
-    
+
     HRMS --> Webhook
     IdP --> Identity
     Comm --> Slack
-    
+
     WD --> Gateway
     Admin --> Gateway
     Gateway --> WE
-    
+
     WE --> Kafka
     Scheduler --> Kafka
     Webhook --> Kafka
-    
+
     Kafka --> Identity
     Kafka --> Email
     Kafka --> Calendar
@@ -74,7 +74,7 @@ graph TB
     Kafka --> Document
     Kafka --> AI
     Kafka --> Audit
-    
+
     WE --> Postgres
     WE --> Redis
     Identity --> Postgres
@@ -95,6 +95,7 @@ graph TB
 ### Frontend Components
 
 #### Workflow Designer
+
 - **Technology**: React 18 + TypeScript + React Flow + TailwindCSS
 - **Purpose**: Visual workflow creation and editing interface
 - **Key Features**:
@@ -104,6 +105,7 @@ graph TB
   - Version control integration
 
 #### Admin Dashboard
+
 - **Technology**: React 18 + TypeScript + Recharts + TailwindCSS
 - **Purpose**: System monitoring and management interface
 - **Key Features**:
@@ -115,6 +117,7 @@ graph TB
 ### Core Services
 
 #### Workflow Engine
+
 - **Technology**: Node.js + TypeScript + Express.js
 - **Purpose**: Central orchestration service for workflow execution
 - **Key Responsibilities**:
@@ -125,25 +128,27 @@ graph TB
   - Retry and error handling logic
 
 **Interface Definition**:
+
 ```typescript
 interface WorkflowEngine {
-  processLifecycleEvent(event: LifecycleEvent): Promise<WorkflowRun>
-  executeWorkflow(workflowId: string, context: ExecutionContext): Promise<WorkflowRun>
-  pauseWorkflow(runId: string): Promise<void>
-  resumeWorkflow(runId: string): Promise<void>
-  cancelWorkflow(runId: string): Promise<void>
+  processLifecycleEvent(event: LifecycleEvent): Promise<WorkflowRun>;
+  executeWorkflow(workflowId: string, context: ExecutionContext): Promise<WorkflowRun>;
+  pauseWorkflow(runId: string): Promise<void>;
+  resumeWorkflow(runId: string): Promise<void>;
+  cancelWorkflow(runId: string): Promise<void>;
 }
 
 interface LifecycleEvent {
-  type: 'employee.onboard' | 'employee.exit' | 'employee.transfer' | 'employee.update'
-  organizationId: string
-  employeeId: string
-  payload: Record<string, any>
-  timestamp: Date
+  type: 'employee.onboard' | 'employee.exit' | 'employee.transfer' | 'employee.update';
+  organizationId: string;
+  employeeId: string;
+  payload: Record<string, any>;
+  timestamp: Date;
 }
 ```
 
 #### Scheduler Service
+
 - **Technology**: Node.js + TypeScript + node-cron
 - **Purpose**: Time-based workflow triggering and recurring task management
 - **Key Features**:
@@ -152,6 +157,7 @@ interface LifecycleEvent {
   - Distributed scheduling coordination
 
 #### Webhook Gateway
+
 - **Technology**: Node.js + TypeScript + Express.js
 - **Purpose**: External system integration and event normalization
 - **Key Features**:
@@ -165,30 +171,31 @@ All node executors implement a standardized interface for consistent orchestrati
 
 ```typescript
 interface NodeExecutor {
-  execute(input: NodeInput): Promise<NodeResult>
-  validate(params: NodeParams): ValidationResult
-  getSchema(): NodeSchema
+  execute(input: NodeInput): Promise<NodeResult>;
+  validate(params: NodeParams): ValidationResult;
+  getSchema(): NodeSchema;
 }
 
 interface NodeInput {
-  nodeId: string
-  runId: string
-  organizationId: string
-  employeeId: string
-  params: Record<string, any>
-  context: ExecutionContext
-  idempotencyKey: string
+  nodeId: string;
+  runId: string;
+  organizationId: string;
+  employeeId: string;
+  params: Record<string, any>;
+  context: ExecutionContext;
+  idempotencyKey: string;
 }
 
 interface NodeResult {
-  status: 'success' | 'failed' | 'retry'
-  output: Record<string, any>
-  error?: ErrorDetails
-  metadata: ExecutionMetadata
+  status: 'success' | 'failed' | 'retry';
+  output: Record<string, any>;
+  error?: ErrorDetails;
+  metadata: ExecutionMetadata;
 }
 ```
 
 #### Identity Service
+
 - **Technology**: Node.js + TypeScript + OAuth2 libraries
 - **Integrations**: Okta, Google Workspace, Office 365, Active Directory
 - **Capabilities**:
@@ -198,6 +205,7 @@ interface NodeResult {
   - SSO configuration
 
 #### AI Service
+
 - **Technology**: Node.js + TypeScript + OpenAI SDK
 - **Integrations**: OpenAI GPT-4, Anthropic Claude, Azure OpenAI
 - **Capabilities**:
@@ -209,6 +217,7 @@ interface NodeResult {
 ### Event Bus Architecture
 
 #### Kafka Topic Design
+
 ```
 Lifecycle Events:
 - employee.onboard.{org_id}
@@ -242,6 +251,7 @@ Observability:
 ```
 
 #### Partitioning Strategy
+
 - **Lifecycle Events**: Partitioned by `organization_id` for tenant isolation
 - **Node Execution**: Partitioned by `organization_id:employee_id` for ordering guarantees
 - **Audit Events**: Partitioned by `organization_id` for compliance isolation
@@ -251,6 +261,7 @@ Observability:
 ### Core Entities
 
 #### Organization
+
 ```sql
 CREATE TABLE organizations (
     org_id UUID PRIMARY KEY,
@@ -264,6 +275,7 @@ CREATE TABLE organizations (
 ```
 
 #### Workflow Definition
+
 ```sql
 CREATE TABLE workflows (
     workflow_id UUID PRIMARY KEY,
@@ -300,6 +312,7 @@ CREATE TABLE workflow_edges (
 ```
 
 #### Workflow Execution
+
 ```sql
 CREATE TABLE workflow_runs (
     run_id UUID PRIMARY KEY,
@@ -332,6 +345,7 @@ CREATE TABLE node_runs (
 ### State Management Strategy
 
 #### Redis Data Structures
+
 ```typescript
 // Active workflow runs tracking
 SET workflow:runs:active {run_id} {serialized_state}
@@ -352,21 +366,24 @@ SET lock:workflow:{run_id} {lock_holder} EX {ttl_seconds}
 ## Error Handling
 
 ### Retry Strategy
+
 1. **Exponential Backoff**: Base delay of 1 second, multiplier of 2, maximum of 5 minutes
 2. **Maximum Attempts**: 3 retries per node execution
 3. **Jitter**: Random delay variation to prevent thundering herd
 4. **Circuit Breaker**: Automatic failure detection and recovery for external services
 
 ### Compensation Flows
+
 ```typescript
 interface CompensationNode {
-  compensatesFor: string[] // Array of node IDs this compensates for
-  compensationType: 'rollback' | 'cleanup' | 'notification'
-  params: Record<string, any>
+  compensatesFor: string[]; // Array of node IDs this compensates for
+  compensationType: 'rollback' | 'cleanup' | 'notification';
+  params: Record<string, any>;
 }
 ```
 
 ### Dead Letter Queue Processing
+
 - Failed messages routed to topic-specific DLQ
 - Automated retry with exponential backoff
 - Manual intervention interface for persistent failures
@@ -375,6 +392,7 @@ interface CompensationNode {
 ## Testing Strategy
 
 ### Unit Testing
+
 - **Framework**: Jest + TypeScript
 - **Coverage Target**: 90% code coverage
 - **Focus Areas**:
@@ -384,6 +402,7 @@ interface CompensationNode {
   - Integration point mocking
 
 ### Integration Testing
+
 - **Framework**: Jest + Testcontainers
 - **Test Environment**: Docker-based isolated services
 - **Coverage**:
@@ -393,6 +412,7 @@ interface CompensationNode {
   - End-to-end workflow execution
 
 ### Performance Testing
+
 - **Framework**: Artillery.js + custom metrics
 - **Test Scenarios**:
   - Concurrent workflow execution
@@ -401,6 +421,7 @@ interface CompensationNode {
   - Memory usage under load
 
 ### Security Testing
+
 - **Authentication**: JWT token validation
 - **Authorization**: RBAC enforcement
 - **Data Protection**: Encryption at rest and in transit
@@ -410,6 +431,7 @@ interface CompensationNode {
 ## Deployment Architecture
 
 ### Container Strategy
+
 ```dockerfile
 # Multi-stage build for Node.js services
 FROM node:18-alpine AS builder
@@ -426,6 +448,7 @@ CMD ["npm", "start"]
 ```
 
 ### Kubernetes Deployment
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -442,28 +465,29 @@ spec:
         app: workflow-engine
     spec:
       containers:
-      - name: workflow-engine
-        image: officeflow/workflow-engine:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: KAFKA_BROKERS
-          value: "kafka:9092"
-        - name: POSTGRES_URL
-          valueFrom:
-            secretKeyRef:
-              name: db-credentials
-              key: url
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+        - name: workflow-engine
+          image: officeflow/workflow-engine:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: KAFKA_BROKERS
+              value: 'kafka:9092'
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: url
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '250m'
+            limits:
+              memory: '512Mi'
+              cpu: '500m'
 ```
 
 ### Monitoring and Observability
+
 - **Metrics**: Prometheus + Grafana
 - **Logging**: Structured JSON logs with correlation IDs
 - **Tracing**: OpenTelemetry with Jaeger backend

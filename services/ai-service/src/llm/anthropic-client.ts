@@ -48,10 +48,12 @@ export class AnthropicClient {
         temperature: request.temperature,
       });
 
-      const messages: AnthropicMessage[] = [{
-        role: 'user',
-        content: request.prompt,
-      }];
+      const messages: AnthropicMessage[] = [
+        {
+          role: 'user',
+          content: request.prompt,
+        },
+      ];
 
       const requestBody = {
         model: request.model || this.config.defaultModel,
@@ -158,10 +160,12 @@ export class AnthropicClient {
       model: request.model,
     });
 
-    const messages: AnthropicMessage[] = [{
-      role: 'user',
-      content: request.prompt,
-    }];
+    const messages: AnthropicMessage[] = [
+      {
+        role: 'user',
+        content: request.prompt,
+      },
+    ];
 
     const requestBody = {
       model: request.model || this.config.defaultModel,
@@ -190,10 +194,7 @@ export class AnthropicClient {
     return this.parseStreamResponse(response, requestId);
   }
 
-  private async *parseStreamResponse(
-    response: Response,
-    requestId: string
-  ): AsyncIterable<string> {
+  private async *parseStreamResponse(response: Response, requestId: string): AsyncIterable<string> {
     const reader = response.body?.getReader();
     if (!reader) {
       throw new Error('No response body');
@@ -235,4 +236,3 @@ export class AnthropicClient {
     }
   }
 }
-

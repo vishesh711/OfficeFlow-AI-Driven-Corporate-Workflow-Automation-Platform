@@ -1,6 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { OfficeFlowProducer } from '@officeflow/kafka';
-import { WebhookPayload, NormalizedLifecycleEvent, WebhookConfig, WebhookDeliveryAttempt } from '../types/webhook-types';
+import {
+  WebhookPayload,
+  NormalizedLifecycleEvent,
+  WebhookConfig,
+  WebhookDeliveryAttempt,
+} from '../types/webhook-types';
 import { EventTransformer } from './event-transformer';
 import { SignatureVerifier } from '../utils/signature-verifier';
 import { logger } from '../utils/logger';
@@ -16,14 +21,16 @@ export class WebhookService {
   /**
    * Process incoming webhook payload
    */
-  async processWebhook(payload: WebhookPayload): Promise<{ success: boolean; events: number; errors: string[] }> {
+  async processWebhook(
+    payload: WebhookPayload
+  ): Promise<{ success: boolean; events: number; errors: string[] }> {
     const errors: string[] = [];
     let processedEvents = 0;
 
     try {
       // Get webhook configuration
       const config = this.getWebhookConfig(payload.organizationId, payload.source);
-      
+
       // Verify signature if required
       if (config?.secretKey && payload.signature) {
         const isValidSignature = SignatureVerifier.verifySignature(
@@ -59,7 +66,7 @@ export class WebhookService {
         try {
           await this.publishLifecycleEvent(event);
           processedEvents++;
-          
+
           logger.info('Lifecycle event published', {
             eventType: event.type,
             organizationId: event.organizationId,
@@ -105,20 +112,22 @@ export class WebhookService {
   private async publishLifecycleEvent(event: NormalizedLifecycleEvent): Promise<void> {
     const topic = `${event.type}.${event.organizationId}`;
     const key = event.employeeId;
-    
+
     await this.kafkaProducer.send({
       topic,
-      messages: [{
-        key,
-        value: JSON.stringify(event),
-        headers: {
-          'correlation-id': event.correlationId,
-          'event-type': event.type,
-          'source': event.source,
-          'organization-id': event.organizationId,
-          'employee-id': event.employeeId,
+      messages: [
+        {
+          key,
+          value: JSON.stringify(event),
+          headers: {
+            'correlation-id': event.correlationId,
+            'event-type': event.type,
+            source: event.source,
+            'organization-id': event.organizationId,
+            'employee-id': event.employeeId,
+          },
         },
-      }],
+      ],
     });
   }
 
@@ -136,7 +145,7 @@ export class WebhookService {
   registerWebhookConfig(config: WebhookConfig): void {
     const key = `${config.organizationId}-${config.source}`;
     this.webhookConfigs.set(key, config);
-    
+
     logger.info('Webhook configuration registered', {
       organizationId: config.organizationId,
       source: config.source,
@@ -150,7 +159,7 @@ export class WebhookService {
   unregisterWebhookConfig(organizationId: string, source: string): void {
     const key = `${organizationId}-${source}`;
     this.webhookConfigs.delete(key);
-    
+
     logger.info('Webhook configuration removed', { organizationId, source });
   }
 
@@ -225,7 +234,7 @@ export class WebhookService {
     try {
       // Check Kafka connection
       const kafkaHealthy = await this.kafkaProducer.isConnected();
-      
+
       return {
         status: kafkaHealthy ? 'healthy' : 'unhealthy',
         details: {

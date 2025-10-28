@@ -18,30 +18,30 @@ describe('Identity Service Core Tests', () => {
 
   beforeEach(() => {
     mockLogger = createMockLogger();
-    
+
     mockCredentialManager = {
       getCredentials: jest.fn(),
-      isTokenExpiringSoon: jest.fn().mockReturnValue(false)
+      isTokenExpiringSoon: jest.fn().mockReturnValue(false),
     };
 
     mockAdapter = {
       createUser: jest.fn(),
       updateUser: jest.fn(),
       deleteUser: jest.fn(),
-      assignGroups: jest.fn()
+      assignGroups: jest.fn(),
     };
 
     mockProviderFactory = {
-      getAdapter: jest.fn().mockReturnValue(mockAdapter)
+      getAdapter: jest.fn().mockReturnValue(mockAdapter),
     };
 
     mockAuditLogger = {
       logAccountCreation: jest.fn().mockResolvedValue('audit-id-123'),
-      logAccountDeactivation: jest.fn().mockResolvedValue('audit-id-456')
+      logAccountDeactivation: jest.fn().mockResolvedValue('audit-id-456'),
     };
 
     mockCentralAudit = {
-      publishAuditEvent: jest.fn().mockResolvedValue(undefined)
+      publishAuditEvent: jest.fn().mockResolvedValue(undefined),
     };
 
     executor = new IdentityNodeExecutor(
@@ -64,7 +64,7 @@ describe('Identity Service Core Tests', () => {
         action: 'provision',
         userEmail: 'test@example.com',
         firstName: 'John',
-        lastName: 'Doe'
+        lastName: 'Doe',
       };
 
       const result = executor.validate(validParams);
@@ -76,7 +76,7 @@ describe('Identity Service Core Tests', () => {
     it('should reject missing required parameters', () => {
       const invalidParams = {
         provider: 'google_workspace',
-        action: 'provision'
+        action: 'provision',
         // Missing userEmail, firstName, lastName
       };
 
@@ -84,7 +84,7 @@ describe('Identity Service Core Tests', () => {
 
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
-      expect(result.errors.some(error => error.includes('userEmail'))).toBe(true);
+      expect(result.errors.some((error) => error.includes('userEmail'))).toBe(true);
     });
 
     it('should validate email format', () => {
@@ -93,13 +93,13 @@ describe('Identity Service Core Tests', () => {
         action: 'provision',
         userEmail: 'invalid-email-format',
         firstName: 'John',
-        lastName: 'Doe'
+        lastName: 'Doe',
       };
 
       const result = executor.validate(invalidParams);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('valid email'))).toBe(true);
+      expect(result.errors.some((error) => error.includes('valid email'))).toBe(true);
     });
 
     it('should validate provider enum values', () => {
@@ -108,13 +108,13 @@ describe('Identity Service Core Tests', () => {
         action: 'provision',
         userEmail: 'test@example.com',
         firstName: 'John',
-        lastName: 'Doe'
+        lastName: 'Doe',
       };
 
       const result = executor.validate(invalidParams);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('provider'))).toBe(true);
+      expect(result.errors.some((error) => error.includes('provider'))).toBe(true);
     });
 
     it('should validate action enum values', () => {
@@ -123,13 +123,13 @@ describe('Identity Service Core Tests', () => {
         action: 'invalid_action',
         userEmail: 'test@example.com',
         firstName: 'John',
-        lastName: 'Doe'
+        lastName: 'Doe',
       };
 
       const result = executor.validate(invalidParams);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('action'))).toBe(true);
+      expect(result.errors.some((error) => error.includes('action'))).toBe(true);
     });
   });
 
@@ -147,17 +147,17 @@ describe('Identity Service Core Tests', () => {
           action: 'provision',
           userEmail: 'test@example.com',
           firstName: 'John',
-          lastName: 'Doe'
+          lastName: 'Doe',
         },
         context: {
           organizationId: 'test-org-789',
           employeeId: 'test-emp-101',
           correlationId: 'test-corr-123',
           variables: {},
-          secrets: {}
+          secrets: {},
         },
         idempotencyKey: 'test-idem-key-123',
-        attempt: 1
+        attempt: 1,
       };
 
       mockCredentialManager.getCredentials.mockResolvedValue({
@@ -166,8 +166,8 @@ describe('Identity Service Core Tests', () => {
           refreshToken: 'test-refresh-token',
           tokenType: 'Bearer',
           expiresIn: 3600,
-          expiresAt: new Date(Date.now() + 3600 * 1000)
-        }
+          expiresAt: new Date(Date.now() + 3600 * 1000),
+        },
       });
     });
 
@@ -177,8 +177,8 @@ describe('Identity Service Core Tests', () => {
         userId: 'test-user-123',
         email: 'test@example.com',
         metadata: {
-          created: true
-        }
+          created: true,
+        },
       };
 
       mockAdapter.createUser.mockResolvedValue(mockProvisioningResult);
@@ -191,7 +191,10 @@ describe('Identity Service Core Tests', () => {
       expect(result.output.provider).toBe('google_workspace');
       expect(result.output.action).toBe('provision');
 
-      expect(mockCredentialManager.getCredentials).toHaveBeenCalledWith('test-org-789', 'google_workspace');
+      expect(mockCredentialManager.getCredentials).toHaveBeenCalledWith(
+        'test-org-789',
+        'google_workspace'
+      );
       expect(mockProviderFactory.getAdapter).toHaveBeenCalledWith('google_workspace');
       expect(mockAdapter.createUser).toHaveBeenCalled();
       expect(mockAuditLogger.logAccountCreation).toHaveBeenCalled();
@@ -201,7 +204,7 @@ describe('Identity Service Core Tests', () => {
       mockInput.params = {
         provider: 'google_workspace',
         action: 'deprovision',
-        userEmail: 'test@example.com'
+        userEmail: 'test@example.com',
       };
 
       const mockDeprovisioningResult = {
@@ -209,8 +212,8 @@ describe('Identity Service Core Tests', () => {
         userId: 'test-user-123',
         email: 'test@example.com',
         metadata: {
-          suspended: true
-        }
+          suspended: true,
+        },
       };
 
       mockAdapter.deleteUser.mockResolvedValue(mockDeprovisioningResult);
@@ -219,10 +222,7 @@ describe('Identity Service Core Tests', () => {
 
       expect(result.status).toBe('success');
       expect(result.output.action).toBe('deprovision');
-      expect(mockAdapter.deleteUser).toHaveBeenCalledWith(
-        expect.any(Object),
-        'test@example.com'
-      );
+      expect(mockAdapter.deleteUser).toHaveBeenCalledWith(expect.any(Object), 'test@example.com');
       expect(mockAuditLogger.logAccountDeactivation).toHaveBeenCalled();
     });
 
@@ -239,7 +239,7 @@ describe('Identity Service Core Tests', () => {
     it('should handle provider errors with retry', async () => {
       const mockProvisioningResult = {
         success: false,
-        error: 'Rate limit exceeded'
+        error: 'Rate limit exceeded',
       };
 
       mockAdapter.createUser.mockResolvedValue(mockProvisioningResult);
@@ -255,7 +255,7 @@ describe('Identity Service Core Tests', () => {
       mockInput.params = {
         provider: 'invalid_provider',
         action: 'provision',
-        userEmail: 'invalid-email'
+        userEmail: 'invalid-email',
       };
 
       const result = await executor.execute(mockInput);
@@ -279,7 +279,7 @@ describe('Identity Service Core Tests', () => {
         'Identity node execution failed',
         expect.objectContaining({
           nodeId: 'test-node-123',
-          error: 'Network connection failed'
+          error: 'Network connection failed',
         })
       );
     });
@@ -291,13 +291,13 @@ describe('Identity Service Core Tests', () => {
         userEmail: 'test@example.com',
         firstName: 'John',
         lastName: 'Doe',
-        groups: ['engineering@example.com', 'all-employees@example.com']
+        groups: ['engineering@example.com', 'all-employees@example.com'],
       };
 
       const mockProvisioningResult = {
         success: true,
         userId: 'test-user-123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       };
 
       const mockGroupResult = {
@@ -305,9 +305,9 @@ describe('Identity Service Core Tests', () => {
         metadata: {
           groupAssignments: [
             { group: 'engineering@example.com', success: true },
-            { group: 'all-employees@example.com', success: true }
-          ]
-        }
+            { group: 'all-employees@example.com', success: true },
+          ],
+        },
       };
 
       mockAdapter.createUser.mockResolvedValue(mockProvisioningResult);
@@ -317,11 +317,10 @@ describe('Identity Service Core Tests', () => {
 
       expect(result.status).toBe('success');
       expect(mockAdapter.createUser).toHaveBeenCalled();
-      expect(mockAdapter.assignGroups).toHaveBeenCalledWith(
-        expect.any(Object),
-        'test-user-123',
-        ['engineering@example.com', 'all-employees@example.com']
-      );
+      expect(mockAdapter.assignGroups).toHaveBeenCalledWith(expect.any(Object), 'test-user-123', [
+        'engineering@example.com',
+        'all-employees@example.com',
+      ]);
     });
 
     it('should handle assign_groups action', async () => {
@@ -329,7 +328,7 @@ describe('Identity Service Core Tests', () => {
         provider: 'google_workspace',
         action: 'assign_groups',
         userEmail: 'test@example.com',
-        groups: ['new-group@example.com']
+        groups: ['new-group@example.com'],
       };
 
       const mockGroupResult = {
@@ -337,10 +336,8 @@ describe('Identity Service Core Tests', () => {
         userId: 'test-user-123',
         email: 'test@example.com',
         metadata: {
-          groupAssignments: [
-            { group: 'new-group@example.com', success: true }
-          ]
-        }
+          groupAssignments: [{ group: 'new-group@example.com', success: true }],
+        },
       };
 
       mockAdapter.assignGroups.mockResolvedValue(mockGroupResult);
@@ -360,7 +357,7 @@ describe('Identity Service Core Tests', () => {
         provider: 'google_workspace',
         action: 'assign_groups',
         userEmail: 'test@example.com',
-        groups: []
+        groups: [],
       };
 
       const result = await executor.execute(mockInput);
@@ -375,7 +372,7 @@ describe('Identity Service Core Tests', () => {
       const mockProvisioningResult = {
         success: true,
         userId: 'test-user-123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       };
 
       mockAdapter.createUser.mockResolvedValue(mockProvisioningResult);
@@ -385,7 +382,7 @@ describe('Identity Service Core Tests', () => {
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'Access token is expiring soon',
         expect.objectContaining({
-          provider: 'google_workspace'
+          provider: 'google_workspace',
         })
       );
     });
@@ -397,23 +394,25 @@ describe('Identity Service Core Tests', () => {
 
       expect(schema.type).toBe('identity');
       expect(schema.name).toBe('Identity Management');
-      expect(schema.description).toBe('Provision, update, and manage user accounts across identity providers');
+      expect(schema.description).toBe(
+        'Provision, update, and manage user accounts across identity providers'
+      );
       expect(schema.category).toBe('Identity & Access');
-      
+
       // Check that we have the basic required parameters
       expect(schema.parameters.length).toBeGreaterThan(0);
       expect(schema.outputs.length).toBeGreaterThan(0);
 
       // Check required parameters exist
-      const providerParam = schema.parameters.find(p => p.name === 'provider');
+      const providerParam = schema.parameters.find((p) => p.name === 'provider');
       expect(providerParam).toBeDefined();
       expect(providerParam?.required).toBe(true);
 
-      const actionParam = schema.parameters.find(p => p.name === 'action');
+      const actionParam = schema.parameters.find((p) => p.name === 'action');
       expect(actionParam).toBeDefined();
       expect(actionParam?.required).toBe(true);
 
-      const emailParam = schema.parameters.find(p => p.name === 'userEmail');
+      const emailParam = schema.parameters.find((p) => p.name === 'userEmail');
       expect(emailParam).toBeDefined();
       expect(emailParam?.required).toBe(true);
     });

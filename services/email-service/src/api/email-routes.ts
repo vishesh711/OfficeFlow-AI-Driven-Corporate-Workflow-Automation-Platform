@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
     cb(null, config.uploadDir);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   },
 });
@@ -49,22 +49,26 @@ router.post('/send', upload.array('attachments', 10), async (req: Request, res: 
       bcc: req.body.bcc ? (Array.isArray(req.body.bcc) ? req.body.bcc : [req.body.bcc]) : undefined,
       subject: req.body.subject,
       templateId: req.body.templateId,
-      templateVariables: req.body.templateVariables ? JSON.parse(req.body.templateVariables) : undefined,
+      templateVariables: req.body.templateVariables
+        ? JSON.parse(req.body.templateVariables)
+        : undefined,
       htmlContent: req.body.htmlContent,
       textContent: req.body.textContent,
       organizationId: req.body.organizationId,
       priority: req.body.priority || 'normal',
       trackOpens: req.body.trackOpens === 'true',
       trackClicks: req.body.trackClicks === 'true',
-      attachments: req.files ? (req.files as Express.Multer.File[]).map(file => ({
-        filename: file.originalname,
-        path: file.path,
-        contentType: file.mimetype,
-      })) : undefined,
+      attachments: req.files
+        ? (req.files as Express.Multer.File[]).map((file) => ({
+            filename: file.originalname,
+            path: file.path,
+            contentType: file.mimetype,
+          }))
+        : undefined,
     };
 
     const result = await emailService.sendEmail(emailRequest);
-    
+
     res.json({
       success: result.status === 'sent',
       messageId: result.messageId,
@@ -94,7 +98,7 @@ router.post('/templates', async (req: Request, res: Response) => {
     };
 
     const template = await emailService.createTemplate(templateData);
-    
+
     res.status(201).json({
       success: true,
       template,
@@ -114,7 +118,7 @@ router.get('/templates/:organizationId', async (req: Request, res: Response) => 
   try {
     const { organizationId } = req.params;
     const templates = await emailService.getTemplates(organizationId);
-    
+
     res.json({
       success: true,
       templates,
@@ -134,14 +138,14 @@ router.get('/templates/:organizationId/:templateId', async (req: Request, res: R
   try {
     const { templateId } = req.params;
     const template = await emailService.getTemplate(templateId);
-    
+
     if (!template) {
       return res.status(404).json({
         success: false,
         error: 'Template not found',
       });
     }
-    
+
     res.json({
       success: true,
       template,
@@ -168,7 +172,7 @@ router.put('/templates/:templateId', async (req: Request, res: Response) => {
     };
 
     const template = await emailService.updateTemplate(templateId, updates);
-    
+
     res.json({
       success: true,
       template,
@@ -188,7 +192,7 @@ router.delete('/templates/:templateId', async (req: Request, res: Response) => {
   try {
     const { templateId } = req.params;
     await emailService.deleteTemplate(templateId);
-    
+
     res.json({
       success: true,
       message: 'Template deleted successfully',
@@ -208,14 +212,14 @@ router.get('/status/:messageId', async (req: Request, res: Response) => {
   try {
     const { messageId } = req.params;
     const status = await emailService.getDeliveryStatus(messageId);
-    
+
     if (!status) {
       return res.status(404).json({
         success: false,
         error: 'Delivery status not found',
       });
     }
-    
+
     res.json({
       success: true,
       status,
@@ -235,20 +239,20 @@ router.get('/metrics/:organizationId', async (req: Request, res: Response) => {
   try {
     const { organizationId } = req.params;
     const { startDate, endDate } = req.query;
-    
+
     if (!startDate || !endDate) {
       return res.status(400).json({
         success: false,
         error: 'startDate and endDate are required',
       });
     }
-    
+
     const metrics = await emailService.getEmailMetrics(
       organizationId,
       new Date(startDate as string),
       new Date(endDate as string)
     );
-    
+
     res.json({
       success: true,
       metrics,
@@ -267,7 +271,7 @@ router.get('/metrics/:organizationId', async (req: Request, res: Response) => {
 router.get('/health', async (req: Request, res: Response) => {
   try {
     const isConnected = await emailService.verifyConnection();
-    
+
     res.json({
       success: true,
       status: 'healthy',

@@ -17,7 +17,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Initialize document service
-documentService.initialize().catch(error => {
+documentService.initialize().catch((error) => {
   logger.error('Failed to initialize document service', { error: error.message });
   process.exit(1);
 });

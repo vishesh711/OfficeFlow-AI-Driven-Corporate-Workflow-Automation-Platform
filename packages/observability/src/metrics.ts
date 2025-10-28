@@ -12,45 +12,48 @@ export interface MetricLabels {
 
 export class MetricsService {
   private meter = metrics.getMeter('officeflow-platform');
-  
+
   // Counters
   private requestCounter = this.meter.createCounter('officeflow_requests_total', {
     description: 'Total number of requests processed',
   });
-  
-  private workflowExecutionCounter = this.meter.createCounter('officeflow_workflow_executions_total', {
-    description: 'Total number of workflow executions',
-  });
-  
+
+  private workflowExecutionCounter = this.meter.createCounter(
+    'officeflow_workflow_executions_total',
+    {
+      description: 'Total number of workflow executions',
+    }
+  );
+
   private nodeExecutionCounter = this.meter.createCounter('officeflow_node_executions_total', {
     description: 'Total number of node executions',
   });
-  
+
   private errorCounter = this.meter.createCounter('officeflow_errors_total', {
     description: 'Total number of errors',
   });
-  
+
   // Histograms
   private requestDuration = this.meter.createHistogram('officeflow_request_duration_seconds', {
     description: 'Request duration in seconds',
     boundaries: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10],
   });
-  
+
   private workflowDuration = this.meter.createHistogram('officeflow_workflow_duration_seconds', {
     description: 'Workflow execution duration in seconds',
     boundaries: [1, 5, 10, 30, 60, 300, 600, 1800, 3600],
   });
-  
+
   private nodeDuration = this.meter.createHistogram('officeflow_node_duration_seconds', {
     description: 'Node execution duration in seconds',
     boundaries: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120],
   });
-  
+
   // Gauges
   private activeWorkflows = this.meter.createUpDownCounter('officeflow_active_workflows', {
     description: 'Number of currently active workflows',
   });
-  
+
   private queueSize = this.meter.createUpDownCounter('officeflow_queue_size', {
     description: 'Number of items in processing queues',
   });
@@ -110,13 +113,13 @@ export class MetricsService {
 
   private sanitizeLabels(labels: MetricLabels): Record<string, string> {
     const sanitized: Record<string, string> = {};
-    
+
     for (const [key, value] of Object.entries(labels)) {
       if (value !== undefined && value !== null) {
         sanitized[key] = String(value);
       }
     }
-    
+
     return sanitized;
   }
 }

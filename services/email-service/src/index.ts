@@ -60,7 +60,7 @@ const server = app.listen(config.port, () => {
   logger.info(`Email service started on port ${config.port}`, {
     port: config.port,
     environment: process.env.NODE_ENV || 'development',
-    providers: config.providers.map(p => p.name),
+    providers: config.providers.map((p) => p.name),
   });
 });
 

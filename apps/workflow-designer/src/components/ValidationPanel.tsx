@@ -1,27 +1,27 @@
-import { useMemo } from 'react'
-import { AlertTriangle, AlertCircle, CheckCircle, X } from 'lucide-react'
-import { useWorkflowStore } from '@/store/workflow'
-import { validateWorkflow, ValidationError } from '@/lib/validation'
+import { useMemo } from 'react';
+import { AlertTriangle, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { useWorkflowStore } from '@/store/workflow';
+import { validateWorkflow, ValidationError } from '@/lib/validation';
 
 interface ValidationPanelProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export function ValidationPanel({ isOpen, onClose }: ValidationPanelProps) {
-  const { nodes, edges, selectNode } = useWorkflowStore()
+  const { nodes, edges, selectNode } = useWorkflowStore();
 
   const validationResult = useMemo(() => {
-    return validateWorkflow(nodes, edges)
-  }, [nodes, edges])
+    return validateWorkflow(nodes, edges);
+  }, [nodes, edges]);
 
   const handleErrorClick = (error: ValidationError) => {
     if (error.nodeId) {
-      selectNode(error.nodeId)
+      selectNode(error.nodeId);
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed bottom-4 right-4 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-40 max-h-96 overflow-hidden">
@@ -32,14 +32,9 @@ export function ValidationPanel({ isOpen, onClose }: ValidationPanelProps) {
           ) : (
             <AlertTriangle className="h-5 w-5 text-red-500" />
           )}
-          <h3 className="font-medium text-gray-900">
-            Workflow Validation
-          </h3>
+          <h3 className="font-medium text-gray-900">Workflow Validation</h3>
         </div>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-600"
-        >
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -48,9 +43,7 @@ export function ValidationPanel({ isOpen, onClose }: ValidationPanelProps) {
         {validationResult.isValid && validationResult.warnings.length === 0 ? (
           <div className="p-4 text-center">
             <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">
-              Workflow is valid with no issues detected.
-            </p>
+            <p className="text-sm text-gray-600">Workflow is valid with no issues detected.</p>
           </div>
         ) : (
           <div className="p-4 space-y-3">
@@ -121,5 +114,5 @@ export function ValidationPanel({ isOpen, onClose }: ValidationPanelProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

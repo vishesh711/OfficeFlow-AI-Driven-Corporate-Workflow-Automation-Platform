@@ -60,29 +60,40 @@ class WebhookGatewayServer {
    */
   private setupMiddleware(): void {
     // Security middleware
-    this.app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'"],
-          imgSrc: ["'self'", "data:", "https:"],
+    this.app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", 'data:', 'https:'],
+          },
         },
-      },
-    }));
+      })
+    );
 
     // CORS middleware
-    this.app.use(cors({
-      origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-signature', 'x-hub-signature', 'x-webhook-signature', 'x-organization-id'],
-      credentials: true,
-    }));
+    this.app.use(
+      cors({
+        origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: [
+          'Content-Type',
+          'Authorization',
+          'x-signature',
+          'x-hub-signature',
+          'x-webhook-signature',
+          'x-organization-id',
+        ],
+        credentials: true,
+      })
+    );
 
     // Request logging middleware
     this.app.use((req, res, next) => {
       const start = Date.now();
-      
+
       res.on('finish', () => {
         const duration = Date.now() - start;
         logger.info('HTTP request', {
@@ -103,8 +114,9 @@ class WebhookGatewayServer {
       try {
         const webhookHealth = await this.webhookService.healthCheck();
         const adapterHealth = await this.adapterManager.getHealthStatus();
-        
-        const overallHealth = webhookHealth.status === 'healthy' && 
+
+        const overallHealth =
+          webhookHealth.status === 'healthy' &&
           Object.values(adapterHealth).every((adapter: any) => adapter.healthy);
 
         res.status(overallHealth ? 200 : 503).json({
@@ -200,7 +212,7 @@ class WebhookGatewayServer {
     router.get('/adapters', (req, res) => {
       try {
         const adapters = this.adapterManager.getAllAdapters();
-        const configs = adapters.map(adapter => ({
+        const configs = adapters.map((adapter) => ({
           source: adapter.source,
           config: adapter.getConfig(),
         }));
@@ -219,19 +231,21 @@ class WebhookGatewayServer {
    */
   private setupErrorHandling(): void {
     // Global error handler
-    this.app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-      logger.error('Unhandled error', {
-        error: error.message,
-        stack: error.stack,
-        url: req.url,
-        method: req.method,
-      });
+    this.app.use(
+      (error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        logger.error('Unhandled error', {
+          error: error.message,
+          stack: error.stack,
+          url: req.url,
+          method: req.method,
+        });
 
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: webhookConfig.nodeEnv === 'development' ? error.message : 'Something went wrong',
-      });
-    });
+        res.status(500).json({
+          error: 'Internal Server Error',
+          message: webhookConfig.nodeEnv === 'development' ? error.message : 'Something went wrong',
+        });
+      }
+    );
 
     // Handle uncaught exceptions
     process.on('uncaughtException', (error) => {

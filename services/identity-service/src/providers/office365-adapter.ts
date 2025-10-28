@@ -15,30 +15,28 @@ export class Office365Adapter implements IdentityProviderAdapter {
   constructor(config: ProviderConfig, logger: Logger) {
     this.config = config;
     this.logger = logger;
-    
+
     this.httpClient = axios.create({
       timeout: 30000,
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
 
     // Add request/response interceptors
-    this.httpClient.interceptors.request.use(
-      (config) => {
-        this.logger.debug('Microsoft Graph request', {
-          method: config.method,
-          url: config.url
-        });
-        return config;
-      }
-    );
+    this.httpClient.interceptors.request.use((config) => {
+      this.logger.debug('Microsoft Graph request', {
+        method: config.method,
+        url: config.url,
+      });
+      return config;
+    });
 
     this.httpClient.interceptors.response.use(
       (response) => {
         this.logger.debug('Microsoft Graph response', {
           status: response.status,
-          url: response.config.url
+          url: response.config.url,
         });
         return response;
       },
@@ -46,21 +44,18 @@ export class Office365Adapter implements IdentityProviderAdapter {
         this.logger.error('Microsoft Graph error', {
           status: error.response?.status,
           url: error.config?.url,
-          error: error.response?.data || error.message
+          error: error.response?.data || error.message,
         });
         return Promise.reject(error);
       }
     );
   }
 
-  async createUser(
-    tokens: OAuth2Token,
-    userInfo: UserAccount
-  ): Promise<ProvisioningResult> {
+  async createUser(tokens: OAuth2Token, userInfo: UserAccount): Promise<ProvisioningResult> {
     try {
       const userPrincipalName = userInfo.email;
       const displayName = `${userInfo.firstName} ${userInfo.lastName}`;
-      
+
       const userPayload = {
         accountEnabled: true,
         displayName,
@@ -72,20 +67,24 @@ export class Office365Adapter implements IdentityProviderAdapter {
         department: userInfo.department,
         passwordProfile: {
           forceChangePasswordNextSignIn: true,
-          password: this.generateTemporaryPassword()
+          password: this.generateTemporaryPassword(),
         },
-        usageLocation: 'US' // Required for license assignment
+        usageLocation: 'US', // Required for license assignment
       };
 
-      const response = await this.httpClient.post('https://graph.microsoft.com/v1.0/users', userPayload, {
-        headers: {
-          'Authorization': `Bearer ${tokens.accessToken}`
+      const response = await this.httpClient.post(
+        'https://graph.microsoft.com/v1.0/users',
+        userPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${tokens.accessToken}`,
+          },
         }
-      });
+      );
 
       this.logger.info('Office 365 user created successfully', {
         email: userInfo.email,
-        userId: response.data.id
+        userId: response.data.id,
       });
 
       return {
@@ -95,18 +94,18 @@ export class Office365Adapter implements IdentityProviderAdapter {
         metadata: {
           displayName: response.data.displayName,
           accountEnabled: response.data.accountEnabled,
-          createdDateTime: response.data.createdDateTime
-        }
+          createdDateTime: response.data.createdDateTime,
+        },
       };
     } catch (error) {
       this.logger.error('Failed to create Office 365 user', {
         email: userInfo.email,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: this.extractErrorMessage(error)
+        error: this.extractErrorMessage(error),
       };
     }
   }
@@ -141,12 +140,12 @@ export class Office365Adapter implements IdentityProviderAdapter {
 
       const response = await this.httpClient.patch(`/users/${userId}`, updatePayload, {
         headers: {
-          'Authorization': `Bearer ${tokens.accessToken}`
-        }
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
       });
 
       this.logger.info('Office 365 user updated successfully', {
-        userId
+        userId,
       });
 
       return {
@@ -154,18 +153,18 @@ export class Office365Adapter implements IdentityProviderAdapter {
         userId,
         email: '',
         metadata: {
-          updated: true
-        }
+          updated: true,
+        },
       };
     } catch (error) {
       this.logger.error('Failed to update Office 365 user', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: this.extractErrorMessage(error)
+        error: this.extractErrorMessage(error),
       };
     }
   }
@@ -173,16 +172,20 @@ export class Office365Adapter implements IdentityProviderAdapter {
   async deleteUser(tokens: OAuth2Token, userId: string): Promise<ProvisioningResult> {
     try {
       // Disable user instead of deleting to preserve data
-      await this.httpClient.patch(`/users/${userId}`, {
-        accountEnabled: false
-      }, {
-        headers: {
-          'Authorization': `Bearer ${tokens.accessToken}`
+      await this.httpClient.patch(
+        `/users/${userId}`,
+        {
+          accountEnabled: false,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${tokens.accessToken}`,
+          },
         }
-      });
+      );
 
       this.logger.info('Office 365 user disabled successfully', {
-        userId
+        userId,
       });
 
       return {
@@ -191,18 +194,18 @@ export class Office365Adapter implements IdentityProviderAdapter {
         email: '',
         metadata: {
           accountEnabled: false,
-          disabledDateTime: new Date().toISOString()
-        }
+          disabledDateTime: new Date().toISOString(),
+        },
       };
     } catch (error) {
       this.logger.error('Failed to disable Office 365 user', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: this.extractErrorMessage(error)
+        error: this.extractErrorMessage(error),
       };
     }
   }
@@ -217,37 +220,41 @@ export class Office365Adapter implements IdentityProviderAdapter {
 
       for (const groupId of groups) {
         try {
-          await this.httpClient.post(`/groups/${groupId}/members/$ref`, {
-            '@odata.id': `https://graph.microsoft.com/v1.0/users/${userId}`
-          }, {
-            headers: {
-              'Authorization': `Bearer ${tokens.accessToken}`
+          await this.httpClient.post(
+            `/groups/${groupId}/members/$ref`,
+            {
+              '@odata.id': `https://graph.microsoft.com/v1.0/users/${userId}`,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${tokens.accessToken}`,
+              },
             }
-          });
+          );
 
           results.push({ group: groupId, success: true });
-          
+
           this.logger.debug('User added to Office 365 group', {
             userId,
-            groupId
+            groupId,
           });
         } catch (error) {
-          results.push({ 
-            group: groupId, 
-            success: false, 
-            error: this.extractErrorMessage(error)
+          results.push({
+            group: groupId,
+            success: false,
+            error: this.extractErrorMessage(error),
           });
-          
+
           this.logger.warn('Failed to add user to Office 365 group', {
             userId,
             groupId,
-            error: this.extractErrorMessage(error)
+            error: this.extractErrorMessage(error),
           });
         }
       }
 
-      const successCount = results.filter(r => r.success).length;
-      
+      const successCount = results.filter((r) => r.success).length;
+
       return {
         success: successCount > 0,
         userId,
@@ -255,19 +262,19 @@ export class Office365Adapter implements IdentityProviderAdapter {
         metadata: {
           groupAssignments: results,
           successCount,
-          totalCount: groups.length
-        }
+          totalCount: groups.length,
+        },
       };
     } catch (error) {
       this.logger.error('Failed to assign Office 365 groups', {
         userId,
         groups,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: this.extractErrorMessage(error)
+        error: this.extractErrorMessage(error),
       };
     }
   }
@@ -284,33 +291,33 @@ export class Office365Adapter implements IdentityProviderAdapter {
         try {
           await this.httpClient.delete(`/groups/${groupId}/members/${userId}/$ref`, {
             headers: {
-              'Authorization': `Bearer ${tokens.accessToken}`
-            }
+              Authorization: `Bearer ${tokens.accessToken}`,
+            },
           });
 
           results.push({ group: groupId, success: true });
-          
+
           this.logger.debug('User removed from Office 365 group', {
             userId,
-            groupId
+            groupId,
           });
         } catch (error) {
-          results.push({ 
-            group: groupId, 
-            success: false, 
-            error: this.extractErrorMessage(error)
+          results.push({
+            group: groupId,
+            success: false,
+            error: this.extractErrorMessage(error),
           });
-          
+
           this.logger.warn('Failed to remove user from Office 365 group', {
             userId,
             groupId,
-            error: this.extractErrorMessage(error)
+            error: this.extractErrorMessage(error),
           });
         }
       }
 
-      const successCount = results.filter(r => r.success).length;
-      
+      const successCount = results.filter((r) => r.success).length;
+
       return {
         success: successCount > 0,
         userId,
@@ -318,19 +325,19 @@ export class Office365Adapter implements IdentityProviderAdapter {
         metadata: {
           groupRemovals: results,
           successCount,
-          totalCount: groups.length
-        }
+          totalCount: groups.length,
+        },
       };
     } catch (error) {
       this.logger.error('Failed to remove Office 365 groups', {
         userId,
         groups,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: this.extractErrorMessage(error)
+        error: this.extractErrorMessage(error),
       };
     }
   }
@@ -339,26 +346,26 @@ export class Office365Adapter implements IdentityProviderAdapter {
     try {
       const response = await this.httpClient.get('/groups', {
         headers: {
-          'Authorization': `Bearer ${tokens.accessToken}`
+          Authorization: `Bearer ${tokens.accessToken}`,
         },
         params: {
-          '$select': 'id,displayName,mail,description',
-          '$top': 200
-        }
+          $select: 'id,displayName,mail,description',
+          $top: 200,
+        },
       });
 
       const groups = response.data.value || [];
-      
+
       return groups.map((group: any) => ({
         id: group.id,
         name: group.displayName,
         email: group.mail || '',
         description: group.description || '',
-        memberCount: 0 // Microsoft Graph requires separate call for member count
+        memberCount: 0, // Microsoft Graph requires separate call for member count
       }));
     } catch (error) {
       this.logger.error('Failed to list Office 365 groups', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -370,23 +377,26 @@ export class Office365Adapter implements IdentityProviderAdapter {
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const numbers = '0123456789';
     const symbols = '!@#$%^&*';
-    
+
     let password = '';
-    
+
     // Ensure at least one character from each category
     password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
     password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
     password += numbers.charAt(Math.floor(Math.random() * numbers.length));
     password += symbols.charAt(Math.floor(Math.random() * symbols.length));
-    
+
     // Fill remaining characters
     const allChars = lowercase + uppercase + numbers + symbols;
     for (let i = 4; i < 16; i++) {
       password += allChars.charAt(Math.floor(Math.random() * allChars.length));
     }
-    
+
     // Shuffle the password
-    return password.split('').sort(() => Math.random() - 0.5).join('');
+    return password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('');
   }
 
   private extractErrorMessage(error: any): string {

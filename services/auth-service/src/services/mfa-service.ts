@@ -11,12 +11,12 @@ export class MfaService {
     const secret = speakeasy.generateSecret({
       name: userEmail,
       issuer: authConfig.mfa.issuer,
-      length: 32
+      length: 32,
     });
 
     return {
       secret: secret.base32,
-      otpauthUrl: secret.otpauth_url!
+      otpauthUrl: secret.otpauth_url!,
     };
   }
 
@@ -35,7 +35,7 @@ export class MfaService {
       secret,
       encoding: 'base32',
       token,
-      window: authConfig.mfa.window
+      window: authConfig.mfa.window,
     });
   }
 
@@ -44,13 +44,13 @@ export class MfaService {
    */
   generateBackupCodes(count: number = 10): string[] {
     const codes: string[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       // Generate 8-character alphanumeric code
       const code = Math.random().toString(36).substring(2, 10).toUpperCase();
       codes.push(code);
     }
-    
+
     return codes;
   }
 
@@ -66,13 +66,13 @@ export class MfaService {
    */
   generateRecoveryCodes(count: number = 5): string[] {
     const codes: string[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       // Generate longer recovery codes (16 characters)
       const code = generateId().replace(/-/g, '').substring(0, 16).toUpperCase();
       codes.push(code);
     }
-    
+
     return codes;
   }
 

@@ -1,5 +1,5 @@
 import { WebClient } from '@slack/web-api';
-import { 
+import {
   SlackCredentials,
   SlackServiceConfig,
   SlackUser,
@@ -23,7 +23,7 @@ import {
   ListChannelsRequest,
   ListChannelsResponse,
   GetChannelMembersRequest,
-  GetChannelMembersResponse
+  GetChannelMembersResponse,
 } from '../types/slack-types';
 import { logger } from '../utils/logger';
 
@@ -54,23 +54,25 @@ export class SlackService {
       isRestricted: slackUser.is_restricted || false,
       isUltraRestricted: slackUser.is_ultra_restricted || false,
       deleted: slackUser.deleted || false,
-      profile: slackUser.profile ? {
-        firstName: slackUser.profile.first_name,
-        lastName: slackUser.profile.last_name,
-        realName: slackUser.profile.real_name,
-        displayName: slackUser.profile.display_name,
-        email: slackUser.profile.email,
-        phone: slackUser.profile.phone,
-        title: slackUser.profile.title,
-        statusText: slackUser.profile.status_text,
-        statusEmoji: slackUser.profile.status_emoji,
-        image24: slackUser.profile.image_24,
-        image32: slackUser.profile.image_32,
-        image48: slackUser.profile.image_48,
-        image72: slackUser.profile.image_72,
-        image192: slackUser.profile.image_192,
-        image512: slackUser.profile.image_512,
-      } : undefined,
+      profile: slackUser.profile
+        ? {
+            firstName: slackUser.profile.first_name,
+            lastName: slackUser.profile.last_name,
+            realName: slackUser.profile.real_name,
+            displayName: slackUser.profile.display_name,
+            email: slackUser.profile.email,
+            phone: slackUser.profile.phone,
+            title: slackUser.profile.title,
+            statusText: slackUser.profile.status_text,
+            statusEmoji: slackUser.profile.status_emoji,
+            image24: slackUser.profile.image_24,
+            image32: slackUser.profile.image_32,
+            image48: slackUser.profile.image_48,
+            image72: slackUser.profile.image_72,
+            image192: slackUser.profile.image_192,
+            image512: slackUser.profile.image_512,
+          }
+        : undefined,
     };
   }
 
@@ -90,16 +92,20 @@ export class SlackService {
       isOrgShared: slackChannel.is_org_shared || false,
       creator: slackChannel.creator,
       created: slackChannel.created,
-      topic: slackChannel.topic ? {
-        value: slackChannel.topic.value,
-        creator: slackChannel.topic.creator,
-        lastSet: slackChannel.topic.last_set,
-      } : undefined,
-      purpose: slackChannel.purpose ? {
-        value: slackChannel.purpose.value,
-        creator: slackChannel.purpose.creator,
-        lastSet: slackChannel.purpose.last_set,
-      } : undefined,
+      topic: slackChannel.topic
+        ? {
+            value: slackChannel.topic.value,
+            creator: slackChannel.topic.creator,
+            lastSet: slackChannel.topic.last_set,
+          }
+        : undefined,
+      purpose: slackChannel.purpose
+        ? {
+            value: slackChannel.purpose.value,
+            creator: slackChannel.purpose.creator,
+            lastSet: slackChannel.purpose.last_set,
+          }
+        : undefined,
       members: slackChannel.members,
       numMembers: slackChannel.num_members,
     };
@@ -111,7 +117,7 @@ export class SlackService {
   ): Promise<SendMessageResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.chat.postMessage({
         channel: request.channel,
         text: request.text,
@@ -162,7 +168,7 @@ export class SlackService {
   ): Promise<CreateChannelResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.conversations.create({
         name: request.name,
         is_private: request.isPrivate,
@@ -231,7 +237,7 @@ export class SlackService {
   ): Promise<InviteToChannelResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.conversations.invite({
         channel: request.channel,
         users: request.users.join(','),
@@ -274,7 +280,7 @@ export class SlackService {
   ): Promise<RemoveFromChannelResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.conversations.kick({
         channel: request.channel,
         user: request.user,
@@ -316,7 +322,7 @@ export class SlackService {
   ): Promise<ArchiveChannelResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.conversations.archive({
         channel: request.channel,
       });
@@ -349,13 +355,10 @@ export class SlackService {
     }
   }
 
-  async getUser(
-    request: GetUserRequest,
-    credentials: SlackCredentials
-  ): Promise<GetUserResponse> {
+  async getUser(request: GetUserRequest, credentials: SlackCredentials): Promise<GetUserResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.users.info({
         user: request.user,
         include_locale: request.includeLocale,
@@ -399,7 +402,7 @@ export class SlackService {
   ): Promise<ListUsersResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.users.list({
         cursor: request.cursor,
         limit: request.limit,
@@ -410,7 +413,7 @@ export class SlackService {
         throw new Error(result.error || 'Failed to list users');
       }
 
-      const users = result.members?.map(member => this.convertSlackUser(member)) || [];
+      const users = result.members?.map((member) => this.convertSlackUser(member)) || [];
 
       logger.info('Slack users listed', {
         count: users.length,
@@ -443,7 +446,7 @@ export class SlackService {
   ): Promise<GetChannelResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.conversations.info({
         channel: request.channel,
         include_locale: request.includeLocale,
@@ -487,7 +490,7 @@ export class SlackService {
   ): Promise<ListChannelsResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.conversations.list({
         cursor: request.cursor,
         limit: request.limit,
@@ -499,7 +502,7 @@ export class SlackService {
         throw new Error(result.error || 'Failed to list channels');
       }
 
-      const channels = result.channels?.map(channel => this.convertSlackChannel(channel)) || [];
+      const channels = result.channels?.map((channel) => this.convertSlackChannel(channel)) || [];
 
       logger.info('Slack channels listed', {
         count: channels.length,
@@ -532,7 +535,7 @@ export class SlackService {
   ): Promise<GetChannelMembersResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.conversations.members({
         channel: request.channel,
         cursor: request.cursor,
@@ -570,13 +573,10 @@ export class SlackService {
     }
   }
 
-  async findUserByEmail(
-    email: string,
-    credentials: SlackCredentials
-  ): Promise<GetUserResponse> {
+  async findUserByEmail(email: string, credentials: SlackCredentials): Promise<GetUserResponse> {
     try {
       const client = this.createClientForCredentials(credentials);
-      
+
       const result = await client.users.lookupByEmail({
         email,
       });

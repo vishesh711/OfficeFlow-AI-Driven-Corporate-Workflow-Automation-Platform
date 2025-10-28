@@ -43,7 +43,13 @@
     "@typescript-eslint/eslint-plugin": "^6.12.0",
     "@typescript-eslint/parser": "^6.12.0"
   },
-  "keywords": ["webhook", "gateway", "hrms", "integration", "officeflow"],
+  "keywords": [
+    "webhook",
+    "gateway",
+    "hrms",
+    "integration",
+    "officeflow"
+  ],
   "author": "OfficeFlow Team",
   "license": "MIT"
 }

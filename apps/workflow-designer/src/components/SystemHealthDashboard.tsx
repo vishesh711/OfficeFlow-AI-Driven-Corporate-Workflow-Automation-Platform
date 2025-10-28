@@ -1,52 +1,52 @@
-import { 
-  Database, 
-  Server, 
-  Activity, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Database,
+  Server,
+  Activity,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
-  Network
-} from 'lucide-react'
-import { SystemHealth } from '../lib/api'
+  Network,
+} from 'lucide-react';
+import { SystemHealth } from '../lib/api';
 
 interface SystemHealthDashboardProps {
-  health: SystemHealth
+  health: SystemHealth;
 }
 
 export function SystemHealthDashboard({ health }: SystemHealthDashboardProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'degraded':
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
       case 'unhealthy':
-        return <XCircle className="h-5 w-5 text-red-500" />
+        return <XCircle className="h-5 w-5 text-red-500" />;
       default:
-        return <AlertTriangle className="h-5 w-5 text-gray-500" />
+        return <AlertTriangle className="h-5 w-5 text-gray-500" />;
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'degraded':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800';
       case 'unhealthy':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-  }
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   return (
     <div className="space-y-6">
@@ -68,12 +68,14 @@ export function SystemHealthDashboard({ health }: SystemHealthDashboardProps) {
                 <p className="text-sm text-gray-500">PostgreSQL</p>
               </div>
             </div>
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(health.database.status)}`}>
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(health.database.status)}`}
+            >
               {getStatusIcon(health.database.status)}
               <span className="ml-2 capitalize">{health.database.status}</span>
             </span>
           </div>
-          
+
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500">Connections</p>
@@ -95,16 +97,20 @@ export function SystemHealthDashboard({ health }: SystemHealthDashboardProps) {
                 <p className="text-sm text-gray-500">Cache & State</p>
               </div>
             </div>
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(health.redis.status)}`}>
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(health.redis.status)}`}
+            >
               {getStatusIcon(health.redis.status)}
               <span className="ml-2 capitalize">{health.redis.status}</span>
             </span>
           </div>
-          
+
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500">Memory</p>
-              <p className="text-lg font-semibold text-gray-900">{formatBytes(health.redis.memory)}</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {formatBytes(health.redis.memory)}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Connections</p>
@@ -122,12 +128,14 @@ export function SystemHealthDashboard({ health }: SystemHealthDashboardProps) {
                 <p className="text-sm text-gray-500">Event Streaming</p>
               </div>
             </div>
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(health.kafka.status)}`}>
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(health.kafka.status)}`}
+            >
               {getStatusIcon(health.kafka.status)}
               <span className="ml-2 capitalize">{health.kafka.status}</span>
             </span>
           </div>
-          
+
           <div className="mt-4">
             <p className="text-sm font-medium text-gray-500">Topics</p>
             <p className="text-lg font-semibold text-gray-900">{health.kafka.topics.length}</p>
@@ -169,20 +177,28 @@ export function SystemHealthDashboard({ health }: SystemHealthDashboardProps) {
                       {topic.partitions}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        topic.lag > 1000 ? 'bg-red-100 text-red-800' :
-                        topic.lag > 100 ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          topic.lag > 1000
+                            ? 'bg-red-100 text-red-800'
+                            : topic.lag > 100
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-green-100 text-green-800'
+                        }`}
+                      >
                         {topic.lag}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        topic.lag > 1000 ? 'bg-red-100 text-red-800' :
-                        topic.lag > 100 ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          topic.lag > 1000
+                            ? 'bg-red-100 text-red-800'
+                            : topic.lag > 100
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-green-100 text-green-800'
+                        }`}
+                      >
                         {topic.lag > 1000 ? 'High Lag' : topic.lag > 100 ? 'Medium Lag' : 'Healthy'}
                       </span>
                     </td>
@@ -210,7 +226,7 @@ export function SystemHealthDashboard({ health }: SystemHealthDashboardProps) {
                   </div>
                   {getStatusIcon(service.status)}
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-500">Last Check:</span>
@@ -218,18 +234,20 @@ export function SystemHealthDashboard({ health }: SystemHealthDashboardProps) {
                       {new Date(service.lastCheck).toLocaleTimeString()}
                     </span>
                   </div>
-                  
+
                   {service.responseTime && (
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-500">Response Time:</span>
                       <span className="text-gray-900">{service.responseTime}ms</span>
                     </div>
                   )}
-                  
+
                   {service.errorRate !== undefined && (
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-500">Error Rate:</span>
-                      <span className={`${service.errorRate > 5 ? 'text-red-600' : 'text-gray-900'}`}>
+                      <span
+                        className={`${service.errorRate > 5 ? 'text-red-600' : 'text-gray-900'}`}
+                      >
                         {service.errorRate.toFixed(2)}%
                       </span>
                     </div>
@@ -241,5 +259,5 @@ export function SystemHealthDashboard({ health }: SystemHealthDashboardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

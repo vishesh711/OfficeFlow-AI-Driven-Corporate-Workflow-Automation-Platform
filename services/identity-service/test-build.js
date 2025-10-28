@@ -24,12 +24,12 @@ const requiredFiles = [
   'migrations/003_identity_audit_events.sql',
   'package.json',
   'tsconfig.json',
-  'README.md'
+  'README.md',
 ];
 
 let allFilesExist = true;
 
-requiredFiles.forEach(file => {
+requiredFiles.forEach((file) => {
   const filePath = path.join(__dirname, file);
   if (fs.existsSync(filePath)) {
     console.log(`✓ ${file}`);

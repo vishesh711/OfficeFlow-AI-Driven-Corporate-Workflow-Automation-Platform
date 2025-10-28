@@ -9,18 +9,18 @@ export const KAFKA_TOPICS = {
   EMPLOYEE_EXIT: 'employee.exit',
   EMPLOYEE_TRANSFER: 'employee.transfer',
   EMPLOYEE_UPDATE: 'employee.update',
-  
+
   // Workflow control
   WORKFLOW_RUN_REQUEST: 'workflow.run.request',
   WORKFLOW_RUN_PAUSE: 'workflow.run.pause',
   WORKFLOW_RUN_RESUME: 'workflow.run.resume',
   WORKFLOW_RUN_CANCEL: 'workflow.run.cancel',
-  
+
   // Node execution
   NODE_EXECUTE_REQUEST: 'node.execute.request',
   NODE_EXECUTE_RESULT: 'node.execute.result',
   NODE_EXECUTE_RETRY: 'node.execute.retry',
-  
+
   // Integration events
   IDENTITY_PROVISION_REQUEST: 'identity.provision.request',
   IDENTITY_PROVISION_RESULT: 'identity.provision.result',
@@ -28,7 +28,7 @@ export const KAFKA_TOPICS = {
   EMAIL_SEND_RESULT: 'email.send.result',
   CALENDAR_SCHEDULE_REQUEST: 'calendar.schedule.request',
   CALENDAR_SCHEDULE_RESULT: 'calendar.schedule.result',
-  
+
   // Observability
   AUDIT_EVENTS: 'audit.events',
   METRICS_EVENTS: 'metrics.events',
@@ -85,36 +85,36 @@ export const ERROR_CODES = {
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   INVALID_INPUT: 'INVALID_INPUT',
   MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD',
-  
+
   // Authentication/Authorization errors
   UNAUTHORIZED: 'UNAUTHORIZED',
   FORBIDDEN: 'FORBIDDEN',
   INVALID_TOKEN: 'INVALID_TOKEN',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
-  
+
   // Resource errors
   RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
   RESOURCE_ALREADY_EXISTS: 'RESOURCE_ALREADY_EXISTS',
   RESOURCE_CONFLICT: 'RESOURCE_CONFLICT',
-  
+
   // Workflow errors
   WORKFLOW_NOT_FOUND: 'WORKFLOW_NOT_FOUND',
   WORKFLOW_EXECUTION_FAILED: 'WORKFLOW_EXECUTION_FAILED',
   WORKFLOW_ALREADY_RUNNING: 'WORKFLOW_ALREADY_RUNNING',
   INVALID_WORKFLOW_DEFINITION: 'INVALID_WORKFLOW_DEFINITION',
   CIRCULAR_DEPENDENCY: 'CIRCULAR_DEPENDENCY',
-  
+
   // Node execution errors
   NODE_EXECUTION_FAILED: 'NODE_EXECUTION_FAILED',
   NODE_TIMEOUT: 'NODE_TIMEOUT',
   INVALID_NODE_PARAMS: 'INVALID_NODE_PARAMS',
   NODE_NOT_FOUND: 'NODE_NOT_FOUND',
-  
+
   // Integration errors
   EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
   INTEGRATION_NOT_CONFIGURED: 'INTEGRATION_NOT_CONFIGURED',
   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-  
+
   // System errors
   DATABASE_ERROR: 'DATABASE_ERROR',
   REDIS_ERROR: 'REDIS_ERROR',

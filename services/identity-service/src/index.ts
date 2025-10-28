@@ -49,25 +49,26 @@ class IdentityService {
   private setupLogger(): void {
     this.logger = winston.createLogger({
       level: this.config.logging.level,
-      format: this.config.logging.format === 'json' 
-        ? winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.errors({ stack: true }),
-            winston.format.json()
-          )
-        : winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.errors({ stack: true }),
-            winston.format.simple()
-          ),
+      format:
+        this.config.logging.format === 'json'
+          ? winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.errors({ stack: true }),
+              winston.format.json()
+            )
+          : winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.errors({ stack: true }),
+              winston.format.simple()
+            ),
       transports: [
         new winston.transports.Console(),
-        new winston.transports.File({ 
+        new winston.transports.File({
           filename: 'logs/identity-service.log',
           maxsize: 10485760, // 10MB
-          maxFiles: 5
-        })
-      ]
+          maxFiles: 5,
+        }),
+      ],
     });
   }
 
@@ -96,7 +97,6 @@ class IdentityService {
     //   groupId: this.config.kafka.groupId,
     //   clientId: this.config.kafka.clientId
     // });
-
     // this.producer = new Producer({
     //   brokers: this.config.kafka.brokers,
     //   clientId: this.config.kafka.clientId
@@ -163,7 +163,7 @@ class IdentityService {
         method: req.method,
         url: req.url,
         userAgent: req.get('User-Agent'),
-        ip: req.ip
+        ip: req.ip,
       });
       next();
     });
@@ -176,7 +176,7 @@ class IdentityService {
         status: 'healthy',
         service: 'identity-service',
         timestamp: new Date().toISOString(),
-        version: process.env.npm_package_version || '1.0.0'
+        version: process.env.npm_package_version || '1.0.0',
       });
     });
 
@@ -188,20 +188,20 @@ class IdentityService {
       } catch (error) {
         this.logger.error('Node execution failed', {
           error: error instanceof Error ? error.message : 'Unknown error',
-          body: req.body
+          body: req.body,
         });
-        
+
         res.status(500).json({
           status: 'failed',
           output: {},
           error: {
             code: 'EXECUTION_ERROR',
-            message: error instanceof Error ? error.message : 'Unknown error'
+            message: error instanceof Error ? error.message : 'Unknown error',
           },
           metadata: {
             executionTimeMs: 0,
-            attempt: 1
-          }
+            attempt: 1,
+          },
         });
       }
     });
@@ -219,22 +219,17 @@ class IdentityService {
           employeeId: req.query.employeeId as string,
           action: req.query.action as any,
           startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
-          endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined
+          endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
         };
         const limit = parseInt(req.query.limit as string) || 100;
         const offset = parseInt(req.query.offset as string) || 0;
 
-        const result = await this.auditLogger.getAuditTrail(
-          organizationId,
-          filters,
-          limit,
-          offset
-        );
+        const result = await this.auditLogger.getAuditTrail(organizationId, filters, limit, offset);
 
         res.json(result);
       } catch (error) {
         this.logger.error('Failed to retrieve audit trail', {
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
         res.status(500).json({ error: 'Failed to retrieve audit trail' });
       }
@@ -244,7 +239,7 @@ class IdentityService {
     this.app.post('/compliance-report', async (req, res) => {
       try {
         const { organizationId, reportType, startDate, endDate, generatedBy } = req.body;
-        
+
         const report = await this.auditLogger.generateComplianceReport(
           organizationId,
           reportType,
@@ -256,42 +251,41 @@ class IdentityService {
         res.json(report);
       } catch (error) {
         this.logger.error('Failed to generate compliance report', {
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
         res.status(500).json({ error: 'Failed to generate compliance report' });
       }
     });
 
     // Error handling
-    this.app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      this.logger.error('Unhandled error', {
-        error: error.message,
-        stack: error.stack,
-        url: _req.url,
-        method: _req.method
-      });
+    this.app.use(
+      (error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+        this.logger.error('Unhandled error', {
+          error: error.message,
+          stack: error.stack,
+          url: _req.url,
+          method: _req.method,
+        });
 
-      res.status(500).json({
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-      });
-    });
+        res.status(500).json({
+          error: 'Internal server error',
+          message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
+        });
+      }
+    );
   }
 
   private async setupKafkaConsumers(): Promise<void> {
     // TODO: Implement Kafka consumers when the package is available
     // Subscribe to node execution requests
     // await this.consumer.subscribe(['node.execute.request']);
-
     // await this.consumer.run({
     //   eachMessage: async ({ topic, partition, message }: { topic: string; partition: number; message: any }) => {
     //     try {
     //       const nodeInput = JSON.parse(message.value?.toString() || '{}');
-          
     //       // Filter for identity node types
     //       if (nodeInput.nodeType === 'identity') {
     //         const result = await this.nodeExecutor.execute(nodeInput);
-            
     //         // Publish result back to Kafka
     //         await this.producer.publish('node.execute.result', {
     //           nodeId: nodeInput.nodeId,
@@ -332,14 +326,14 @@ class IdentityService {
         this.logger.info('Identity Service started', {
           port: this.config.port,
           providers: Array.from(this.config.providers.keys()),
-          auditEnabled: this.config.audit.enableCentralAudit
+          auditEnabled: this.config.audit.enableCentralAudit,
         });
       });
 
       // Graceful shutdown
       process.on('SIGTERM', async () => {
         this.logger.info('Received SIGTERM, shutting down gracefully');
-        
+
         server.close(() => {
           this.tokenRefreshService.stop();
           // this.consumer.disconnect();
@@ -348,10 +342,9 @@ class IdentityService {
           process.exit(0);
         });
       });
-
     } catch (error) {
       this.logger.error('Failed to start Identity Service', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       process.exit(1);
     }
@@ -361,7 +354,7 @@ class IdentityService {
 // Start the service
 if (require.main === module) {
   const service = new IdentityService();
-  service.start().catch(error => {
+  service.start().catch((error) => {
     console.error('Failed to start service:', error);
     process.exit(1);
   });

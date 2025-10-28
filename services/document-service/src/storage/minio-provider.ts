@@ -7,13 +7,16 @@ export class MinioStorageProvider implements StorageProvider {
   private client: MinioClient;
   private bucket: string;
 
-  constructor(config: {
-    endpoint: string;
-    port: number;
-    useSSL: boolean;
-    accessKey: string;
-    secretKey: string;
-  }, bucket: string) {
+  constructor(
+    config: {
+      endpoint: string;
+      port: number;
+      useSSL: boolean;
+      accessKey: string;
+      secretKey: string;
+    },
+    bucket: string
+  ) {
     this.client = new MinioClient({
       endPoint: config.endpoint,
       port: config.port,
@@ -49,7 +52,7 @@ export class MinioStorageProvider implements StorageProvider {
       };
 
       await this.client.putObject(this.bucket, key, buffer, buffer.length, metadata);
-      
+
       logger.info('File uploaded to MinIO', {
         key,
         size: buffer.length,

@@ -37,11 +37,13 @@ This document provides comprehensive instructions for deploying the OfficeFlow P
 ### Using Docker Compose
 
 1. **Start the development environment:**
+
    ```bash
    docker-compose up -d
    ```
 
 2. **View logs:**
+
    ```bash
    docker-compose logs -f [service-name]
    ```
@@ -82,11 +84,13 @@ MINIO_SECRET_KEY=officeflow_dev
 ### Building Images
 
 1. **Build all images:**
+
    ```bash
    ./scripts/docker-build-push.sh --local-only
    ```
 
 2. **Build specific service:**
+
    ```bash
    docker build -t officeflow/workflow-engine:latest services/workflow-engine/
    ```
@@ -120,6 +124,7 @@ Push images to registry:
 ### Quick Start
 
 1. **Deploy to staging:**
+
    ```bash
    ./scripts/k8s-deploy.sh --namespace officeflow-staging
    ```
@@ -132,21 +137,25 @@ Push images to registry:
 ### Manual Deployment
 
 1. **Create namespace:**
+
    ```bash
    kubectl apply -f k8s/namespace.yaml
    ```
 
 2. **Deploy infrastructure:**
+
    ```bash
    kubectl apply -f k8s/infrastructure/
    ```
 
 3. **Deploy services:**
+
    ```bash
    kubectl apply -f k8s/services/
    ```
 
 4. **Deploy frontend:**
+
    ```bash
    kubectl apply -f k8s/apps/
    ```
@@ -159,16 +168,19 @@ Push images to registry:
 ### Deployment Strategies
 
 #### Rolling Update (Default)
+
 ```bash
 ./scripts/deploy.sh --strategy rolling --environment staging
 ```
 
 #### Blue-Green Deployment
+
 ```bash
 ./scripts/deploy.sh --strategy blue-green --environment production
 ```
 
 #### Canary Deployment
+
 ```bash
 ./scripts/deploy.sh --strategy canary --environment production
 ```
@@ -176,12 +188,15 @@ Push images to registry:
 ### Scaling
 
 #### Manual Scaling
+
 ```bash
 kubectl scale deployment workflow-engine --replicas=5 -n officeflow
 ```
 
 #### Auto Scaling
+
 HPA (Horizontal Pod Autoscaler) is configured for all services:
+
 - CPU threshold: 70%
 - Memory threshold: 80%
 - Min replicas: 2-3 (depending on service)
@@ -194,6 +209,7 @@ HPA (Horizontal Pod Autoscaler) is configured for all services:
 The platform includes several automated workflows:
 
 #### Continuous Integration (`ci.yml`)
+
 - **Triggers:** Push to main/develop, Pull requests
 - **Jobs:**
   - Lint and type checking
@@ -204,6 +220,7 @@ The platform includes several automated workflows:
   - Kubernetes manifest validation
 
 #### Continuous Deployment (`cd.yml`)
+
 - **Triggers:** Push to main, Tags, Manual dispatch
 - **Jobs:**
   - Build and push Docker images
@@ -214,6 +231,7 @@ The platform includes several automated workflows:
   - Post-deployment testing
 
 #### Security Scanning (`security.yml`)
+
 - **Triggers:** Daily schedule, Push to main
 - **Jobs:**
   - Dependency vulnerability scanning
@@ -224,6 +242,7 @@ The platform includes several automated workflows:
   - License compliance
 
 #### Performance Testing (`performance.yml`)
+
 - **Triggers:** Daily schedule, Push to main
 - **Jobs:**
   - Load testing
@@ -257,18 +276,21 @@ PERFORMANCE_SLACK_WEBHOOK_URL: # Performance alerts
 ## Environment Configuration
 
 ### Development
+
 - **Namespace:** `officeflow-dev`
 - **Replicas:** 1 per service
 - **Resources:** Minimal (100m CPU, 128Mi RAM)
 - **Domain:** `dev.officeflow.local`
 
 ### Staging
+
 - **Namespace:** `officeflow-staging`
 - **Replicas:** 2 per service
 - **Resources:** Medium (250m CPU, 256Mi RAM)
 - **Domain:** `staging.officeflow.com`
 
 ### Production
+
 - **Namespace:** `officeflow`
 - **Replicas:** 3+ per service
 - **Resources:** High (500m+ CPU, 512Mi+ RAM)
@@ -326,6 +348,7 @@ Structured JSON logging with correlation IDs:
 ### Common Issues
 
 #### Pod Startup Issues
+
 ```bash
 # Check pod status
 kubectl get pods -n officeflow
@@ -338,6 +361,7 @@ kubectl describe pod <pod-name> -n officeflow
 ```
 
 #### Database Connection Issues
+
 ```bash
 # Test database connectivity
 kubectl exec -it deployment/postgres -n officeflow -- psql -U officeflow -d officeflow -c "SELECT 1;"
@@ -347,6 +371,7 @@ kubectl logs -f deployment/postgres -n officeflow
 ```
 
 #### Service Discovery Issues
+
 ```bash
 # Check service endpoints
 kubectl get endpoints -n officeflow
@@ -358,6 +383,7 @@ kubectl exec -it deployment/workflow-engine -n officeflow -- curl http://auth-se
 ### Rollback Procedures
 
 #### Kubernetes Rollback
+
 ```bash
 # Rollback specific deployment
 kubectl rollout undo deployment/workflow-engine -n officeflow
@@ -370,6 +396,7 @@ kubectl rollout status deployment/workflow-engine -n officeflow
 ```
 
 #### Using Deployment Script
+
 ```bash
 ./scripts/deploy.sh --rollback --environment production
 ```
@@ -377,6 +404,7 @@ kubectl rollout status deployment/workflow-engine -n officeflow
 ### Performance Issues
 
 #### Resource Monitoring
+
 ```bash
 # Check resource usage
 kubectl top pods -n officeflow
@@ -387,19 +415,21 @@ kubectl get hpa -n officeflow
 ```
 
 #### Database Performance
+
 ```bash
 # Check database performance
 kubectl exec -it deployment/postgres -n officeflow -- \
   psql -U officeflow -d officeflow -c "
-    SELECT query, calls, total_time, mean_time 
-    FROM pg_stat_statements 
-    ORDER BY total_time DESC 
+    SELECT query, calls, total_time, mean_time
+    FROM pg_stat_statements
+    ORDER BY total_time DESC
     LIMIT 10;"
 ```
 
 ### Security Issues
 
 #### Check Security Policies
+
 ```bash
 # Check network policies
 kubectl get networkpolicy -n officeflow
@@ -412,6 +442,7 @@ kubectl get rolebindings -n officeflow
 ```
 
 #### Scan for Vulnerabilities
+
 ```bash
 # Scan running containers
 ./scripts/docker-security-scan.sh --scan-only
@@ -434,6 +465,7 @@ kubectl logs deployment/workflow-engine -n officeflow | grep -i "password\|secre
 ### Backup and Recovery
 
 #### Database Backup
+
 ```bash
 # Manual backup
 kubectl exec deployment/postgres -n officeflow -- \
@@ -445,6 +477,7 @@ kubectl exec -i deployment/postgres -n officeflow -- \
 ```
 
 #### Configuration Backup
+
 ```bash
 # Backup all configurations
 kubectl get all,configmap,secret,pvc -n officeflow -o yaml > officeflow-backup.yaml

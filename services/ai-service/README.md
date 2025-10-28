@@ -5,6 +5,7 @@ The AI Service is a Node.js microservice that provides AI-powered content genera
 ## Features
 
 ### Core Capabilities
+
 - **LLM Integration**: OpenAI GPT-4/3.5 integration with error handling and retry logic
 - **Template Management**: Handlebars-based prompt templates with variable substitution
 - **Content Generation**: Specialized generators for different content types
@@ -14,6 +15,7 @@ The AI Service is a Node.js microservice that provides AI-powered content genera
 - **Node Executor**: Implements the standard NodeExecutor interface for workflow integration
 
 ### Content Types Supported
+
 1. **Welcome Messages**: Personalized onboarding messages for new employees
 2. **Role-Specific Content**: Department and role-specific onboarding materials
 3. **Document Summaries**: AI-powered document summarization
@@ -50,10 +52,12 @@ AI Service
 ## API Endpoints
 
 ### Node Execution
+
 - `POST /execute` - Execute AI node in workflow context
 - `GET /schema` - Get node schema definition
 
 ### Content Generation
+
 - `POST /content/welcome-message` - Generate welcome messages
 - `POST /content/role-specific` - Generate role-specific content
 - `POST /content/summarize` - Summarize documents
@@ -61,6 +65,7 @@ AI Service
 - `POST /content/custom` - Custom content generation
 
 ### Management
+
 - `GET /health` - Health check
 - `GET /templates` - List available templates
 - `GET /templates/:id` - Get specific template
@@ -97,25 +102,25 @@ AI_CACHE_TTL_SECONDS=3600
 
 ```typescript
 const welcomeRequest = {
-  organizationId: "org-123",
+  organizationId: 'org-123',
   employee: {
-    firstName: "John",
-    lastName: "Doe",
-    role: "Software Engineer",
-    department: "Engineering",
-    startDate: new Date("2024-01-15"),
-    manager: "Jane Smith"
+    firstName: 'John',
+    lastName: 'Doe',
+    role: 'Software Engineer',
+    department: 'Engineering',
+    startDate: new Date('2024-01-15'),
+    manager: 'Jane Smith',
   },
   company: {
-    name: "TechCorp",
-    industry: "Technology",
-    culture: "Innovation-focused"
+    name: 'TechCorp',
+    industry: 'Technology',
+    culture: 'Innovation-focused',
   },
   options: {
-    tone: "friendly",
-    length: "medium",
-    includeTeamIntroduction: true
-  }
+    tone: 'friendly',
+    length: 'medium',
+    includeTeamIntroduction: true,
+  },
 };
 
 const result = await contentGenerator.generateWelcomeMessage(
@@ -130,17 +135,17 @@ const result = await contentGenerator.generateWelcomeMessage(
 
 ```typescript
 const summaryRequest = {
-  organizationId: "org-123",
+  organizationId: 'org-123',
   document: {
-    title: "Employee Handbook",
-    content: "...", // Document content
-    type: "policy"
+    title: 'Employee Handbook',
+    content: '...', // Document content
+    type: 'policy',
   },
   options: {
-    summaryType: "executive",
+    summaryType: 'executive',
     maxLength: 200,
-    includeActionItems: true
-  }
+    includeActionItems: true,
+  },
 };
 
 const summary = await contentGenerator.summarizeDocument(
@@ -154,13 +159,13 @@ const summary = await contentGenerator.summarizeDocument(
 
 ```typescript
 const sentimentRequest = {
-  organizationId: "org-123",
+  organizationId: 'org-123',
   text: "I'm really excited about starting my new role!",
   options: {
-    contextType: "feedback",
+    contextType: 'feedback',
     includeEmotions: true,
-    includeRecommendations: true
-  }
+    includeRecommendations: true,
+  },
 };
 
 const analysis = await contentGenerator.analyzeSentiment(
@@ -175,19 +180,23 @@ const analysis = await contentGenerator.analyzeSentiment(
 The service uses Handlebars templates for consistent content generation:
 
 ### Built-in Templates
+
 - `welcome_message` - Employee welcome messages
 - `role_specific_content` - Role-specific onboarding materials
 - `document_summary` - Document summarization
 - `sentiment_analysis` - Sentiment analysis with JSON output
 
 ### Custom Helpers
+
 - `{{capitalize text}}` - Capitalize first letter
 - `{{formatDate date}}` - Format dates
 - `{{join array separator}}` - Join arrays
 - `{{ifEquals arg1 arg2}}` - Conditional logic
 
 ### Template Variables
+
 Templates support typed variables with validation:
+
 - String, number, boolean, object, array types
 - Required/optional validation
 - Length, pattern, and enum constraints
@@ -196,18 +205,21 @@ Templates support typed variables with validation:
 ## Cost Management
 
 ### Token Tracking
+
 - Real-time token usage monitoring
 - Per-organization cost tracking
 - Model-specific pricing calculations
 - Historical usage analytics
 
 ### Rate Limiting
+
 - Request-per-minute limits
 - Token-per-minute limits
 - Organization-level enforcement
 - Automatic reset windows
 
 ### Caching
+
 - Response caching to reduce API calls
 - Configurable TTL
 - Cache key generation based on request parameters
@@ -216,12 +228,14 @@ Templates support typed variables with validation:
 ## Error Handling
 
 ### Retry Logic
+
 - Exponential backoff for transient errors
 - Maximum retry attempts (3)
 - Jitter to prevent thundering herd
 - Circuit breaker for persistent failures
 
 ### Error Classification
+
 - Retryable errors: Rate limits, timeouts, network issues
 - Non-retryable errors: Authentication, validation, quota exceeded
 - Proper error propagation to workflow engine
@@ -229,12 +243,14 @@ Templates support typed variables with validation:
 ## Monitoring
 
 ### Metrics
+
 - Request count and latency
 - Token usage and costs
 - Error rates and types
 - Cache hit/miss ratios
 
 ### Logging
+
 - Structured JSON logging
 - Request correlation IDs
 - Performance metrics
@@ -243,6 +259,7 @@ Templates support typed variables with validation:
 ## Development
 
 ### Setup
+
 ```bash
 cd services/ai-service
 npm install
@@ -252,12 +269,14 @@ npm run dev
 ```
 
 ### Testing
+
 ```bash
 npm test
 npm run test:watch
 ```
 
 ### Building
+
 ```bash
 npm run build
 npm start

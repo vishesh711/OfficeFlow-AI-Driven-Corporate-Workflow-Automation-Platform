@@ -1,103 +1,103 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Workflow, Lock, Mail, Eye, EyeOff, Sparkles, User } from 'lucide-react'
-import axios from 'axios'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Workflow, Lock, Mail, Eye, EyeOff, Sparkles, User } from 'lucide-react';
+import axios from 'axios';
 
-type TabType = 'signin' | 'signup'
+type TabType = 'signin' | 'signup';
 
 export function Login() {
-  const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<TabType>('signin')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<TabType>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
     try {
       const response = await axios.post('http://localhost:3001/auth/login', {
         email,
-        password
-      })
+        password,
+      });
 
       // Store auth token and user info
-      localStorage.setItem('officeflow_auth', response.data.accessToken)
-      localStorage.setItem('officeflow_user', JSON.stringify(response.data.user))
-      navigate('/')
+      localStorage.setItem('officeflow_auth', response.data.accessToken);
+      localStorage.setItem('officeflow_user', JSON.stringify(response.data.user));
+      navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.')
+      setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError('');
 
     // Validation
     if (!name.trim()) {
-      setError('Name is required')
-      return
+      setError('Name is required');
+      return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
+      setError('Passwords do not match');
+      return;
     }
 
     // Validate password strength
     if (password.length < 8) {
-      setError('Password must be at least 8 characters long')
-      return
+      setError('Password must be at least 8 characters long');
+      return;
     }
 
     if (!/[A-Z]/.test(password)) {
-      setError('Password must contain at least one uppercase letter')
-      return
+      setError('Password must contain at least one uppercase letter');
+      return;
     }
 
     if (!/[a-z]/.test(password)) {
-      setError('Password must contain at least one lowercase letter')
-      return
+      setError('Password must contain at least one lowercase letter');
+      return;
     }
 
     if (!/\d/.test(password)) {
-      setError('Password must contain at least one number')
-      return
+      setError('Password must contain at least one number');
+      return;
     }
 
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      setError('Password must contain at least one special character (!@#$%^&* etc.)')
-      return
+      setError('Password must contain at least one special character (!@#$%^&* etc.)');
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       const response = await axios.post('http://localhost:3001/auth/register', {
         email,
         password,
-        name
-      })
+        name,
+      });
 
       // Store auth token and user info
-      localStorage.setItem('officeflow_auth', response.data.accessToken)
-      localStorage.setItem('officeflow_user', JSON.stringify(response.data.user))
-      navigate('/')
+      localStorage.setItem('officeflow_auth', response.data.accessToken);
+      localStorage.setItem('officeflow_user', JSON.stringify(response.data.user));
+      navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.')
+      setError(err.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -114,9 +114,7 @@ export function Login() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-lg mb-4">
             <Workflow className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome to OfficeFlow
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to OfficeFlow</h1>
           <p className="text-gray-600 flex items-center justify-center gap-2">
             <Sparkles className="h-4 w-4 text-purple-500" />
             AI-Driven Corporate Workflow Automation
@@ -160,7 +158,10 @@ export function Login() {
             <form onSubmit={handleSignIn} className="space-y-5">
               {/* Email Field */}
               <div>
-                <label htmlFor="signin-email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="signin-email"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Email Address
                 </label>
                 <div className="relative">
@@ -181,7 +182,10 @@ export function Login() {
 
               {/* Password Field */}
               <div>
-                <label htmlFor="signin-password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="signin-password"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -242,9 +246,25 @@ export function Login() {
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Signing in...
                   </>
@@ -260,7 +280,10 @@ export function Login() {
             <form onSubmit={handleSignUp} className="space-y-5">
               {/* Name Field */}
               <div>
-                <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="signup-name"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Full Name
                 </label>
                 <div className="relative">
@@ -281,7 +304,10 @@ export function Login() {
 
               {/* Email Field */}
               <div>
-                <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="signup-email"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Email Address
                 </label>
                 <div className="relative">
@@ -302,7 +328,10 @@ export function Login() {
 
               {/* Password Field */}
               <div>
-                <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="signup-password"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -338,7 +367,10 @@ export function Login() {
 
               {/* Confirm Password Field */}
               <div>
-                <label htmlFor="signup-confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="signup-confirm-password"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -365,9 +397,25 @@ export function Login() {
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Creating account...
                   </>
@@ -381,9 +429,10 @@ export function Login() {
 
         {/* Footer Note */}
         <p className="mt-6 text-center text-xs text-gray-500">
-          By signing {activeTab === 'signin' ? 'in' : 'up'}, you agree to our Terms of Service and Privacy Policy
+          By signing {activeTab === 'signin' ? 'in' : 'up'}, you agree to our Terms of Service and
+          Privacy Policy
         </p>
       </div>
     </div>
-  )
+  );
 }

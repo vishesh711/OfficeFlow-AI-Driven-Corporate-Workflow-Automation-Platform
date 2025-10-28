@@ -1,21 +1,21 @@
-import { ReactNode } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  GitBranch, 
-  Settings, 
+import { ReactNode } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  GitBranch,
+  Settings,
   User,
   Menu,
   X,
   Activity,
   Shield,
-  LogOut
-} from 'lucide-react'
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
+  LogOut,
+} from 'lucide-react';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface LayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 const navigation = [
@@ -24,29 +24,31 @@ const navigation = [
   { name: 'Monitoring', href: '/monitoring', icon: Activity },
   { name: 'Admin', href: '/admin', icon: Shield },
   { name: 'Settings', href: '/settings', icon: Settings },
-]
+];
 
 export function Layout({ children }: LayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const location = useLocation()
-  const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('officeflow_auth')
-    localStorage.removeItem('officeflow_user')
-    navigate('/login')
-  }
+    localStorage.removeItem('officeflow_auth');
+    localStorage.removeItem('officeflow_user');
+    navigate('/login');
+  };
 
-  const user = JSON.parse(localStorage.getItem('officeflow_user') || '{"name":"User","email":"user@officeflow.com"}')
+  const user = JSON.parse(
+    localStorage.getItem('officeflow_user') || '{"name":"User","email":"user@officeflow.com"}'
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar */}
-      <div className={cn(
-        "fixed inset-0 z-50 lg:hidden",
-        sidebarOpen ? "block" : "hidden"
-      )}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
+      <div className={cn('fixed inset-0 z-50 lg:hidden', sidebarOpen ? 'block' : 'hidden')}>
+        <div
+          className="fixed inset-0 bg-gray-600 bg-opacity-75"
+          onClick={() => setSidebarOpen(false)}
+        />
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
           <div className="flex h-16 items-center justify-between px-4">
             <h1 className="text-xl font-bold text-gray-900">OfficeFlow</h1>
@@ -59,23 +61,23 @@ export function Layout({ children }: LayoutProps) {
           </div>
           <nav className="flex-1 space-y-1 px-2 py-4">
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href
+              const isActive = location.pathname === item.href;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={cn(
-                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md",
+                    'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
                     isActive
-                      ? "bg-primary-100 text-primary-900"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   )}
                   onClick={() => setSidebarOpen(false)}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.name}
                 </Link>
-              )
+              );
             })}
           </nav>
         </div>
@@ -89,22 +91,22 @@ export function Layout({ children }: LayoutProps) {
           </div>
           <nav className="flex-1 space-y-1 px-2 py-4">
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href
+              const isActive = location.pathname === item.href;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={cn(
-                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md",
+                    'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
                     isActive
-                      ? "bg-primary-100 text-primary-900"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   )}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.name}
                 </Link>
-              )
+              );
             })}
           </nav>
         </div>
@@ -142,10 +144,8 @@ export function Layout({ children }: LayoutProps) {
         </div>
 
         {/* Page content */}
-        <main className="py-6">
-          {children}
-        </main>
+        <main className="py-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

@@ -1,6 +1,7 @@
 # Registration Troubleshooting Guide
 
 ## ✅ Backend Status: WORKING
+
 The auth service is functioning correctly and accepting registrations.
 
 ## 🔍 Common Issues & Solutions
@@ -8,6 +9,7 @@ The auth service is functioning correctly and accepting registrations.
 ### 1. **Password Requirements Not Met** (Most Common!)
 
 Your password MUST include ALL of these:
+
 - ✅ At least 8 characters
 - ✅ At least one UPPERCASE letter (A-Z)
 - ✅ At least one lowercase letter (a-z)
@@ -15,12 +17,14 @@ Your password MUST include ALL of these:
 - ✅ At least one special character: `!@#$%^&*()_+-=[]{};':"\\|,.<>/?`
 
 **❌ Invalid passwords:**
+
 - `password` - no uppercase, no number, no special char
 - `Password123` - no special character
 - `Pass123!` - less than 8 characters
 - `PASSWORD123!` - no lowercase
 
 **✅ Valid passwords:**
+
 - `MyP@ssw0rd!`
 - `SecurePass123!`
 - `TestUser2024#`
@@ -29,7 +33,8 @@ Your password MUST include ALL of these:
 ### 2. **Browser Cache Issue**
 
 If you're still seeing the error after fixes:
-1. **Hard refresh the page:** 
+
+1. **Hard refresh the page:**
    - Mac: `Cmd + Shift + R`
    - Windows/Linux: `Ctrl + Shift + R`
 2. **Clear browser cache**
@@ -38,6 +43,7 @@ If you're still seeing the error after fixes:
 ### 3. **Check Browser Console**
 
 Open Developer Tools (F12) and check the Console tab for specific errors:
+
 - Look for network errors (red text)
 - Check the Network tab for the `/auth/register` request
 - See what the actual error message says
@@ -45,6 +51,7 @@ Open Developer Tools (F12) and check the Console tab for specific errors:
 ### 4. **Service Not Running**
 
 Verify services are running:
+
 ```bash
 # Check auth service (should show process on port 3001)
 lsof -i :3001
@@ -61,6 +68,7 @@ curl -X POST http://localhost:3001/auth/register \
 ## 🧪 Test Registration Step-by-Step
 
 ### Option 1: Use the Web UI
+
 1. Go to: http://localhost:5173 (or your frontend URL)
 2. Click "Sign Up" tab
 3. Fill in the form:
@@ -72,6 +80,7 @@ curl -X POST http://localhost:3001/auth/register \
 5. You should be redirected to dashboard
 
 ### Option 2: Test with curl (to verify backend)
+
 ```bash
 curl -v -X POST http://localhost:3001/auth/register \
   -H "Content-Type: application/json" \
@@ -135,6 +144,7 @@ Confirm: Welcome@2024!
 ```
 
 This password has:
+
 - ✅ 13 characters (more than 8)
 - ✅ Uppercase: W
 - ✅ Lowercase: elcome
@@ -168,6 +178,7 @@ curl -v -X POST http://localhost:3001/auth/register \
    - The actual error message on screen
 
 2. **Share the output** of:
+
    ```bash
    curl http://localhost:3001/health
    curl -X POST http://localhost:3001/auth/register \
@@ -179,4 +190,3 @@ curl -v -X POST http://localhost:3001/auth/register \
    - Look at the hint text under the password field
    - It should say: "Must be 8+ characters with uppercase, lowercase, number, and special character"
    - If you don't see this, refresh with Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
-

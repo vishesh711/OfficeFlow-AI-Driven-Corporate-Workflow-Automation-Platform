@@ -1,13 +1,13 @@
 import { ConfidentialClientApplication } from '@azure/msal-node';
 import axios, { AxiosInstance } from 'axios';
-import { 
-  CalendarEvent, 
-  CalendarEventResponse, 
-  CalendarListResponse, 
-  AvailabilityRequest, 
+import {
+  CalendarEvent,
+  CalendarEventResponse,
+  CalendarListResponse,
+  AvailabilityRequest,
   AvailabilityResponse,
   CalendarCredentials,
-  MicrosoftCalendarConfig
+  MicrosoftCalendarConfig,
 } from '../types/calendar-types';
 import { logger } from '../utils/logger';
 import moment from 'moment-timezone';
@@ -80,10 +80,12 @@ export class MicrosoftCalendarProvider {
   private convertToMicrosoftEvent(event: CalendarEvent): MicrosoftEvent {
     const microsoftEvent: MicrosoftEvent = {
       subject: event.title,
-      body: event.description ? {
-        contentType: 'HTML',
-        content: event.description,
-      } : undefined,
+      body: event.description
+        ? {
+            contentType: 'HTML',
+            content: event.description,
+          }
+        : undefined,
       start: {
         dateTime: event.startTime.toISOString(),
         timeZone: event.timezone,
@@ -92,10 +94,12 @@ export class MicrosoftCalendarProvider {
         dateTime: event.endTime.toISOString(),
         timeZone: event.timezone,
       },
-      location: event.location ? {
-        displayName: event.location,
-      } : undefined,
-      attendees: event.attendees.map(attendee => ({
+      location: event.location
+        ? {
+            displayName: event.location,
+          }
+        : undefined,
+      attendees: event.attendees.map((attendee) => ({
         emailAddress: {
           address: attendee.email,
           name: attendee.name,
@@ -127,38 +131,55 @@ export class MicrosoftCalendarProvider {
       endTime: new Date(microsoftEvent.end.dateTime),
       timezone: microsoftEvent.start.timeZone || 'UTC',
       location: microsoftEvent.location?.displayName,
-      attendees: microsoftEvent.attendees?.map(attendee => ({
-        email: attendee.emailAddress.address,
-        name: attendee.emailAddress.name,
-        status: this.mapMicrosoftAttendeeStatus(attendee.status.response),
-        required: attendee.type === 'required',
-      })) || [],
-      organizer: microsoftEvent.organizer ? {
-        email: microsoftEvent.organizer.emailAddress.address,
-        name: microsoftEvent.organizer.emailAddress.name,
-      } : undefined,
-      reminders: microsoftEvent.isReminderOn ? [{
-        method: 'popup',
-        minutes: microsoftEvent.reminderMinutesBeforeStart || 15,
-      }] : [],
+      attendees:
+        microsoftEvent.attendees?.map((attendee) => ({
+          email: attendee.emailAddress.address,
+          name: attendee.emailAddress.name,
+          status: this.mapMicrosoftAttendeeStatus(attendee.status.response),
+          required: attendee.type === 'required',
+        })) || [],
+      organizer: microsoftEvent.organizer
+        ? {
+            email: microsoftEvent.organizer.emailAddress.address,
+            name: microsoftEvent.organizer.emailAddress.name,
+          }
+        : undefined,
+      reminders: microsoftEvent.isReminderOn
+        ? [
+            {
+              method: 'popup',
+              minutes: microsoftEvent.reminderMinutesBeforeStart || 15,
+            },
+          ]
+        : [],
     };
   }
 
   private mapAttendeeStatus(status?: string): string {
     switch (status) {
-      case 'accepted': return 'accepted';
-      case 'declined': return 'declined';
-      case 'tentative': return 'tentativelyAccepted';
-      default: return 'none';
+      case 'accepted':
+        return 'accepted';
+      case 'declined':
+        return 'declined';
+      case 'tentative':
+        return 'tentativelyAccepted';
+      default:
+        return 'none';
     }
   }
 
-  private mapMicrosoftAttendeeStatus(status: string): 'accepted' | 'declined' | 'tentative' | 'needsAction' {
+  private mapMicrosoftAttendeeStatus(
+    status: string
+  ): 'accepted' | 'declined' | 'tentative' | 'needsAction' {
     switch (status) {
-      case 'accepted': return 'accepted';
-      case 'declined': return 'declined';
-      case 'tentativelyAccepted': return 'tentative';
-      default: return 'needsAction';
+      case 'accepted':
+        return 'accepted';
+      case 'declined':
+        return 'declined';
+      case 'tentativelyAccepted':
+        return 'tentative';
+      default:
+        return 'needsAction';
     }
   }
 
@@ -203,10 +224,11 @@ export class MicrosoftCalendarProvider {
   ): Promise<CalendarEventResponse> {
     try {
       this.setAuthHeader(credentials.accessToken);
-      
+
       const microsoftEvent = this.convertToMicrosoftEvent(event);
-      const endpoint = calendarId === 'primary' ? '/me/events' : `/me/calendars/${calendarId}/events`;
-      
+      const endpoint =
+        calendarId === 'primary' ? '/me/events' : `/me/calendars/${calendarId}/events`;
+
       const response = await this.graphClient.post(endpoint, microsoftEvent);
 
       logger.info('Microsoft Calendar event created', {
@@ -242,12 +264,13 @@ export class MicrosoftCalendarProvider {
   ): Promise<CalendarEventResponse> {
     try {
       this.setAuthHeader(credentials.accessToken);
-      
+
       const microsoftEvent = this.convertToMicrosoftEvent(event);
-      const endpoint = calendarId === 'primary' ? 
-        `/me/events/${eventId}` : 
-        `/me/calendars/${calendarId}/events/${eventId}`;
-      
+      const endpoint =
+        calendarId === 'primary'
+          ? `/me/events/${eventId}`
+          : `/me/calendars/${calendarId}/events/${eventId}`;
+
       const response = await this.graphClient.patch(endpoint, microsoftEvent);
 
       logger.info('Microsoft Calendar event updated', {
@@ -283,11 +306,12 @@ export class MicrosoftCalendarProvider {
   ): Promise<CalendarEventResponse> {
     try {
       this.setAuthHeader(credentials.accessToken);
-      
-      const endpoint = calendarId === 'primary' ? 
-        `/me/events/${eventId}` : 
-        `/me/calendars/${calendarId}/events/${eventId}`;
-      
+
+      const endpoint =
+        calendarId === 'primary'
+          ? `/me/events/${eventId}`
+          : `/me/calendars/${calendarId}/events/${eventId}`;
+
       await this.graphClient.delete(endpoint);
 
       logger.info('Microsoft Calendar event deleted', {
@@ -324,19 +348,22 @@ export class MicrosoftCalendarProvider {
   ): Promise<CalendarListResponse> {
     try {
       this.setAuthHeader(credentials.accessToken);
-      
+
       const params = new URLSearchParams();
       if (startTime) params.append('startDateTime', startTime.toISOString());
       if (endTime) params.append('endDateTime', endTime.toISOString());
       params.append('$top', maxResults.toString());
       params.append('$orderby', 'start/dateTime');
 
-      const endpoint = calendarId === 'primary' ? 
-        `/me/events?${params.toString()}` : 
-        `/me/calendars/${calendarId}/events?${params.toString()}`;
-      
+      const endpoint =
+        calendarId === 'primary'
+          ? `/me/events?${params.toString()}`
+          : `/me/calendars/${calendarId}/events?${params.toString()}`;
+
       const response = await this.graphClient.get(endpoint);
-      const events = response.data.value?.map((item: MicrosoftEvent) => this.convertFromMicrosoftEvent(item)) || [];
+      const events =
+        response.data.value?.map((item: MicrosoftEvent) => this.convertFromMicrosoftEvent(item)) ||
+        [];
 
       logger.info('Microsoft Calendar events listed', {
         count: events.length,
@@ -369,7 +396,7 @@ export class MicrosoftCalendarProvider {
   ): Promise<AvailabilityResponse[]> {
     try {
       this.setAuthHeader(credentials.accessToken);
-      
+
       const requestBody = {
         schedules: request.emails,
         startTime: {
@@ -385,14 +412,15 @@ export class MicrosoftCalendarProvider {
 
       const response = await this.graphClient.post('/me/calendar/getSchedule', requestBody);
       const results: AvailabilityResponse[] = [];
-      
+
       response.data.value?.forEach((schedule: any, index: number) => {
         const email = request.emails[index];
-        const slots = schedule.busyViewEntries?.map((entry: any) => ({
-          startTime: new Date(entry.start.dateTime),
-          endTime: new Date(entry.end.dateTime),
-          status: this.mapMicrosoftBusyStatus(entry.status),
-        })) || [];
+        const slots =
+          schedule.busyViewEntries?.map((entry: any) => ({
+            startTime: new Date(entry.start.dateTime),
+            endTime: new Date(entry.end.dateTime),
+            status: this.mapMicrosoftBusyStatus(entry.status),
+          })) || [];
 
         results.push({
           email,
@@ -419,11 +447,16 @@ export class MicrosoftCalendarProvider {
 
   private mapMicrosoftBusyStatus(status: string): 'free' | 'busy' | 'tentative' | 'outOfOffice' {
     switch (status) {
-      case 'free': return 'free';
-      case 'busy': return 'busy';
-      case 'tentative': return 'tentative';
-      case 'oof': return 'outOfOffice';
-      default: return 'free';
+      case 'free':
+        return 'free';
+      case 'busy':
+        return 'busy';
+      case 'tentative':
+        return 'tentative';
+      case 'oof':
+        return 'outOfOffice';
+      default:
+        return 'free';
     }
   }
 
@@ -433,13 +466,15 @@ export class MicrosoftCalendarProvider {
       'https://graph.microsoft.com/Calendars.ReadWrite.Shared',
     ];
 
-    return `https://login.microsoftonline.com/${this.config.tenantId}/oauth2/v2.0/authorize?` +
+    return (
+      `https://login.microsoftonline.com/${this.config.tenantId}/oauth2/v2.0/authorize?` +
       `client_id=${this.config.clientId}&` +
       `response_type=code&` +
       `redirect_uri=${encodeURIComponent(this.config.redirectUri)}&` +
       `scope=${encodeURIComponent(scopes.join(' '))}&` +
       `response_mode=query&` +
-      (state ? `state=${encodeURIComponent(state)}&` : '');
+      (state ? `state=${encodeURIComponent(state)}&` : '')
+    );
   }
 
   async exchangeCodeForTokens(code: string): Promise<{
@@ -457,7 +492,7 @@ export class MicrosoftCalendarProvider {
     };
 
     const response = await this.msalClient.acquireTokenByCode(clientCredentialRequest);
-    
+
     return {
       accessToken: response!.accessToken,
       refreshToken: response!.refreshToken,
@@ -478,7 +513,7 @@ export class MicrosoftCalendarProvider {
     };
 
     const response = await this.msalClient.acquireTokenByRefreshToken(refreshTokenRequest);
-    
+
     return {
       accessToken: response!.accessToken,
       expiresAt: response!.expiresOn ? new Date(response!.expiresOn) : undefined,

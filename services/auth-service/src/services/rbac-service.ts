@@ -13,7 +13,7 @@ import {
   formatPermission,
   parsePermission,
   isValidPermission,
-  hasRoleHierarchy
+  hasRoleHierarchy,
 } from '../types/rbac-types';
 import { UserRole } from '../types/auth-types';
 
@@ -32,22 +32,26 @@ export class RbacService {
       const permissionString = formatPermission(resource, action);
 
       // Check using database function for role-based permissions
-      const roleResult = await this.db.query(`
+      const roleResult = await this.db.query(
+        `
         SELECT user_has_permission($1, $2, $3, $4) as has_permission
-      `, [userId, orgId, resource, action]);
+      `,
+        [userId, orgId, resource, action]
+      );
 
       const hasRolePermission = roleResult.rows[0]?.has_permission || false;
 
       if (hasRolePermission) {
         return {
           allowed: true,
-          grantedPermissions: [permissionString]
+          grantedPermissions: [permissionString],
         };
       }
 
       // Check resource-specific permissions if resourceId is provided
       if (resourceId) {
-        const resourceResult = await this.db.query(`
+        const resourceResult = await this.db.query(
+          `
           SELECT EXISTS(
             SELECT 1
             FROM resource_permissions rp
@@ -58,14 +62,16 @@ export class RbacService {
             AND (rp.expires_at IS NULL OR rp.expires_at > NOW())
             AND $4 = ANY(rp.permissions)
           ) as has_resource_permission
-        `, [userId, orgId, resourceId, permissionString]);
+        `,
+          [userId, orgId, resourceId, permissionString]
+        );
 
         const hasResourcePermission = resourceResult.rows[0]?.has_resource_permission || false;
 
         if (hasResourcePermission) {
           return {
             allowed: true,
-            grantedPermissions: [permissionString]
+            grantedPermissions: [permissionString],
           };
         }
       }
@@ -73,18 +79,17 @@ export class RbacService {
       return {
         allowed: false,
         reason: `Missing permission: ${permissionString}`,
-        requiredPermissions: [permissionString]
+        requiredPermissions: [permissionString],
       };
-
     } catch (error) {
       this.logger.error('Error checking permission', {
         context,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       return {
         allowed: false,
-        reason: 'Permission check failed'
+        reason: 'Permission check failed',
       };
     }
   }
@@ -99,26 +104,26 @@ export class RbacService {
   ): Promise<PermissionResult> {
     try {
       const results = await Promise.all(
-        permissions.map(perm => 
+        permissions.map((perm) =>
           this.hasPermission({
             userId,
             orgId,
             resource: perm.resource,
             action: perm.action,
-            resourceId: perm.resourceId
+            resourceId: perm.resourceId,
           })
         )
       );
 
       const deniedPermissions = results
-        .filter(result => !result.allowed)
-        .map(result => result.requiredPermissions)
+        .filter((result) => !result.allowed)
+        .map((result) => result.requiredPermissions)
         .flat()
         .filter(Boolean) as string[];
 
       const grantedPermissions = results
-        .filter(result => result.allowed)
-        .map(result => result.grantedPermissions)
+        .filter((result) => result.allowed)
+        .map((result) => result.grantedPermissions)
         .flat()
         .filter(Boolean) as string[];
 
@@ -127,26 +132,25 @@ export class RbacService {
           allowed: false,
           reason: `Missing permissions: ${deniedPermissions.join(', ')}`,
           requiredPermissions: deniedPermissions,
-          grantedPermissions
+          grantedPermissions,
         };
       }
 
       return {
         allowed: true,
-        grantedPermissions
+        grantedPermissions,
       };
-
     } catch (error) {
       this.logger.error('Error checking multiple permissions', {
         userId,
         orgId,
         permissions,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       return {
         allowed: false,
-        reason: 'Permission check failed'
+        reason: 'Permission check failed',
       };
     }
   }
@@ -156,24 +160,26 @@ export class RbacService {
    */
   async getUserPermissions(userId: UUID, orgId: UUID): Promise<Permission[]> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         SELECT permission_name, resource, action
         FROM get_user_permissions($1, $2)
-      `, [userId, orgId]);
+      `,
+        [userId, orgId]
+      );
 
-      return result.rows.map(row => ({
+      return result.rows.map((row) => ({
         permissionId: '', // Not needed for this use case
         name: row.permission_name,
         resource: row.resource,
         action: row.action,
-        createdAt: new Date()
+        createdAt: new Date(),
       }));
-
     } catch (error) {
       this.logger.error('Error getting user permissions', {
         userId,
         orgId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return [];
     }
@@ -190,7 +196,8 @@ export class RbacService {
     expiresAt?: Date
   ): Promise<UserRoleAssignment> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         INSERT INTO user_role_assignments (
           user_id, role_id, org_id, assigned_by, expires_at
         )
@@ -203,7 +210,9 @@ export class RbacService {
           expires_at = $5
         RETURNING assignment_id, user_id, role_id, org_id, assigned_by, 
                   assigned_at, expires_at, is_active
-      `, [userId, roleId, orgId, assignedBy, expiresAt]);
+      `,
+        [userId, roleId, orgId, assignedBy, expiresAt]
+      );
 
       const assignment = this.mapRowToUserRoleAssignment(result.rows[0]);
 
@@ -212,18 +221,17 @@ export class RbacService {
         roleId,
         orgId,
         assignedBy,
-        expiresAt
+        expiresAt,
       });
 
       return assignment;
-
     } catch (error) {
       this.logger.error('Error assigning role to user', {
         userId,
         roleId,
         orgId,
         assignedBy,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -234,24 +242,26 @@ export class RbacService {
    */
   async removeUserRole(userId: UUID, roleId: UUID, orgId: UUID): Promise<void> {
     try {
-      await this.db.query(`
+      await this.db.query(
+        `
         UPDATE user_role_assignments
         SET is_active = false
         WHERE user_id = $1 AND role_id = $2 AND org_id = $3
-      `, [userId, roleId, orgId]);
+      `,
+        [userId, roleId, orgId]
+      );
 
       this.logger.info('Role removed from user', {
         userId,
         roleId,
-        orgId
+        orgId,
       });
-
     } catch (error) {
       this.logger.error('Error removing role from user', {
         userId,
         roleId,
         orgId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -262,7 +272,8 @@ export class RbacService {
    */
   async getUserRoles(userId: UUID, orgId: UUID): Promise<Role[]> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         SELECT r.role_id, r.name, r.description, r.is_system_role, 
                r.created_at, r.updated_at
         FROM user_role_assignments ura
@@ -271,22 +282,23 @@ export class RbacService {
         AND ura.org_id = $2 
         AND ura.is_active = true
         AND (ura.expires_at IS NULL OR ura.expires_at > NOW())
-      `, [userId, orgId]);
+      `,
+        [userId, orgId]
+      );
 
       const roles = await Promise.all(
-        result.rows.map(async row => {
+        result.rows.map(async (row) => {
           const permissions = await this.getRolePermissions(row.role_id);
           return this.mapRowToRole(row, permissions);
         })
       );
 
       return roles;
-
     } catch (error) {
       this.logger.error('Error getting user roles', {
         userId,
         orgId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return [];
     }
@@ -306,12 +318,13 @@ export class RbacService {
   ): Promise<ResourcePermission> {
     try {
       // Validate permissions
-      const invalidPermissions = permissions.filter(p => !isValidPermission(p));
+      const invalidPermissions = permissions.filter((p) => !isValidPermission(p));
       if (invalidPermissions.length > 0) {
         throw new Error(`Invalid permissions: ${invalidPermissions.join(', ')}`);
       }
 
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         INSERT INTO resource_permissions (
           resource_id, resource_type, user_id, org_id, permissions, 
           granted_by, expires_at
@@ -319,7 +332,9 @@ export class RbacService {
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING resource_permission_id, resource_id, resource_type, user_id, 
                   org_id, permissions, granted_by, granted_at, expires_at
-      `, [resourceId, resourceType, userId, orgId, permissions, grantedBy, expiresAt]);
+      `,
+        [resourceId, resourceType, userId, orgId, permissions, grantedBy, expiresAt]
+      );
 
       const resourcePermission = this.mapRowToResourcePermission(result.rows[0]);
 
@@ -329,11 +344,10 @@ export class RbacService {
         userId,
         orgId,
         permissions,
-        grantedBy
+        grantedBy,
       });
 
       return resourcePermission;
-
     } catch (error) {
       this.logger.error('Error granting resource permission', {
         resourceId,
@@ -342,7 +356,7 @@ export class RbacService {
         orgId,
         permissions,
         grantedBy,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -351,30 +365,28 @@ export class RbacService {
   /**
    * Revoke resource-specific permission from user
    */
-  async revokeResourcePermission(
-    resourceId: UUID,
-    userId: UUID,
-    orgId: UUID
-  ): Promise<void> {
+  async revokeResourcePermission(resourceId: UUID, userId: UUID, orgId: UUID): Promise<void> {
     try {
-      await this.db.query(`
+      await this.db.query(
+        `
         UPDATE resource_permissions
         SET is_active = false
         WHERE resource_id = $1 AND user_id = $2 AND org_id = $3
-      `, [resourceId, userId, orgId]);
+      `,
+        [resourceId, userId, orgId]
+      );
 
       this.logger.info('Resource permission revoked', {
         resourceId,
         userId,
-        orgId
+        orgId,
       });
-
     } catch (error) {
       this.logger.error('Error revoking resource permission', {
         resourceId,
         userId,
         orgId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -392,17 +404,16 @@ export class RbacService {
       `);
 
       const roles = await Promise.all(
-        result.rows.map(async row => {
+        result.rows.map(async (row) => {
           const permissions = await this.getRolePermissions(row.role_id);
           return this.mapRowToRole(row, permissions);
         })
       );
 
       return roles;
-
     } catch (error) {
       this.logger.error('Error getting all roles', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return [];
     }
@@ -413,19 +424,21 @@ export class RbacService {
    */
   async getRolePermissions(roleId: UUID): Promise<Permission[]> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         SELECT p.permission_id, p.name, p.resource, p.action, p.description, p.created_at
         FROM role_permissions rp
         JOIN permissions p ON rp.permission_id = p.permission_id
         WHERE rp.role_id = $1
-      `, [roleId]);
+      `,
+        [roleId]
+      );
 
-      return result.rows.map(row => this.mapRowToPermission(row));
-
+      return result.rows.map((row) => this.mapRowToPermission(row));
     } catch (error) {
       this.logger.error('Error getting role permissions', {
         roleId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return [];
     }
@@ -434,35 +447,35 @@ export class RbacService {
   /**
    * Create custom role
    */
-  async createRole(
-    name: string,
-    description: string,
-    permissionIds: UUID[]
-  ): Promise<Role> {
+  async createRole(name: string, description: string, permissionIds: UUID[]): Promise<Role> {
     const client = await this.db.connect();
-    
+
     try {
       await client.query('BEGIN');
 
       // Create role
-      const roleResult = await client.query(`
+      const roleResult = await client.query(
+        `
         INSERT INTO roles (name, description, is_system_role)
         VALUES ($1, $2, false)
         RETURNING role_id, name, description, is_system_role, created_at, updated_at
-      `, [name, description]);
+      `,
+        [name, description]
+      );
 
       const roleId = roleResult.rows[0].role_id;
 
       // Assign permissions
       if (permissionIds.length > 0) {
-        const permissionValues = permissionIds.map((_, index) => 
-          `($1, $${index + 2})`
-        ).join(', ');
+        const permissionValues = permissionIds.map((_, index) => `($1, $${index + 2})`).join(', ');
 
-        await client.query(`
+        await client.query(
+          `
           INSERT INTO role_permissions (role_id, permission_id)
           VALUES ${permissionValues}
-        `, [roleId, ...permissionIds]);
+        `,
+          [roleId, ...permissionIds]
+        );
       }
 
       await client.query('COMMIT');
@@ -473,16 +486,15 @@ export class RbacService {
       this.logger.info('Custom role created', {
         roleId,
         name,
-        permissionCount: permissionIds.length
+        permissionCount: permissionIds.length,
       });
 
       return role;
-
     } catch (error) {
       await client.query('ROLLBACK');
       this.logger.error('Error creating role', {
         name,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     } finally {
@@ -496,11 +508,14 @@ export class RbacService {
   async canAccessOrganization(userId: UUID, targetOrgId: UUID): Promise<boolean> {
     try {
       // Get user's organization and role
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         SELECT u.org_id, u.role
         FROM users u
         WHERE u.user_id = $1 AND u.is_active = true
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       if (result.rows.length === 0) {
         return false;
@@ -515,12 +530,11 @@ export class RbacService {
 
       // Users can only access their own organization
       return userOrgId === targetOrgId;
-
     } catch (error) {
       this.logger.error('Error checking organization access', {
         userId,
         targetOrgId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return false;
     }
@@ -537,7 +551,7 @@ export class RbacService {
       isSystemRole: row.is_system_role,
       permissions,
       createdAt: row.created_at,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
     };
   }
 
@@ -551,7 +565,7 @@ export class RbacService {
       resource: row.resource,
       action: row.action,
       description: row.description,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     };
   }
 
@@ -567,7 +581,7 @@ export class RbacService {
       assignedBy: row.assigned_by,
       assignedAt: row.assigned_at,
       expiresAt: row.expires_at,
-      isActive: row.is_active
+      isActive: row.is_active,
     };
   }
 
@@ -583,7 +597,7 @@ export class RbacService {
       permissions: row.permissions,
       grantedBy: row.granted_by,
       grantedAt: row.granted_at,
-      expiresAt: row.expires_at
+      expiresAt: row.expires_at,
     };
   }
 }

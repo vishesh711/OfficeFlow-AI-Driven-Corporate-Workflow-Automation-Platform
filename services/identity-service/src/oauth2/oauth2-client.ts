@@ -19,8 +19,8 @@ export class GenericOAuth2Client implements OAuth2Client {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
-      }
+        Accept: 'application/json',
+      },
     });
 
     // Add request/response interceptors for logging
@@ -29,7 +29,7 @@ export class GenericOAuth2Client implements OAuth2Client {
         this.logger.debug('OAuth2 request', {
           method: config.method,
           url: config.url,
-          headers: config.headers
+          headers: config.headers,
         });
         return config;
       },
@@ -43,7 +43,7 @@ export class GenericOAuth2Client implements OAuth2Client {
       (response) => {
         this.logger.debug('OAuth2 response', {
           status: response.status,
-          url: response.config.url
+          url: response.config.url,
         });
         return response;
       },
@@ -51,7 +51,7 @@ export class GenericOAuth2Client implements OAuth2Client {
         this.logger.error('OAuth2 response error', {
           status: error.response?.status,
           url: error.config?.url,
-          error: error.message
+          error: error.message,
         });
         return Promise.reject(error);
       }
@@ -63,7 +63,7 @@ export class GenericOAuth2Client implements OAuth2Client {
       response_type: 'code',
       client_id: this.config.clientId,
       redirect_uri: this.config.redirectUri,
-      scope: this.config.scopes.join(' ')
+      scope: this.config.scopes.join(' '),
     });
 
     if (state) {
@@ -80,18 +80,20 @@ export class GenericOAuth2Client implements OAuth2Client {
         code,
         client_id: this.config.clientId,
         client_secret: this.config.clientSecret,
-        redirect_uri: this.config.redirectUri
+        redirect_uri: this.config.redirectUri,
       });
 
       const response = await this.httpClient.post(this.config.tokenUrl, params);
-      
+
       return this.parseTokenResponse(response.data);
     } catch (error) {
       this.logger.error('Failed to exchange code for tokens', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        code: code.substring(0, 10) + '...' // Log partial code for debugging
+        code: code.substring(0, 10) + '...', // Log partial code for debugging
       });
-      throw new Error(`Token exchange failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Token exchange failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -101,7 +103,7 @@ export class GenericOAuth2Client implements OAuth2Client {
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
         client_id: this.config.clientId,
-        client_secret: this.config.clientSecret
+        client_secret: this.config.clientSecret,
       });
 
       const response = await this.httpClient.post(this.config.tokenUrl, params);
@@ -109,16 +111,16 @@ export class GenericOAuth2Client implements OAuth2Client {
 
       return {
         success: true,
-        tokens
+        tokens,
       };
     } catch (error) {
       this.logger.error('Failed to refresh tokens', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -130,18 +132,15 @@ export class GenericOAuth2Client implements OAuth2Client {
       const params = new URLSearchParams({
         token: accessToken,
         client_id: this.config.clientId,
-        client_secret: this.config.clientSecret
+        client_secret: this.config.clientSecret,
       });
 
-      await this.httpClient.post(
-        this.config.tokenUrl.replace('/token', '/revoke'),
-        params
-      );
+      await this.httpClient.post(this.config.tokenUrl.replace('/token', '/revoke'), params);
 
       return true;
     } catch (error) {
       this.logger.error('Failed to revoke tokens', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return false;
     }
@@ -156,14 +155,14 @@ export class GenericOAuth2Client implements OAuth2Client {
 
       await this.httpClient.get(this.config.userInfoUrl, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
 
       return true;
     } catch (error) {
       this.logger.debug('Token validation failed', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return false;
     }
@@ -171,7 +170,7 @@ export class GenericOAuth2Client implements OAuth2Client {
 
   private parseTokenResponse(data: any): OAuth2Token {
     const expiresIn = parseInt(data.expires_in) || 3600;
-    const expiresAt = new Date(Date.now() + (expiresIn * 1000));
+    const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
     return {
       accessToken: data.access_token,
@@ -179,7 +178,7 @@ export class GenericOAuth2Client implements OAuth2Client {
       tokenType: data.token_type || 'Bearer',
       expiresIn,
       expiresAt,
-      scope: data.scope
+      scope: data.scope,
     };
   }
 }

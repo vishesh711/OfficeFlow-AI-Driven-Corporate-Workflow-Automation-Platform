@@ -143,9 +143,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-and-push, security-scan-images]
     if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
-    environment:
-      name: staging
-      url: https://staging.officeflow.com
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -196,9 +193,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-and-push, security-scan-images, deploy-staging]
     if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
-    environment:
-      name: production
-      url: https://app.officeflow.com
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -275,8 +269,6 @@ jobs:
     runs-on: ubuntu-latest
     if: failure() && (needs.deploy-staging.result == 'failure' || needs.deploy-production.result == 'failure')
     needs: [deploy-staging, deploy-production]
-    environment:
-      name: ${{ github.event.inputs.environment || 'production' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

@@ -5,12 +5,14 @@ This directory contains comprehensive tests for the Identity Service node execut
 ## Test Coverage
 
 ### Core Functionality Tests (`identity-service-core.test.ts`)
+
 - **Parameter Validation**: Tests input validation for all required and optional parameters
 - **Execution Flow**: Tests successful execution of all supported actions (provision, deprovision, update, assign_groups)
 - **Error Handling**: Tests handling of validation errors, missing credentials, and execution exceptions
 - **Schema Definition**: Tests the node schema structure and parameter definitions
 
 ### Error Handling Tests (`error-handling.test.ts`)
+
 - **Provider Error Scenarios**: Tests handling of rate limiting, authentication errors, and service unavailability
 - **Token Refresh Scenarios**: Tests token expiration warnings and expired token handling
 - **Group Assignment Errors**: Tests partial and complete group assignment failures
@@ -19,6 +21,7 @@ This directory contains comprehensive tests for the Identity Service node execut
 ## Test Features
 
 ### Mocked External Dependencies
+
 - **Identity Providers**: Provider adapters are mocked to simulate API responses
 - **OAuth2 Clients**: Token refresh and validation logic is mocked
 - **Database Operations**: Credential storage and retrieval is mocked
@@ -27,6 +30,7 @@ This directory contains comprehensive tests for the Identity Service node execut
 ### Test Scenarios Covered
 
 #### Account Provisioning
+
 - ✅ Successful user creation with group assignments
 - ✅ User creation with partial group assignment failures
 - ✅ Rate limiting and retry logic
@@ -34,17 +38,20 @@ This directory contains comprehensive tests for the Identity Service node execut
 - ✅ Token expiration warnings
 
 #### Account Deprovisioning
+
 - ✅ Successful user deactivation/suspension
 - ✅ Error handling for non-existent users
 - ✅ Audit trail creation
 
 #### Group Management
+
 - ✅ Successful group assignments
 - ✅ Partial group assignment failures
 - ✅ Empty group list handling
 - ✅ Permission denied scenarios
 
 #### Error Scenarios
+
 - ✅ Network timeouts and connection errors
 - ✅ Service unavailability
 - ✅ Invalid credentials
@@ -52,6 +59,7 @@ This directory contains comprehensive tests for the Identity Service node execut
 - ✅ Audit logging failures
 
 #### Token Management
+
 - ✅ Token expiration detection
 - ✅ Refresh token handling
 - ✅ Expired token scenarios

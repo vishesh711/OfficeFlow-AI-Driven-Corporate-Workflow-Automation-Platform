@@ -81,19 +81,12 @@ export class ErrorHandler {
     const { runId, nodeId, nodeType, error, attempt, context } = nodeExecutionError;
 
     // Log the error
-    await this.errorLogger.logNodeError(
-      runId,
-      nodeId,
-      nodeType,
-      error,
-      attempt,
-      {
-        organizationId: context.organizationId,
-        employeeId: context.employeeId,
-        correlationId: context.correlationId,
-        executionTimeMs: nodeExecutionError.executionTimeMs,
-      }
-    );
+    await this.errorLogger.logNodeError(runId, nodeId, nodeType, error, attempt, {
+      organizationId: context.organizationId,
+      employeeId: context.employeeId,
+      correlationId: context.correlationId,
+      executionTimeMs: nodeExecutionError.executionTimeMs,
+    });
 
     let shouldRetry = false;
     let retryAt: Date | undefined;
@@ -129,7 +122,7 @@ export class ErrorHandler {
       if (this.config.enableCircuitBreaker && this.isExternalServiceNode(nodeType)) {
         const serviceName = this.getServiceNameFromNodeType(nodeType);
         const circuitBreaker = this.circuitBreakerManager.getCircuitBreaker(serviceName);
-        
+
         // The circuit breaker will be updated when the actual service call is made
         // This is just for logging purposes
         console.log(`Circuit breaker failure recorded for service: ${serviceName}`);
@@ -139,11 +132,10 @@ export class ErrorHandler {
       if (this.config.enableCompensation && shouldFailWorkflow) {
         compensationRequired = this.shouldTriggerCompensation(nodeType, error);
       }
-
     } catch (handlingError) {
       console.error('Error in error handling:', handlingError);
       await this.errorLogger.logSystemError('error-handler', handlingError);
-      
+
       // Fallback to safe defaults
       shouldRetry = false;
       shouldFailWorkflow = true;
@@ -172,15 +164,10 @@ export class ErrorHandler {
     const { runId, workflowId, error } = workflowError;
 
     // Log workflow error
-    await this.errorLogger.logWorkflowError(
-      runId,
-      workflowId,
-      error,
-      {
-        organizationId: workflowState.organizationId,
-        employeeId: workflowState.employeeId,
-      }
-    );
+    await this.errorLogger.logWorkflowError(runId, workflowId, error, {
+      organizationId: workflowState.organizationId,
+      employeeId: workflowState.employeeId,
+    });
 
     let compensationPlan;
     let shouldExecuteCompensation = false;
@@ -199,7 +186,6 @@ export class ErrorHandler {
           console.log(`Compensation plan created for workflow ${runId}`);
         }
       }
-
     } catch (compensationError) {
       console.error('Error creating compensation plan:', compensationError);
       await this.errorLogger.logSystemError('compensation-manager', compensationError);
@@ -214,22 +200,19 @@ export class ErrorHandler {
   /**
    * Execute compensation flow
    */
-  async executeCompensation(
-    compensationPlan: any,
-    workflowState: WorkflowState
-  ): Promise<void> {
+  async executeCompensation(compensationPlan: any, workflowState: WorkflowState): Promise<void> {
     try {
-      await this.compensationManager.executeCompensationPlan(
-        compensationPlan,
-        workflowState
-      );
+      await this.compensationManager.executeCompensationPlan(compensationPlan, workflowState);
 
       console.log(`Compensation executed successfully for workflow ${workflowState.runId}`);
-
     } catch (compensationError) {
-      console.error(`Compensation execution failed for workflow ${workflowState.runId}:`, compensationError);
-      
-      const errorMessage = compensationError instanceof Error ? compensationError.message : String(compensationError);
+      console.error(
+        `Compensation execution failed for workflow ${workflowState.runId}:`,
+        compensationError
+      );
+
+      const errorMessage =
+        compensationError instanceof Error ? compensationError.message : String(compensationError);
       await this.errorLogger.logError(
         'ERROR',
         'WORKFLOW',
@@ -251,10 +234,7 @@ export class ErrorHandler {
   /**
    * Execute operation with circuit breaker protection
    */
-  async executeWithCircuitBreaker<T>(
-    serviceName: string,
-    operation: () => Promise<T>
-  ): Promise<T> {
+  async executeWithCircuitBreaker<T>(serviceName: string, operation: () => Promise<T>): Promise<T> {
     if (!this.config.enableCircuitBreaker) {
       return operation();
     }
@@ -300,8 +280,9 @@ export class ErrorHandler {
     try {
       // Check circuit breaker states
       const circuitBreakerStats = await this.circuitBreakerManager.getAllStats();
-      const openCircuits = Object.entries(circuitBreakerStats)
-        .filter(([_, stats]) => stats.state === 'OPEN').length;
+      const openCircuits = Object.entries(circuitBreakerStats).filter(
+        ([_, stats]) => stats.state === 'OPEN'
+      ).length;
 
       components.circuitBreakers = openCircuits > 0 ? 'degraded' : 'up';
       details.openCircuits = openCircuits;
@@ -335,7 +316,6 @@ export class ErrorHandler {
       }
 
       return { status, components, details };
-
     } catch (error) {
       console.error('Failed to get health status:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -370,12 +350,13 @@ export class ErrorHandler {
     try {
       // Reset circuit breakers that have been open too long
       const circuitBreakerStats = await this.circuitBreakerManager.getAllStats();
-      const staleCircuits = Object.entries(circuitBreakerStats)
-        .filter(([_, stats]) => {
-          return stats.state === 'OPEN' && 
-                 stats.nextRetryTime && 
-                 Date.now() > stats.nextRetryTime.getTime() + 3600000; // 1 hour past retry time
-        });
+      const staleCircuits = Object.entries(circuitBreakerStats).filter(([_, stats]) => {
+        return (
+          stats.state === 'OPEN' &&
+          stats.nextRetryTime &&
+          Date.now() > stats.nextRetryTime.getTime() + 3600000
+        ); // 1 hour past retry time
+      });
 
       for (const [serviceName] of staleCircuits) {
         try {

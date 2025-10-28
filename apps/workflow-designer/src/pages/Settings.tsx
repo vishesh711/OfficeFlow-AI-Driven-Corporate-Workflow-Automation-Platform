@@ -1,24 +1,24 @@
-import { useState } from 'react'
-import { Settings as SettingsIcon, User, Bell, Shield, Key, Sparkles, Save } from 'lucide-react'
+import { useState } from 'react';
+import { Settings as SettingsIcon, User, Bell, Shield, Key, Sparkles, Save } from 'lucide-react';
 
 export function Settings() {
-  const [activeTab, setActiveTab] = useState('profile')
-  const [isSaving, setIsSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState('profile');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsSaving(false)
-    alert('Settings saved successfully!')
-  }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setIsSaving(false);
+    alert('Settings saved successfully!');
+  };
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: User },
     { id: 'notifications', name: 'Notifications', icon: Bell },
     { id: 'security', name: 'Security', icon: Shield },
     { id: 'api', name: 'API Keys', icon: Key },
-  ]
+  ];
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -26,7 +26,7 @@ export function Settings() {
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl p-8 mb-8 border border-gray-200 shadow-sm">
         <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
         <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        
+
         <div className="relative">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
@@ -80,9 +80,7 @@ export function Settings() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                     <input
                       type="email"
                       defaultValue="john@officeflow.com"
@@ -90,9 +88,7 @@ export function Settings() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Role
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
                     <input
                       type="text"
                       defaultValue="Administrator"
@@ -109,11 +105,26 @@ export function Settings() {
                 <h2 className="text-xl font-bold text-gray-900">Notification Preferences</h2>
                 <div className="space-y-4">
                   {[
-                    { id: 'workflow_complete', label: 'Workflow Completion', description: 'Get notified when workflows complete' },
-                    { id: 'workflow_fail', label: 'Workflow Failures', description: 'Get notified when workflows fail' },
-                    { id: 'system_updates', label: 'System Updates', description: 'Receive updates about new features' },
+                    {
+                      id: 'workflow_complete',
+                      label: 'Workflow Completion',
+                      description: 'Get notified when workflows complete',
+                    },
+                    {
+                      id: 'workflow_fail',
+                      label: 'Workflow Failures',
+                      description: 'Get notified when workflows fail',
+                    },
+                    {
+                      id: 'system_updates',
+                      label: 'System Updates',
+                      description: 'Receive updates about new features',
+                    },
                   ].map((item) => (
-                    <div key={item.id} className="flex items-start gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-colors">
+                    <div
+                      key={item.id}
+                      className="flex items-start gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-colors"
+                    >
                       <input
                         type="checkbox"
                         defaultChecked
@@ -194,9 +205,25 @@ export function Settings() {
               >
                 {isSaving ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Saving...
                   </>
@@ -212,6 +239,5 @@ export function Settings() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

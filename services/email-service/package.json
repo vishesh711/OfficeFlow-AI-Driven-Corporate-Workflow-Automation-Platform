@@ -42,7 +42,12 @@
     "@typescript-eslint/eslint-plugin": "^6.12.0",
     "@typescript-eslint/parser": "^6.12.0"
   },
-  "keywords": ["email", "templates", "smtp", "officeflow"],
+  "keywords": [
+    "email",
+    "templates",
+    "smtp",
+    "officeflow"
+  ],
   "author": "OfficeFlow Team",
   "license": "MIT"
 }

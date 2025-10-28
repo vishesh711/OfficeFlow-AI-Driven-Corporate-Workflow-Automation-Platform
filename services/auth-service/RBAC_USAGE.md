@@ -15,28 +15,34 @@ The RBAC system provides fine-grained access control with the following features
 ## System Roles
 
 ### Admin
+
 - Full system access
 - Can manage all organizations
 - Can create/modify roles and permissions
 
 ### Manager
+
 - Can manage workflows within their organization
 - Can manage users within their organization
 - Can view audit logs
 
 ### User
+
 - Can execute workflows
 - Can view workflows and basic information
 - Limited access to organization data
 
 ### Viewer
+
 - Read-only access to workflows
 - Can view basic user information
 
 ## API Endpoints
 
 ### Authentication Required
+
 All RBAC endpoints require authentication via JWT token in the Authorization header:
+
 ```
 Authorization: Bearer <jwt_token>
 ```
@@ -44,21 +50,25 @@ Authorization: Bearer <jwt_token>
 ### Role Management
 
 #### Get All Roles
+
 ```http
 GET /rbac/roles
 ```
 
 #### Get User's Roles
+
 ```http
 GET /rbac/users/{userId}/roles
 ```
 
 #### Get User's Permissions
+
 ```http
 GET /rbac/users/{userId}/permissions
 ```
 
 #### Assign Role to User
+
 ```http
 POST /rbac/users/{userId}/roles
 Content-Type: application/json
@@ -70,6 +80,7 @@ Content-Type: application/json
 ```
 
 #### Remove Role from User
+
 ```http
 DELETE /rbac/users/{userId}/roles/{roleId}
 ```
@@ -77,6 +88,7 @@ DELETE /rbac/users/{userId}/roles/{roleId}
 ### Permission Checking
 
 #### Check Single Permission
+
 ```http
 POST /rbac/permissions/check
 Content-Type: application/json
@@ -91,6 +103,7 @@ Content-Type: application/json
 ### Resource-Specific Permissions
 
 #### Grant Resource Permission
+
 ```http
 POST /rbac/resources/{resourceId}/permissions
 Content-Type: application/json
@@ -104,6 +117,7 @@ Content-Type: application/json
 ```
 
 #### Revoke Resource Permission
+
 ```http
 DELETE /rbac/resources/{resourceId}/permissions/{userId}
 ```
@@ -111,6 +125,7 @@ DELETE /rbac/resources/{resourceId}/permissions/{userId}
 ### Custom Roles
 
 #### Create Custom Role
+
 ```http
 POST /rbac/roles
 Content-Type: application/json
@@ -125,6 +140,7 @@ Content-Type: application/json
 ## Middleware Usage
 
 ### Basic Authentication
+
 ```typescript
 import { createAuthMiddleware } from './middleware/auth-middleware';
 
@@ -138,9 +154,11 @@ app.get('/protected', authMiddleware.authenticate, (req, res) => {
 ```
 
 ### Role-Based Authorization
+
 ```typescript
 // Require specific roles
-app.get('/admin-only', 
+app.get(
+  '/admin-only',
   authMiddleware.authenticate,
   authMiddleware.authorize(['admin']),
   (req, res) => {
@@ -150,9 +168,11 @@ app.get('/admin-only',
 ```
 
 ### Permission-Based Authorization
+
 ```typescript
 // Require specific permission
-app.get('/workflows',
+app.get(
+  '/workflows',
   authMiddleware.authenticate,
   authMiddleware.authorizePermission('workflow', 'read'),
   (req, res) => {
@@ -161,11 +181,12 @@ app.get('/workflows',
 );
 
 // Require multiple permissions
-app.post('/workflows',
+app.post(
+  '/workflows',
   authMiddleware.authenticate,
   authMiddleware.authorizePermissions([
     { resource: 'workflow', action: 'create' },
-    { resource: 'organization', action: 'read' }
+    { resource: 'organization', action: 'read' },
   ]),
   (req, res) => {
     res.json({ message: 'Workflow created' });
@@ -174,9 +195,11 @@ app.post('/workflows',
 ```
 
 ### Organization Access Control
+
 ```typescript
 // Ensure user can access the organization
-app.get('/orgs/:orgId/users',
+app.get(
+  '/orgs/:orgId/users',
   authMiddleware.authenticate,
   authMiddleware.authorizeOrganization,
   authMiddleware.authorizePermission('user', 'read'),
@@ -187,9 +210,11 @@ app.get('/orgs/:orgId/users',
 ```
 
 ### Resource-Specific Authorization
+
 ```typescript
 // Check access to specific resource
-app.get('/workflows/:id',
+app.get(
+  '/workflows/:id',
   authMiddleware.authenticate,
   authMiddleware.authorizeResource('workflow'),
   (req, res) => {
@@ -202,6 +227,7 @@ app.get('/workflows/:id',
 ## Programmatic Usage
 
 ### Check Permissions in Code
+
 ```typescript
 import { RbacService } from './services/rbac-service';
 
@@ -213,7 +239,7 @@ const result = await rbacService.hasPermission({
   orgId: 'org-456',
   resource: 'workflow',
   action: 'read',
-  resourceId: 'workflow-789' // optional
+  resourceId: 'workflow-789', // optional
 });
 
 if (result.allowed) {
@@ -224,17 +250,14 @@ if (result.allowed) {
 }
 
 // Check multiple permissions
-const multiResult = await rbacService.hasPermissions(
-  'user-123',
-  'org-456',
-  [
-    { resource: 'workflow', action: 'read' },
-    { resource: 'workflow', action: 'update' }
-  ]
-);
+const multiResult = await rbacService.hasPermissions('user-123', 'org-456', [
+  { resource: 'workflow', action: 'read' },
+  { resource: 'workflow', action: 'update' },
+]);
 ```
 
 ### Assign Roles Programmatically
+
 ```typescript
 // Assign role to user
 await rbacService.assignUserRole(
@@ -253,6 +276,7 @@ const permissions = await rbacService.getUserPermissions('user-123', 'org-789');
 ```
 
 ### Grant Resource-Specific Permissions
+
 ```typescript
 // Grant specific permissions for a resource
 await rbacService.grantResourcePermission(
@@ -271,6 +295,7 @@ await rbacService.grantResourcePermission(
 Permissions follow the format: `resource:action`
 
 ### Available Resources
+
 - `system` - System-wide operations
 - `organization` - Organization management
 - `user` - User management
@@ -279,6 +304,7 @@ Permissions follow the format: `resource:action`
 - `integration` - Integration management
 
 ### Available Actions
+
 - `admin` - Full administrative access
 - `manage` - Full management access
 - `create` - Create new resources
@@ -288,6 +314,7 @@ Permissions follow the format: `resource:action`
 - `execute` - Execute operations
 
 ### Examples
+
 - `workflow:read` - Can view workflows
 - `user:manage` - Can fully manage users
 - `system:admin` - Full system administration
@@ -298,16 +325,19 @@ Permissions follow the format: `resource:action`
 The system includes PostgreSQL functions for efficient permission checking:
 
 ### Check User Permission
+
 ```sql
 SELECT user_has_permission('user-uuid', 'org-uuid', 'workflow', 'read');
 ```
 
 ### Get User Permissions
+
 ```sql
 SELECT * FROM get_user_permissions('user-uuid', 'org-uuid');
 ```
 
 ### Cleanup Expired Data
+
 ```sql
 SELECT cleanup_expired_rbac_data();
 ```
@@ -335,6 +365,7 @@ The RBAC system returns structured error responses:
 ```
 
 Common error codes:
+
 - `AUTHENTICATION_REQUIRED` - No valid JWT token
 - `INSUFFICIENT_PERMISSIONS` - Missing required permissions
 - `ORGANIZATION_ACCESS_DENIED` - Cannot access the organization

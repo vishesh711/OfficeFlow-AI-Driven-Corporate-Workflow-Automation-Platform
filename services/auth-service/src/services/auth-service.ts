@@ -26,7 +26,7 @@ import {
   MfaSetupResponse,
   MfaVerifyRequest,
   MfaDisableRequest,
-  AUTH_ERRORS
+  AUTH_ERRORS,
 } from '../types/auth-types';
 
 export class AuthService {
@@ -74,7 +74,7 @@ export class AuthService {
       // First, check if we have any organizations
       const orgResult = await this.db.query('SELECT org_id FROM organizations LIMIT 1');
       const organizationId = orgResult.rows.length > 0 ? orgResult.rows[0].org_id : generateId();
-      
+
       // If no org exists, create a default one
       if (orgResult.rows.length === 0) {
         // Extract domain from email or use a default
@@ -150,7 +150,10 @@ export class AuthService {
         throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS.message);
       }
 
-      const isPasswordValid = await this.passwordService.verifyPassword(password, user.passwordHash);
+      const isPasswordValid = await this.passwordService.verifyPassword(
+        password,
+        user.passwordHash
+      );
       if (!isPasswordValid) {
         await this.userRepository.incrementFailedLoginAttempts(user.userId);
         await this.logLoginAttempt(email, ipAddress, userAgent, false, 'INVALID_PASSWORD');
@@ -165,7 +168,7 @@ export class AuthService {
           refreshToken: '',
           user: this.toPublicUser(user),
           expiresIn: 0,
-          mfaSetupRequired: true
+          mfaSetupRequired: true,
         };
       }
 
@@ -178,7 +181,7 @@ export class AuthService {
             refreshToken: '',
             user: this.toPublicUser(user),
             expiresIn: 0,
-            mfaRequired: true
+            mfaRequired: true,
           };
         }
 
@@ -186,7 +189,15 @@ export class AuthService {
         const mfaValid = await this.verifyMfaToken(user.userId, mfaToken);
         if (!mfaValid) {
           await this.userRepository.incrementFailedLoginAttempts(user.userId);
-          await this.logLoginAttempt(email, ipAddress, userAgent, false, 'INVALID_MFA_TOKEN', true, false);
+          await this.logLoginAttempt(
+            email,
+            ipAddress,
+            userAgent,
+            false,
+            'INVALID_MFA_TOKEN',
+            true,
+            false
+          );
           throw new Error(AUTH_ERRORS.INVALID_MFA_TOKEN.message);
         }
       }
@@ -208,8 +219,13 @@ export class AuthService {
       await this.userRepository.updateLastLogin(user.userId);
 
       // Log successful login
-      await this.logLoginAttempt(email, ipAddress, userAgent, true, null, 
-        this.mfaService.isMfaRequiredForLogin(user), 
+      await this.logLoginAttempt(
+        email,
+        ipAddress,
+        userAgent,
+        true,
+        null,
+        this.mfaService.isMfaRequiredForLogin(user),
         this.mfaService.isMfaRequiredForLogin(user) ? true : undefined
       );
 
@@ -220,21 +236,20 @@ export class AuthService {
         email: user.email,
         sessionId: session.sessionId,
         ipAddress,
-        mfaUsed: this.mfaService.isMfaRequiredForLogin(user)
+        mfaUsed: this.mfaService.isMfaRequiredForLogin(user),
       });
 
       return {
         accessToken,
         refreshToken,
         user: this.toPublicUser(user),
-        expiresIn
+        expiresIn,
       };
-
     } catch (error) {
       this.logger.error('Login failed', {
         email,
         ipAddress,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -264,24 +279,27 @@ export class AuthService {
 
       // Generate new tokens
       const newAccessToken = this.jwtService.generateAccessToken(user, session.sessionId);
-      const newRefreshToken = this.jwtService.generateRefreshToken(user.userId, session.sessionId, payload.tokenVersion + 1);
+      const newRefreshToken = this.jwtService.generateRefreshToken(
+        user.userId,
+        session.sessionId,
+        payload.tokenVersion + 1
+      );
 
       const expiresIn = this.jwtService.getTimeUntilExpiration(newAccessToken);
 
       this.logger.info('Token refreshed', {
         userId: user.userId,
-        sessionId: session.sessionId
+        sessionId: session.sessionId,
       });
 
       return {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
-        expiresIn
+        expiresIn,
       };
-
     } catch (error) {
       this.logger.error('Token refresh failed', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -293,12 +311,12 @@ export class AuthService {
   async logout(sessionId: UUID): Promise<void> {
     try {
       await this.sessionService.terminateSession(sessionId);
-      
+
       this.logger.info('User logged out', { sessionId });
     } catch (error) {
       this.logger.error('Logout failed', {
         sessionId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -310,12 +328,12 @@ export class AuthService {
   async logoutAll(userId: UUID): Promise<void> {
     try {
       await this.sessionService.terminateAllUserSessions(userId);
-      
+
       this.logger.info('User logged out from all sessions', { userId });
     } catch (error) {
       this.logger.error('Logout all failed', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -335,7 +353,10 @@ export class AuthService {
       }
 
       // Verify current password
-      const isCurrentPasswordValid = await this.passwordService.verifyPassword(currentPassword, user.passwordHash);
+      const isCurrentPasswordValid = await this.passwordService.verifyPassword(
+        currentPassword,
+        user.passwordHash
+      );
       if (!isCurrentPasswordValid) {
         throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS.message);
       }
@@ -359,11 +380,10 @@ export class AuthService {
       await this.sessionService.terminateAllUserSessions(userId);
 
       this.logger.info('Password changed successfully', { userId });
-
     } catch (error) {
       this.logger.error('Password change failed', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -383,7 +403,10 @@ export class AuthService {
       }
 
       // Verify password
-      const isPasswordValid = await this.passwordService.verifyPassword(password, user.passwordHash);
+      const isPasswordValid = await this.passwordService.verifyPassword(
+        password,
+        user.passwordHash
+      );
       if (!isPasswordValid) {
         throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS.message);
       }
@@ -405,13 +428,12 @@ export class AuthService {
       return {
         secret,
         qrCode,
-        backupCodes
+        backupCodes,
       };
-
     } catch (error) {
       this.logger.error('MFA setup failed', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -440,18 +462,20 @@ export class AuthService {
       await this.userRepository.enableMfa(userId);
 
       // Mark MFA secret as verified
-      await this.db.query(`
+      await this.db.query(
+        `
         UPDATE user_mfa_secrets
         SET is_verified = true
         WHERE user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       this.logger.info('MFA setup completed', { userId });
-
     } catch (error) {
       this.logger.error('MFA verification failed', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -471,7 +495,10 @@ export class AuthService {
       }
 
       // Verify password
-      const isPasswordValid = await this.passwordService.verifyPassword(password, user.passwordHash);
+      const isPasswordValid = await this.passwordService.verifyPassword(
+        password,
+        user.passwordHash
+      );
       if (!isPasswordValid) {
         throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS.message);
       }
@@ -486,11 +513,10 @@ export class AuthService {
       await this.userRepository.disableMfa(userId);
 
       this.logger.info('MFA disabled', { userId });
-
     } catch (error) {
       this.logger.error('MFA disable failed', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -516,7 +542,7 @@ export class AuthService {
       if (this.mfaService.isValidBackupCodeFormat(token)) {
         const backupCodes = await this.getBackupCodes(userId);
         const isValid = this.mfaService.verifyBackupCode(token, backupCodes);
-        
+
         if (isValid) {
           // Remove used backup code
           await this.removeBackupCode(userId, token);
@@ -528,7 +554,7 @@ export class AuthService {
     } catch (error) {
       this.logger.error('MFA token verification failed', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return false;
     }
@@ -540,7 +566,8 @@ export class AuthService {
   private async storeMfaSecret(userId: UUID, secret: string, backupCodes: string[]): Promise<void> {
     // In a real implementation, these would be encrypted
     // For now, we'll store them as-is but in production, use proper encryption
-    await this.db.query(`
+    await this.db.query(
+      `
       INSERT INTO user_mfa_secrets (user_id, secret_encrypted, backup_codes_encrypted)
       VALUES ($1, $2, $3)
       ON CONFLICT (user_id) 
@@ -548,18 +575,23 @@ export class AuthService {
         secret_encrypted = $2,
         backup_codes_encrypted = $3,
         updated_at = NOW()
-    `, [userId, secret, backupCodes]);
+    `,
+      [userId, secret, backupCodes]
+    );
   }
 
   /**
    * Get MFA secret for user
    */
   private async getMfaSecret(userId: UUID): Promise<string | null> {
-    const result = await this.db.query(`
+    const result = await this.db.query(
+      `
       SELECT secret_encrypted
       FROM user_mfa_secrets
       WHERE user_id = $1 AND is_verified = true
-    `, [userId]);
+    `,
+      [userId]
+    );
 
     return result.rows.length > 0 ? result.rows[0].secret_encrypted : null;
   }
@@ -568,11 +600,14 @@ export class AuthService {
    * Get backup codes for user
    */
   private async getBackupCodes(userId: UUID): Promise<string[]> {
-    const result = await this.db.query(`
+    const result = await this.db.query(
+      `
       SELECT backup_codes_encrypted
       FROM user_mfa_secrets
       WHERE user_id = $1 AND is_verified = true
-    `, [userId]);
+    `,
+      [userId]
+    );
 
     return result.rows.length > 0 ? result.rows[0].backup_codes_encrypted || [] : [];
   }
@@ -582,13 +617,16 @@ export class AuthService {
    */
   private async removeBackupCode(userId: UUID, usedCode: string): Promise<void> {
     const backupCodes = await this.getBackupCodes(userId);
-    const updatedCodes = backupCodes.filter(code => code !== usedCode.toUpperCase());
-    
-    await this.db.query(`
+    const updatedCodes = backupCodes.filter((code) => code !== usedCode.toUpperCase());
+
+    await this.db.query(
+      `
       UPDATE user_mfa_secrets
       SET backup_codes_encrypted = $1
       WHERE user_id = $2
-    `, [updatedCodes, userId]);
+    `,
+      [updatedCodes, userId]
+    );
   }
 
   /**
@@ -604,17 +642,20 @@ export class AuthService {
     mfaSuccess?: boolean
   ): Promise<void> {
     try {
-      await this.db.query(`
+      await this.db.query(
+        `
         INSERT INTO login_attempts (
           email, ip_address, user_agent, success, failure_reason,
           mfa_required, mfa_success
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7)
-      `, [email, ipAddress, userAgent, success, failureReason, mfaRequired, mfaSuccess]);
+      `,
+        [email, ipAddress, userAgent, success, failureReason, mfaRequired, mfaSuccess]
+      );
     } catch (error) {
       this.logger.error('Failed to log login attempt', {
         email,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -646,7 +687,7 @@ export class AuthService {
       role: user.role,
       isActive: user.isActive,
       lastLoginAt: user.lastLoginAt,
-      mfaEnabled: user.mfaEnabled
+      mfaEnabled: user.mfaEnabled,
     };
   }
 }

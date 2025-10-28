@@ -61,7 +61,7 @@ class SimpleLogger implements Logger {
     };
 
     const output = JSON.stringify(logEntry);
-    
+
     if (level === 'error' || level === 'fatal') {
       console.error(output);
     } else {
@@ -98,9 +98,12 @@ class SimpleLogger implements Logger {
   }
 }
 
-export function createSimpleLogger(serviceName: string, options?: {
-  level?: string;
-}): Logger {
+export function createSimpleLogger(
+  serviceName: string,
+  options?: {
+    level?: string;
+  }
+): Logger {
   return new SimpleLogger(serviceName, options?.level || process.env.LOG_LEVEL || 'info');
 }
 
@@ -108,7 +111,9 @@ export function generateCorrelationId(): string {
   return uuidv4();
 }
 
-export function extractCorrelationId(headers: Record<string, string | string[] | undefined>): string | undefined {
+export function extractCorrelationId(
+  headers: Record<string, string | string[] | undefined>
+): string | undefined {
   const correlationId = headers['x-correlation-id'] || headers['X-Correlation-ID'];
   return Array.isArray(correlationId) ? correlationId[0] : correlationId;
 }

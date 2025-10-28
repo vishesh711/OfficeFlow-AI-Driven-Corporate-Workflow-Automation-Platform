@@ -1,61 +1,76 @@
-import { Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Play, Pause, Edit, Trash2, Copy, GitBranch, Sparkles, Loader2, AlertCircle } from 'lucide-react'
-import { workflowApi } from '@/lib/api'
-import { cloneWorkflow } from '@/lib/templates'
+import { Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Plus,
+  Play,
+  Pause,
+  Edit,
+  Trash2,
+  Copy,
+  GitBranch,
+  Sparkles,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react';
+import { workflowApi } from '@/lib/api';
+import { cloneWorkflow } from '@/lib/templates';
 
 export function WorkflowList() {
-  const queryClient = useQueryClient()
-  
-  const { data: workflows, isLoading, error } = useQuery({
+  const queryClient = useQueryClient();
+
+  const {
+    data: workflows,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['workflows'],
-    queryFn: () => workflowApi.getWorkflows().then(res => res.data),
-  })
+    queryFn: () => workflowApi.getWorkflows().then((res) => res.data),
+  });
 
   const cloneWorkflowMutation = useMutation({
     mutationFn: async (workflow: any) => {
-      const cloned = cloneWorkflow(workflow)
+      const cloned = cloneWorkflow(workflow);
       return workflowApi.createWorkflow({
         ...cloned,
         eventTrigger: workflow.eventTrigger,
         version: 1,
         isActive: false,
-      })
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] })
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
     },
-  })
+  });
 
   const toggleWorkflowMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      return workflowApi.updateWorkflow(id, { isActive: !isActive })
+      return workflowApi.updateWorkflow(id, { isActive: !isActive });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] })
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
     },
-  })
+  });
 
   const deleteWorkflowMutation = useMutation({
     mutationFn: (id: string) => workflowApi.deleteWorkflow(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] })
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
     },
-  })
+  });
 
   const handleCloneWorkflow = (workflow: any) => {
-    cloneWorkflowMutation.mutate(workflow)
-  }
+    cloneWorkflowMutation.mutate(workflow);
+  };
 
   const handleToggleWorkflow = (workflow: any) => {
-    toggleWorkflowMutation.mutate({ id: workflow.id, isActive: workflow.isActive })
-  }
+    toggleWorkflowMutation.mutate({ id: workflow.id, isActive: workflow.isActive });
+  };
 
   const handleDeleteWorkflow = (id: string) => {
     if (confirm('Are you sure you want to delete this workflow?')) {
-      deleteWorkflowMutation.mutate(id)
+      deleteWorkflowMutation.mutate(id);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -64,12 +79,15 @@ export function WorkflowList() {
           <div className="h-12 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl w-1/3 mb-8"></div>
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-24 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl"></div>
+              <div
+                key={i}
+                className="h-24 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl"
+              ></div>
             ))}
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -80,7 +98,7 @@ export function WorkflowList() {
           <p className="text-red-600 font-medium">Failed to load workflows</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -89,7 +107,7 @@ export function WorkflowList() {
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl p-8 mb-8 border border-gray-200 shadow-sm">
         <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
         <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        
+
         <div className="relative sm:flex sm:items-center sm:justify-between">
           <div className="sm:flex-auto">
             <div className="flex items-center gap-3 mb-2">
@@ -233,5 +251,5 @@ export function WorkflowList() {
         </div>
       )}
     </div>
-  )
+  );
 }

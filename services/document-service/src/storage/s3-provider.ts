@@ -7,11 +7,14 @@ export class S3StorageProvider implements StorageProvider {
   private s3: AWS.S3;
   private bucket: string;
 
-  constructor(config: {
-    region: string;
-    accessKeyId: string;
-    secretAccessKey: string;
-  }, bucket: string) {
+  constructor(
+    config: {
+      region: string;
+      accessKeyId: string;
+      secretAccessKey: string;
+    },
+    bucket: string
+  ) {
     AWS.config.update({
       region: config.region,
       accessKeyId: config.accessKeyId,
@@ -54,7 +57,7 @@ export class S3StorageProvider implements StorageProvider {
       };
 
       await this.s3.upload(params).promise();
-      
+
       logger.info('File uploaded to S3', {
         key,
         size: buffer.length,
@@ -81,7 +84,7 @@ export class S3StorageProvider implements StorageProvider {
 
       const result = await this.s3.getObject(params).promise();
       const buffer = result.Body as Buffer;
-      
+
       logger.info('File downloaded from S3', {
         key,
         size: buffer.length,
@@ -124,7 +127,7 @@ export class S3StorageProvider implements StorageProvider {
       };
 
       const url = this.s3.getSignedUrl('getObject', params);
-      
+
       logger.info('Generated presigned URL for S3 object', {
         key,
         expiresIn,
@@ -169,7 +172,7 @@ export class S3StorageProvider implements StorageProvider {
       };
 
       const result = await this.s3.listObjectsV2(params).promise();
-      return result.Contents?.map(obj => obj.Key || '') || [];
+      return result.Contents?.map((obj) => obj.Key || '') || [];
     } catch (error) {
       logger.error('Failed to list S3 objects', {
         error: error.message,

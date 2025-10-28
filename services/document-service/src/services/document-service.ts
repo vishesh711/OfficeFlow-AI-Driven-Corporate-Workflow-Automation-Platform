@@ -44,7 +44,7 @@ export class DocumentService {
 
   public async initialize(): Promise<void> {
     await this.storageProvider.initialize();
-    
+
     // Ensure temp directory exists
     if (!fs.existsSync(this.config.tempDir)) {
       fs.mkdirSync(this.config.tempDir, { recursive: true });
@@ -146,7 +146,9 @@ export class DocumentService {
     }
   }
 
-  public async downloadDocument(request: DocumentDownloadRequest): Promise<{ buffer: Buffer; document: Document }> {
+  public async downloadDocument(
+    request: DocumentDownloadRequest
+  ): Promise<{ buffer: Buffer; document: Document }> {
     try {
       // Check access permissions
       const hasAccess = await this.checkDocumentAccess(
@@ -170,7 +172,10 @@ export class DocumentService {
 
       // If specific version requested
       if (request.version && request.version !== document.version) {
-        const version = await this.documentRepository.getDocumentVersion(request.documentId, request.version);
+        const version = await this.documentRepository.getDocumentVersion(
+          request.documentId,
+          request.version
+        );
         if (!version) {
           throw new Error('Document version not found');
         }
@@ -258,7 +263,12 @@ export class DocumentService {
   ): Promise<Document> {
     try {
       // Check access permissions
-      const hasAccess = await this.checkDocumentAccess(documentId, userId, updates.organizationId!, 'write');
+      const hasAccess = await this.checkDocumentAccess(
+        documentId,
+        userId,
+        updates.organizationId!,
+        'write'
+      );
       if (!hasAccess) {
         throw new Error('Access denied');
       }
@@ -279,10 +289,19 @@ export class DocumentService {
     }
   }
 
-  public async deleteDocument(documentId: string, userId: string, organizationId: string): Promise<void> {
+  public async deleteDocument(
+    documentId: string,
+    userId: string,
+    organizationId: string
+  ): Promise<void> {
     try {
       // Check access permissions
-      const hasAccess = await this.checkDocumentAccess(documentId, userId, organizationId, 'delete');
+      const hasAccess = await this.checkDocumentAccess(
+        documentId,
+        userId,
+        organizationId,
+        'delete'
+      );
       if (!hasAccess) {
         throw new Error('Access denied');
       }
@@ -333,7 +352,7 @@ export class DocumentService {
     try {
       // Get document access rules
       const accessRules = await this.documentRepository.getDocumentAccess(documentId);
-      
+
       // If no specific access rules, check organization membership
       if (accessRules.length === 0) {
         return true; // Default allow for organization members
@@ -356,7 +375,7 @@ export class DocumentService {
         }
 
         // Check permission
-        const permission = rule.permissions.find(p => p.action === action);
+        const permission = rule.permissions.find((p) => p.action === action);
         if (permission && permission.granted) {
           return true;
         }

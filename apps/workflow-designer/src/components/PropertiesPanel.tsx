@@ -1,87 +1,93 @@
-import { useCallback } from 'react'
-import { X, Trash2, AlertTriangle } from 'lucide-react'
-import { useWorkflowStore } from '@/store/workflow'
+import { useCallback } from 'react';
+import { X, Trash2, AlertTriangle } from 'lucide-react';
+import { useWorkflowStore } from '@/store/workflow';
 
 export function PropertiesPanel() {
-  const { 
-    nodes, 
-    selectedNodeId, 
-    selectNode, 
-    updateNode, 
-    deleteNode 
-  } = useWorkflowStore()
+  const { nodes, selectedNodeId, selectNode, updateNode, deleteNode } = useWorkflowStore();
 
-  const selectedNode = nodes.find(node => node.id === selectedNodeId)
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId);
 
   const handleClose = useCallback(() => {
-    selectNode(null)
-  }, [selectNode])
+    selectNode(null);
+  }, [selectNode]);
 
   const handleDelete = useCallback(() => {
     if (selectedNodeId) {
-      deleteNode(selectedNodeId)
-      selectNode(null)
+      deleteNode(selectedNodeId);
+      selectNode(null);
     }
-  }, [selectedNodeId, deleteNode, selectNode])
+  }, [selectedNodeId, deleteNode, selectNode]);
 
-  const handleLabelChange = useCallback((label: string) => {
-    if (selectedNodeId) {
-      updateNode(selectedNodeId, { label })
-    }
-  }, [selectedNodeId, updateNode])
+  const handleLabelChange = useCallback(
+    (label: string) => {
+      if (selectedNodeId) {
+        updateNode(selectedNodeId, { label });
+      }
+    },
+    [selectedNodeId, updateNode]
+  );
 
-  const handleParamChange = useCallback((key: string, value: any) => {
-    if (selectedNodeId) {
-      const currentParams = selectedNode?.data.params || {}
-      updateNode(selectedNodeId, {
-        params: {
-          ...currentParams,
-          [key]: value,
-        },
-      })
-    }
-  }, [selectedNodeId, selectedNode, updateNode])
+  const handleParamChange = useCallback(
+    (key: string, value: any) => {
+      if (selectedNodeId) {
+        const currentParams = selectedNode?.data.params || {};
+        updateNode(selectedNodeId, {
+          params: {
+            ...currentParams,
+            [key]: value,
+          },
+        });
+      }
+    },
+    [selectedNodeId, selectedNode, updateNode]
+  );
 
-  const handleRetryPolicyChange = useCallback((field: string, value: number) => {
-    if (selectedNodeId) {
-      const currentRetryPolicy = selectedNode?.data.retryPolicy || { maxRetries: 3, backoffMs: 1000 }
-      updateNode(selectedNodeId, {
-        retryPolicy: {
-          ...currentRetryPolicy,
-          [field]: value,
-        },
-      })
-    }
-  }, [selectedNodeId, selectedNode, updateNode])
+  const handleRetryPolicyChange = useCallback(
+    (field: string, value: number) => {
+      if (selectedNodeId) {
+        const currentRetryPolicy = selectedNode?.data.retryPolicy || {
+          maxRetries: 3,
+          backoffMs: 1000,
+        };
+        updateNode(selectedNodeId, {
+          retryPolicy: {
+            ...currentRetryPolicy,
+            [field]: value,
+          },
+        });
+      }
+    },
+    [selectedNodeId, selectedNode, updateNode]
+  );
 
   const validateNodeConfiguration = useCallback(() => {
-    if (!selectedNode) return []
-    
-    const errors: string[] = []
-    const { type, data } = selectedNode
-    
+    if (!selectedNode) return [];
+
+    const errors: string[] = [];
+    const { type, data } = selectedNode;
+
     switch (type) {
       case 'email':
         if (!data.params.recipients) {
-          errors.push('Recipients field is required')
+          errors.push('Recipients field is required');
         }
-        break
+        break;
       case 'condition':
         if (!data.params.expression) {
-          errors.push('Condition expression is required')
+          errors.push('Condition expression is required');
         }
-        break
+        break;
       case 'delay':
         if (!data.params.duration || data.params.duration < 1) {
-          errors.push('Delay duration must be at least 1')
+          errors.push('Delay duration must be at least 1');
         }
-        break
+        break;
     }
-    
-    return errors
-  }, [selectedNode])
 
-  if (!selectedNode) return null
+    return errors;
+  }, [selectedNode]);
+
+  if (!selectedNode) return null;
 
   const renderNodeProperties = () => {
     switch (selectedNode.type) {
@@ -89,9 +95,7 @@ export function PropertiesPanel() {
         return (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Event Type
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Event Type</label>
               <select
                 value={selectedNode.data.params.eventType || 'employee.onboard'}
                 onChange={(e) => handleParamChange('eventType', e.target.value)}
@@ -104,15 +108,13 @@ export function PropertiesPanel() {
               </select>
             </div>
           </div>
-        )
+        );
 
       case 'identity':
         return (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Action
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Action</label>
               <select
                 value={selectedNode.data.params.action || 'provision'}
                 onChange={(e) => handleParamChange('action', e.target.value)}
@@ -124,9 +126,7 @@ export function PropertiesPanel() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Provider
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Provider</label>
               <select
                 value={selectedNode.data.params.provider || 'google'}
                 onChange={(e) => handleParamChange('provider', e.target.value)}
@@ -138,15 +138,13 @@ export function PropertiesPanel() {
               </select>
             </div>
           </div>
-        )
+        );
 
       case 'email':
         return (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Template
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Template</label>
               <select
                 value={selectedNode.data.params.template || 'welcome'}
                 onChange={(e) => handleParamChange('template', e.target.value)}
@@ -159,9 +157,7 @@ export function PropertiesPanel() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Recipients
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Recipients</label>
               <input
                 type="text"
                 value={selectedNode.data.params.recipients || '{{employee.email}}'}
@@ -171,15 +167,13 @@ export function PropertiesPanel() {
               />
             </div>
           </div>
-        )
+        );
 
       case 'ai':
         return (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Content Type
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Content Type</label>
               <select
                 value={selectedNode.data.params.contentType || 'welcome_message'}
                 onChange={(e) => handleParamChange('contentType', e.target.value)}
@@ -205,7 +199,7 @@ export function PropertiesPanel() {
               </div>
             )}
           </div>
-        )
+        );
 
       case 'condition':
         return (
@@ -223,7 +217,7 @@ export function PropertiesPanel() {
               />
             </div>
           </div>
-        )
+        );
 
       case 'delay':
         return (
@@ -252,16 +246,16 @@ export function PropertiesPanel() {
               </div>
             </div>
           </div>
-        )
+        );
 
       default:
         return (
           <div className="text-sm text-gray-500 text-center py-4">
             No configuration options available for this node type.
           </div>
-        )
+        );
     }
-  }
+  };
 
   return (
     <div className="w-80 bg-gradient-to-b from-white to-gray-50 border-l-2 border-gray-200 overflow-y-auto shadow-lg">
@@ -287,9 +281,7 @@ export function PropertiesPanel() {
 
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Node Label
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Node Label</label>
             <input
               type="text"
               value={selectedNode.data.label}
@@ -299,27 +291,21 @@ export function PropertiesPanel() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Node Type
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Node Type</label>
             <div className="text-sm font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 px-4 py-2.5 rounded-xl border border-blue-200">
               {selectedNode.type}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Configuration
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Configuration</label>
             <div className="bg-white p-4 rounded-xl border-2 border-gray-200">
               {renderNodeProperties()}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Retry Policy
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Retry Policy</label>
             <div className="bg-white p-4 rounded-xl border-2 border-gray-200 space-y-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
@@ -351,9 +337,7 @@ export function PropertiesPanel() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Timeout (ms)
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Timeout (ms)</label>
             <input
               type="number"
               value={selectedNode.data.timeoutMs || 300000}
@@ -362,9 +346,7 @@ export function PropertiesPanel() {
               min="1000"
               step="1000"
             />
-            <p className="text-xs text-gray-500 mt-2">
-              Maximum execution time for this node
-            </p>
+            <p className="text-xs text-gray-500 mt-2">Maximum execution time for this node</p>
           </div>
 
           {/* Validation Errors */}
@@ -387,5 +369,5 @@ export function PropertiesPanel() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -5,22 +5,27 @@
 Your workflow designer has these nodes:
 
 ### 🎯 **Triggers** (Start your workflow)
+
 - **Event Trigger** - Triggered by employee lifecycle events
 - **Schedule** - Time-based triggers (cron schedule)
 
 ### 👤 **Identity & Access**
+
 - **Identity Service** - Provision/deprovision user accounts
 
 ### 📧 **Communication**
+
 - **Email** - Send personalized emails
 - **Slack** - Send Slack messages
 - **Calendar** - Schedule meetings
 
 ### 📄 **Documents & AI**
+
 - **Document** - Distribute documents
 - **AI Content** - Generate personalized content with AI
 
 ### 🔀 **Flow Control**
+
 - **Condition** - Conditional branching (if/else logic)
 - **Delay** - Wait before continuing
 
@@ -65,6 +70,7 @@ Your workflow designer has these nodes:
 **What it does:** Send a welcome email immediately, then send another email after 24 hours.
 
 ### Node Flow:
+
 ```
 [Event Trigger: employee.onboard]
         ↓
@@ -108,6 +114,7 @@ Your workflow designer has these nodes:
 **What it does:** Send different welcome emails based on the employee's department.
 
 ### Node Flow:
+
 ```
 [Event Trigger: employee.onboard]
         ↓
@@ -152,6 +159,7 @@ Your workflow designer has these nodes:
 **What it does:** Full onboarding sequence with multiple steps.
 
 ### Node Flow:
+
 ```
 [Event Trigger: employee.onboard]
         ↓
@@ -173,7 +181,6 @@ Your workflow designer has these nodes:
 1. Create workflow: `"Complete Employee Onboarding"`
 
 2. **Add nodes in order:**
-
    - **Event Trigger**
      - Event Type: `employee.onboard`
 
@@ -212,6 +219,7 @@ Your workflow designer has these nodes:
 **What it does:** Send a weekly team report every Monday at 9 AM.
 
 ### Node Flow:
+
 ```
 [Schedule: Monday 9 AM]
         ↓
@@ -255,11 +263,13 @@ Your workflow designer has these nodes:
 ### Adding Nodes:
 
 **Method 1: Drag & Drop**
+
 - Find the node in the left sidebar
 - Click and drag it onto the canvas
 - Drop it where you want
 
 **Method 2: Click to Add**
+
 - Click on any node in the left sidebar
 - It will appear on the canvas
 
@@ -289,6 +299,7 @@ Your workflow designer has these nodes:
 You can use variables in your workflows:
 
 ### Employee Variables:
+
 - `{{employee.email}}` - Employee's email
 - `{{employee.firstName}}` - First name
 - `{{employee.lastName}}` - Last name
@@ -297,10 +308,12 @@ You can use variables in your workflows:
 - `{{employee.manager.email}}` - Manager's email
 
 ### Company Variables:
+
 - `{{company.name}}` - Company name
 - `{{company.domain}}` - Company domain
 
 ### Date Variables:
+
 - `{{date}}` - Current date
 - `{{time}}` - Current time
 
@@ -320,18 +333,22 @@ You can use variables in your workflows:
 ## 🐛 Troubleshooting
 
 ### Nodes won't connect?
+
 - Make sure you're dragging from the **bottom** circle to the **top** circle
 - Each node must have a valid connection path
 
 ### Can't see properties panel?
+
 - Click on a node to select it
 - The panel appears on the right side
 
 ### Workflow not saving?
+
 - Check that all required fields are filled
 - Look for validation errors in red
 
 ### Test run fails?
+
 - Verify all node configurations
 - Check that services are running (email, slack, etc.)
 
@@ -363,4 +380,3 @@ You can use variables in your workflows:
 5. Experiment and have fun!
 
 **Need help?** Check the UI for tooltips and validation messages.
-

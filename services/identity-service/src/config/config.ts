@@ -45,28 +45,30 @@ export function loadConfig(): IdentityServiceConfig {
       username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || '',
       ssl: process.env.DB_SSL === 'true',
-      maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '20')
+      maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '20'),
     },
     kafka: {
       brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
       clientId: process.env.KAFKA_CLIENT_ID || 'identity-service',
       groupId: process.env.KAFKA_GROUP_ID || 'identity-service-group',
-      ssl: process.env.KAFKA_SSL === 'true'
+      ssl: process.env.KAFKA_SSL === 'true',
     },
     encryption: {
-      key: process.env.ENCRYPTION_KEY || (() => {
-        throw new Error('ENCRYPTION_KEY environment variable is required');
-      })()
+      key:
+        process.env.ENCRYPTION_KEY ||
+        (() => {
+          throw new Error('ENCRYPTION_KEY environment variable is required');
+        })(),
     },
     providers: loadProviderConfigs(),
     audit: {
       retentionDays: parseInt(process.env.AUDIT_RETENTION_DAYS || '2555'), // ~7 years
-      enableCentralAudit: process.env.ENABLE_CENTRAL_AUDIT !== 'false'
+      enableCentralAudit: process.env.ENABLE_CENTRAL_AUDIT !== 'false',
     },
     logging: {
       level: process.env.LOG_LEVEL || 'info',
-      format: (process.env.LOG_FORMAT as 'json' | 'simple') || 'json'
-    }
+      format: (process.env.LOG_FORMAT as 'json' | 'simple') || 'json',
+    },
   };
 
   validateConfig(config);
@@ -83,26 +85,27 @@ function loadProviderConfigs(): Map<IdentityProvider, ProviderConfig> {
       oauth2: {
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        redirectUri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3003/auth/google/callback',
+        redirectUri:
+          process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3003/auth/google/callback',
         scopes: [
           'https://www.googleapis.com/auth/admin.directory.user',
           'https://www.googleapis.com/auth/admin.directory.group',
-          'https://www.googleapis.com/auth/admin.directory.orgunit'
+          'https://www.googleapis.com/auth/admin.directory.orgunit',
         ],
         authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
         tokenUrl: 'https://oauth2.googleapis.com/token',
-        userInfoUrl: 'https://www.googleapis.com/oauth2/v2/userinfo'
+        userInfoUrl: 'https://www.googleapis.com/oauth2/v2/userinfo',
       },
       apiBaseUrl: 'https://admin.googleapis.com',
       adminScopes: [
         'https://www.googleapis.com/auth/admin.directory.user',
         'https://www.googleapis.com/auth/admin.directory.group',
-        'https://www.googleapis.com/auth/admin.directory.orgunit'
+        'https://www.googleapis.com/auth/admin.directory.orgunit',
       ],
       userScopes: [
         'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile'
-      ]
+        'https://www.googleapis.com/auth/userinfo.profile',
+      ],
     });
   }
 
@@ -114,27 +117,28 @@ function loadProviderConfigs(): Map<IdentityProvider, ProviderConfig> {
       oauth2: {
         clientId: process.env.OFFICE365_CLIENT_ID,
         clientSecret: process.env.OFFICE365_CLIENT_SECRET,
-        redirectUri: process.env.OFFICE365_REDIRECT_URI || 'http://localhost:3003/auth/office365/callback',
+        redirectUri:
+          process.env.OFFICE365_REDIRECT_URI || 'http://localhost:3003/auth/office365/callback',
         scopes: [
           'https://graph.microsoft.com/User.ReadWrite.All',
           'https://graph.microsoft.com/Group.ReadWrite.All',
-          'https://graph.microsoft.com/Directory.ReadWrite.All'
+          'https://graph.microsoft.com/Directory.ReadWrite.All',
         ],
         authUrl: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
         tokenUrl: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
-        userInfoUrl: 'https://graph.microsoft.com/v1.0/me'
+        userInfoUrl: 'https://graph.microsoft.com/v1.0/me',
       },
       apiBaseUrl: 'https://graph.microsoft.com/v1.0',
       adminScopes: [
         'https://graph.microsoft.com/User.ReadWrite.All',
         'https://graph.microsoft.com/Group.ReadWrite.All',
-        'https://graph.microsoft.com/Directory.ReadWrite.All'
+        'https://graph.microsoft.com/Directory.ReadWrite.All',
       ],
       userScopes: [
         'https://graph.microsoft.com/User.Read',
         'https://graph.microsoft.com/profile',
-        'https://graph.microsoft.com/email'
-      ]
+        'https://graph.microsoft.com/email',
+      ],
     });
   }
 

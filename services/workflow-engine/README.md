@@ -24,6 +24,7 @@ The Workflow Engine is the core orchestration service that manages workflow exec
 ### State Management
 
 The engine uses Redis for distributed state management:
+
 - Workflow states with TTL
 - Node execution states
 - Distributed locking for concurrent execution prevention
@@ -98,11 +99,13 @@ npm run type-check
 ## Testing
 
 The service includes unit tests for core components:
+
 - State machine transitions
 - Context management
 - Node dispatching logic
 
 Run tests with:
+
 ```bash
 npm test
 ```

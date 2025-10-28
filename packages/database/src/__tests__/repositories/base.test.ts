@@ -35,12 +35,7 @@ type TestEntity = z.infer<typeof testEntitySchema>;
 // Test repository implementation
 class TestRepository extends BaseRepository<TestEntity> {
   constructor() {
-    super(
-      'test_entities',
-      'id',
-      createTestEntitySchema,
-      updateTestEntitySchema
-    );
+    super('test_entities', 'id', createTestEntitySchema, updateTestEntitySchema);
   }
 }
 
@@ -53,7 +48,7 @@ describe('BaseRepository', () => {
   beforeAll(async () => {
     pool = getTestPool();
     repository = new TestRepository();
-    
+
     // Create test table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS test_entities (
@@ -80,7 +75,7 @@ describe('BaseRepository', () => {
     // Clean up test data
     await cleanupTestData(pool, 'test_entities', 'id', createdIds);
     await cleanupTestData(pool, 'organizations', 'org_id', [testOrgId]);
-    
+
     // Drop test table
     await pool.query('DROP TABLE IF EXISTS test_entities');
   });
@@ -183,24 +178,27 @@ describe('BaseRepository', () => {
     it('should filter entities by criteria', async () => {
       const activeEntities = await repository.findAll({ is_active: true });
       expect(activeEntities.length).toBeGreaterThanOrEqual(2);
-      expect(activeEntities.every(e => e.is_active)).toBe(true);
+      expect(activeEntities.every((e) => e.is_active)).toBe(true);
     });
 
     it('should support pagination', async () => {
       const firstPage = await repository.findAll({}, { limit: 2, offset: 0 });
       const secondPage = await repository.findAll({}, { limit: 2, offset: 2 });
-      
+
       expect(firstPage.length).toBeLessThanOrEqual(2);
       expect(secondPage.length).toBeLessThanOrEqual(2);
     });
 
     it('should support ordering', async () => {
       const entitiesAsc = await repository.findAll({}, { orderBy: 'name', orderDirection: 'ASC' });
-      const entitiesDesc = await repository.findAll({}, { orderBy: 'name', orderDirection: 'DESC' });
-      
+      const entitiesDesc = await repository.findAll(
+        {},
+        { orderBy: 'name', orderDirection: 'DESC' }
+      );
+
       expect(entitiesAsc.length).toBeGreaterThan(0);
       expect(entitiesDesc.length).toBeGreaterThan(0);
-      
+
       if (entitiesAsc.length > 1) {
         expect(entitiesAsc[0].name <= entitiesAsc[1].name).toBe(true);
       }
@@ -264,9 +262,9 @@ describe('BaseRepository', () => {
 
       const created = await repository.create(entityData);
       const deleted = await repository.delete(created.id);
-      
+
       expect(deleted).toBe(true);
-      
+
       const found = await repository.findById(created.id);
       expect(found).toBeNull();
     });
@@ -301,7 +299,7 @@ describe('BaseRepository', () => {
     it('should count entities with filters', async () => {
       const activeCount = await repository.count({ is_active: true });
       const inactiveCount = await repository.count({ is_active: false });
-      
+
       expect(activeCount).toBeGreaterThanOrEqual(2);
       expect(inactiveCount).toBeGreaterThanOrEqual(1);
     });
@@ -321,7 +319,7 @@ describe('BaseRepository', () => {
           'INSERT INTO test_entities (org_id, name) VALUES ($1, $2) RETURNING *',
           [entityData2.org_id, entityData2.name]
         );
-        
+
         return [result1.rows[0], result2.rows[0]];
       });
 
@@ -330,7 +328,7 @@ describe('BaseRepository', () => {
       // Verify both entities were created
       const entity1 = await repository.findById(result[0].id);
       const entity2 = await repository.findById(result[1].id);
-      
+
       expect(entity1).toBeTruthy();
       expect(entity2).toBeTruthy();
     });
@@ -340,11 +338,11 @@ describe('BaseRepository', () => {
 
       await expect(
         repository.transaction(async (client) => {
-          await client.query(
-            'INSERT INTO test_entities (org_id, name) VALUES ($1, $2)',
-            [entityData.org_id, entityData.name]
-          );
-          
+          await client.query('INSERT INTO test_entities (org_id, name) VALUES ($1, $2)', [
+            entityData.org_id,
+            entityData.name,
+          ]);
+
           // Force an error to trigger rollback
           throw new Error('Transaction failed');
         })

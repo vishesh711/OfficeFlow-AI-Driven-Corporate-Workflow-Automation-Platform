@@ -1,24 +1,24 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { Layout } from '@/components/Layout'
-import { Dashboard } from '@/pages/Dashboard'
-import { WorkflowList } from '@/pages/WorkflowList'
-import { WorkflowDesigner } from '@/pages/WorkflowDesigner'
-import { MonitoringDashboard } from '@/pages/MonitoringDashboard'
-import { AdminDashboard } from '@/pages/AdminDashboard'
-import { Settings } from '@/pages/Settings'
-import { Login } from '@/pages/Login'
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Layout } from '@/components/Layout';
+import { Dashboard } from '@/pages/Dashboard';
+import { WorkflowList } from '@/pages/WorkflowList';
+import { WorkflowDesigner } from '@/pages/WorkflowDesigner';
+import { MonitoringDashboard } from '@/pages/MonitoringDashboard';
+import { AdminDashboard } from '@/pages/AdminDashboard';
+import { Settings } from '@/pages/Settings';
+import { Login } from '@/pages/Login';
 
 // Simple auth check (replace with real auth later)
 const isAuthenticated = () => {
-  return localStorage.getItem('officeflow_auth') !== null
-}
+  return localStorage.getItem('officeflow_auth') !== null;
+};
 
 // Protected Route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
-      
+
       {/* Protected Routes */}
       <Route
         path="/*"
@@ -47,7 +47,7 @@ function App() {
         }
       />
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;

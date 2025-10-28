@@ -65,17 +65,16 @@ export class CircuitBreaker {
     try {
       // Execute the operation
       const result = await operation();
-      
+
       // Record success
       await this.recordSuccess();
-      
+
       // If we were in HALF_OPEN state, transition to CLOSED
       if (stats.state === 'HALF_OPEN') {
         await this.transitionToClosed();
       }
 
       return result;
-
     } catch (error) {
       // Record failure
       await this.recordFailure();
@@ -96,14 +95,13 @@ export class CircuitBreaker {
   async getStats(): Promise<CircuitBreakerStats> {
     try {
       const data = await this.stateManager.getCircuitBreakerStats(this.serviceName);
-      
+
       if (!data) {
         return this.getDefaultStats();
       }
 
-      const failureRate = data.totalRequests > 0 
-        ? (data.failureCount / data.totalRequests) * 100 
-        : 0;
+      const failureRate =
+        data.totalRequests > 0 ? (data.failureCount / data.totalRequests) * 100 : 0;
 
       return {
         state: data.state || 'CLOSED',
@@ -195,13 +193,11 @@ export class CircuitBreaker {
    */
   private async transitionToOpen(): Promise<void> {
     const nextRetryTime = Date.now() + this.config.recoveryTimeout;
-    await this.stateManager.setCircuitBreakerState(
-      this.serviceName,
-      'OPEN',
-      nextRetryTime
+    await this.stateManager.setCircuitBreakerState(this.serviceName, 'OPEN', nextRetryTime);
+
+    console.warn(
+      `Circuit breaker OPENED for service: ${this.serviceName}, next retry at: ${new Date(nextRetryTime).toISOString()}`
     );
-    
-    console.warn(`Circuit breaker OPENED for service: ${this.serviceName}, next retry at: ${new Date(nextRetryTime).toISOString()}`);
   }
 
   /**
@@ -244,7 +240,9 @@ export class CircuitBreakerOpenError extends Error {
     public readonly serviceName: string,
     public readonly nextRetryTime: Date
   ) {
-    super(`Circuit breaker is OPEN for service: ${serviceName}. Next retry at: ${nextRetryTime.toISOString()}`);
+    super(
+      `Circuit breaker is OPEN for service: ${serviceName}. Next retry at: ${nextRetryTime.toISOString()}`
+    );
     this.name = 'CircuitBreakerOpenError';
   }
 }
@@ -260,10 +258,7 @@ export class CircuitBreakerManager {
   /**
    * Get or create circuit breaker for a service
    */
-  getCircuitBreaker(
-    serviceName: string,
-    config?: Partial<CircuitBreakerConfig>
-  ): CircuitBreaker {
+  getCircuitBreaker(serviceName: string, config?: Partial<CircuitBreakerConfig>): CircuitBreaker {
     if (!this.circuitBreakers.has(serviceName)) {
       const circuitBreaker = new CircuitBreaker(serviceName, config, this.stateManager);
       this.circuitBreakers.set(serviceName, circuitBreaker);
@@ -288,7 +283,7 @@ export class CircuitBreakerManager {
    */
   async getAllStats(): Promise<Record<string, CircuitBreakerStats>> {
     const stats: Record<string, CircuitBreakerStats> = {};
-    
+
     for (const [serviceName, circuitBreaker] of this.circuitBreakers) {
       try {
         stats[serviceName] = await circuitBreaker.getStats();
@@ -304,7 +299,7 @@ export class CircuitBreakerManager {
    * Reset all circuit breakers
    */
   async resetAll(): Promise<void> {
-    const resetPromises = Array.from(this.circuitBreakers.values()).map(cb => cb.reset());
+    const resetPromises = Array.from(this.circuitBreakers.values()).map((cb) => cb.reset());
     await Promise.all(resetPromises);
   }
 }

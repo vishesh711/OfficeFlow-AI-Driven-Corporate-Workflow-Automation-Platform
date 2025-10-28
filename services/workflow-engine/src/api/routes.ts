@@ -5,15 +5,15 @@
 import { Router, Request, Response } from 'express';
 import { WorkflowEngineService } from '../services/workflow-engine-service';
 import { ExecutionContext } from '@officeflow/types';
-import { 
-  WorkflowRepositoryImpl, 
+import {
+  WorkflowRepositoryImpl,
   WorkflowRunRepositoryImpl,
-  EmployeeRepositoryImpl 
+  EmployeeRepositoryImpl,
 } from '@officeflow/database';
 
 export function createWorkflowEngineRoutes(engineService: WorkflowEngineService): Router {
   const router = Router();
-  
+
   // Initialize repositories for CRUD operations
   const workflowRepo = new WorkflowRepositoryImpl();
   const workflowRunRepo = new WorkflowRunRepositoryImpl();
@@ -25,9 +25,9 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
   router.get('/workflows', async (req: Request, res: Response) => {
     try {
       const workflows = await workflowRepo.findAll();
-      
+
       // Transform snake_case to camelCase for frontend
-      const transformedWorkflows = workflows.map(w => ({
+      const transformedWorkflows = workflows.map((w) => ({
         id: w.workflow_id,
         name: w.name,
         description: w.description,
@@ -38,7 +38,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         createdAt: w.created_at,
         updatedAt: w.updated_at,
       }));
-      
+
       res.json(transformedWorkflows);
     } catch (error) {
       console.error('Failed to get workflows:', error);
@@ -56,13 +56,13 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
     try {
       const { id } = req.params;
       const workflow = await workflowRepo.findById(id);
-      
+
       if (!workflow) {
         return res.status(404).json({
           error: 'Workflow not found',
         });
       }
-      
+
       // Transform snake_case to camelCase for frontend
       const responseWorkflow = {
         id: workflow.workflow_id,
@@ -75,7 +75,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         createdAt: workflow.created_at,
         updatedAt: workflow.updated_at,
       };
-      
+
       res.json(responseWorkflow);
     } catch (error) {
       console.error('Failed to get workflow:', error);
@@ -92,13 +92,13 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
   router.post('/workflows', async (req: Request, res: Response) => {
     try {
       const { name, description, eventTrigger, version, isActive, definition } = req.body;
-      
+
       // Get user info from auth token (for now, use a default org_id)
       // TODO: Extract from auth middleware once implemented
       const user = (req as any).user;
       const org_id = user?.orgId || 'f43ed62f-0e77-4ab5-a42a-41aca2a5434c'; // Default org from DB
       const created_by = user?.userId;
-      
+
       // Transform camelCase to snake_case for database
       const workflowData = {
         org_id,
@@ -110,9 +110,9 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         definition,
         created_by,
       };
-      
+
       const workflow = await workflowRepo.create(workflowData);
-      
+
       // Transform response back to camelCase for frontend
       const responseWorkflow = {
         id: workflow.workflow_id,
@@ -125,7 +125,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         createdAt: workflow.created_at,
         updatedAt: workflow.updated_at,
       };
-      
+
       res.status(201).json(responseWorkflow);
     } catch (error) {
       console.error('Failed to create workflow:', error);
@@ -143,7 +143,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
     try {
       const { id } = req.params;
       const { name, description, eventTrigger, version, isActive, definition } = req.body;
-      
+
       // Transform camelCase to snake_case
       const updates: any = {};
       if (name !== undefined) updates.name = name;
@@ -152,15 +152,15 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
       if (version !== undefined) updates.version = version;
       if (isActive !== undefined) updates.is_active = isActive;
       if (definition !== undefined) updates.definition = definition;
-      
+
       const workflow = await workflowRepo.update(id, updates);
-      
+
       if (!workflow) {
         return res.status(404).json({
           error: 'Workflow not found',
         });
       }
-      
+
       // Transform response back to camelCase
       const responseWorkflow = {
         id: workflow.workflow_id,
@@ -173,7 +173,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         createdAt: workflow.created_at,
         updatedAt: workflow.updated_at,
       };
-      
+
       res.json(responseWorkflow);
     } catch (error) {
       console.error('Failed to update workflow:', error);
@@ -191,7 +191,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
     try {
       const { id } = req.params;
       await workflowRepo.delete(id);
-      
+
       res.status(204).send();
     } catch (error) {
       console.error('Failed to delete workflow:', error);
@@ -209,11 +209,11 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
     try {
       const { id } = req.params;
       const { context } = req.body;
-      
+
       // Get user info from auth token
       const user = (req as any).user;
       const organizationId = user?.orgId || 'f43ed62f-0e77-4ab5-a42a-41aca2a5434c';
-      
+
       // Create execution context
       const executionContext = {
         organizationId,
@@ -222,10 +222,10 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         variables: context?.variables || {},
         correlationId: `test-${Date.now()}`,
       };
-      
+
       // Execute workflow
       const workflowRun = await engineService.executeWorkflow(id, executionContext);
-      
+
       res.status(200).json({
         runId: workflowRun.id,
         status: workflowRun.status,
@@ -246,11 +246,11 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
   router.get('/monitoring/runs', async (req: Request, res: Response) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      
+
       // Use findAll with limit option
       const runs = await workflowRunRepo.findAll({}, { limit });
       const total = await workflowRunRepo.count();
-      
+
       res.json({
         runs,
         total,
@@ -286,7 +286,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         runsByDay: [], // TODO: Implement time-based aggregation
         nodePerformance: [], // TODO: Implement node-level metrics
       };
-      
+
       res.json(metrics);
     } catch (error) {
       console.error('Failed to get metrics:', error);
@@ -353,7 +353,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
           connections: 3,
         },
       };
-      
+
       res.json(health);
     } catch (error) {
       console.error('Failed to get system health:', error);
@@ -383,7 +383,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
           updatedAt: new Date().toISOString(),
         },
       ];
-      
+
       res.json(users);
     } catch (error) {
       console.error('Failed to get users:', error);
@@ -413,7 +413,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
           updatedAt: new Date().toISOString(),
         },
       ];
-      
+
       res.json(organizations);
     } catch (error) {
       console.error('Failed to get organizations:', error);
@@ -444,7 +444,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
           updatedAt: new Date().toISOString(),
         },
       ];
-      
+
       res.json(integrations);
     } catch (error) {
       console.error('Failed to get integrations:', error);
@@ -488,7 +488,6 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         success: true,
         data: workflowRun,
       });
-
     } catch (error) {
       console.error('Failed to execute workflow:', error);
       res.status(500).json({
@@ -510,7 +509,6 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         success: true,
         message: 'Workflow paused successfully',
       });
-
     } catch (error) {
       console.error('Failed to pause workflow:', error);
       res.status(500).json({
@@ -532,7 +530,6 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         success: true,
         message: 'Workflow resumed successfully',
       });
-
     } catch (error) {
       console.error('Failed to resume workflow:', error);
       res.status(500).json({
@@ -554,7 +551,6 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         success: true,
         message: 'Workflow cancelled successfully',
       });
-
     } catch (error) {
       console.error('Failed to cancel workflow:', error);
       res.status(500).json({
@@ -582,7 +578,6 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         success: true,
         data: workflowRun,
       });
-
     } catch (error) {
       console.error('Failed to get workflow run:', error);
       res.status(500).json({
@@ -599,14 +594,13 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
     try {
       const { workflowId } = req.params;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      
+
       const runs = await engineService.getWorkflowRunHistory(workflowId, limit);
 
       res.json({
         success: true,
         data: runs,
       });
-
     } catch (error) {
       console.error('Failed to get workflow run history:', error);
       res.status(500).json({
@@ -622,10 +616,9 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
   router.get('/health', async (req: Request, res: Response) => {
     try {
       const health = await engineService.getHealthStatus();
-      
+
       const statusCode = health.status === 'healthy' ? 200 : 503;
       res.status(statusCode).json(health);
-
     } catch (error) {
       console.error('Failed to get health status:', error);
       res.status(503).json({
@@ -641,7 +634,7 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
   router.post('/events/lifecycle', async (req: Request, res: Response) => {
     try {
       const event = req.body;
-      
+
       if (!event.type || !event.organizationId || !event.employeeId) {
         return res.status(400).json({
           error: 'type, organizationId, and employeeId are required',
@@ -654,7 +647,6 @@ export function createWorkflowEngineRoutes(engineService: WorkflowEngineService)
         success: true,
         data: workflowRun,
       });
-
     } catch (error) {
       console.error('Failed to process lifecycle event:', error);
       res.status(500).json({

@@ -37,11 +37,13 @@ export function initializeTracing(config: TracingConfig): void {
   const resource = new Resource({
     [SemanticResourceAttributes.SERVICE_NAME]: config.serviceName,
     [SemanticResourceAttributes.SERVICE_VERSION]: config.serviceVersion || '1.0.0',
-    [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: config.environment || process.env.NODE_ENV || 'development',
+    [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
+      config.environment || process.env.NODE_ENV || 'development',
   });
 
   const traceExporter = new JaegerExporter({
-    endpoint: config.jaegerEndpoint || process.env.JAEGER_ENDPOINT || 'http://localhost:14268/api/traces',
+    endpoint:
+      config.jaegerEndpoint || process.env.JAEGER_ENDPOINT || 'http://localhost:14268/api/traces',
   });
 
   const metricsExporter = new PrometheusExporter({
@@ -95,11 +97,11 @@ export class TracingService {
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       if (error instanceof Error) {
         span.recordException(error);
       }
-      
+
       throw error;
     } finally {
       span.end();
@@ -126,11 +128,11 @@ export class TracingService {
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       if (error instanceof Error) {
         span.recordException(error);
       }
-      
+
       throw error;
     } finally {
       span.end();
@@ -153,7 +155,7 @@ export class TracingService {
 
   private flattenAttributes(obj: SpanContext): Record<string, string | number | boolean> {
     const flattened: Record<string, string | number | boolean> = {};
-    
+
     for (const [key, value] of Object.entries(obj)) {
       if (value !== undefined && value !== null) {
         if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -163,7 +165,7 @@ export class TracingService {
         }
       }
     }
-    
+
     return flattened;
   }
 }

@@ -11,10 +11,10 @@ export class SignatureVerifier {
         .createHmac('sha256', secret)
         .update(payload, 'utf8')
         .digest('hex');
-      
+
       // Handle different signature formats
       const cleanSignature = signature.replace(/^sha256=/, '');
-      
+
       return crypto.timingSafeEqual(
         Buffer.from(expectedSignature, 'hex'),
         Buffer.from(cleanSignature, 'hex')
@@ -34,9 +34,9 @@ export class SignatureVerifier {
         .createHmac('sha1', secret)
         .update(payload, 'utf8')
         .digest('hex');
-      
+
       const cleanSignature = signature.replace(/^sha1=/, '');
-      
+
       return crypto.timingSafeEqual(
         Buffer.from(expectedSignature, 'hex'),
         Buffer.from(cleanSignature, 'hex')
@@ -50,7 +50,12 @@ export class SignatureVerifier {
   /**
    * Verify signature based on source system
    */
-  static verifySignature(payload: string, signature: string, secret: string, source: string): boolean {
+  static verifySignature(
+    payload: string,
+    signature: string,
+    secret: string,
+    source: string
+  ): boolean {
     switch (source.toLowerCase()) {
       case 'workday':
         return this.verifyHmacSha256(payload, signature, secret);
@@ -69,10 +74,11 @@ export class SignatureVerifier {
   /**
    * Generate signature for testing purposes
    */
-  static generateSignature(payload: string, secret: string, algorithm: 'sha256' | 'sha1' = 'sha256'): string {
-    return crypto
-      .createHmac(algorithm, secret)
-      .update(payload, 'utf8')
-      .digest('hex');
+  static generateSignature(
+    payload: string,
+    secret: string,
+    algorithm: 'sha256' | 'sha1' = 'sha256'
+  ): string {
+    return crypto.createHmac(algorithm, secret).update(payload, 'utf8').digest('hex');
   }
 }

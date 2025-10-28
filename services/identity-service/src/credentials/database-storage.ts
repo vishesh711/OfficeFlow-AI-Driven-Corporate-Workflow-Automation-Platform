@@ -49,27 +49,30 @@ export class DatabaseCredentialStorage implements CredentialStorage {
       credentials.tokens.scope,
       JSON.stringify(credentials.metadata),
       credentials.createdAt,
-      credentials.updatedAt
+      credentials.updatedAt,
     ];
 
     try {
       await this.db.query(query, values);
-      
+
       this.logger.debug('Credentials stored in database', {
         credentialId: credentials.id,
         organizationId: credentials.organizationId,
-        provider: credentials.provider
+        provider: credentials.provider,
       });
     } catch (error) {
       this.logger.error('Failed to store credentials in database', {
         credentialId: credentials.id,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
   }
 
-  async retrieve(organizationId: string, provider: IdentityProvider): Promise<OAuth2Credentials | null> {
+  async retrieve(
+    organizationId: string,
+    provider: IdentityProvider
+  ): Promise<OAuth2Credentials | null> {
     const query = `
       SELECT id, organization_id, provider, access_token, refresh_token,
              token_type, expires_in, expires_at, scope, metadata,
@@ -80,7 +83,7 @@ export class DatabaseCredentialStorage implements CredentialStorage {
 
     try {
       const result = await this.db.query(query, [organizationId, provider]);
-      
+
       if (result.rows.length === 0) {
         return null;
       }
@@ -91,7 +94,7 @@ export class DatabaseCredentialStorage implements CredentialStorage {
       this.logger.error('Failed to retrieve credentials from database', {
         organizationId,
         provider,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -118,12 +121,12 @@ export class DatabaseCredentialStorage implements CredentialStorage {
       tokens.expiresIn,
       tokens.expiresAt,
       tokens.scope,
-      new Date()
+      new Date(),
     ];
 
     try {
       const result = await this.db.query(query, values);
-      
+
       if (result.rowCount === 0) {
         throw new Error(`Credential with id ${id} not found`);
       }
@@ -132,7 +135,7 @@ export class DatabaseCredentialStorage implements CredentialStorage {
     } catch (error) {
       this.logger.error('Failed to update credentials in database', {
         credentialId: id,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -143,7 +146,7 @@ export class DatabaseCredentialStorage implements CredentialStorage {
 
     try {
       const result = await this.db.query(query, [id]);
-      
+
       if (result.rowCount === 0) {
         throw new Error(`Credential with id ${id} not found`);
       }
@@ -152,7 +155,7 @@ export class DatabaseCredentialStorage implements CredentialStorage {
     } catch (error) {
       this.logger.error('Failed to delete credentials from database', {
         credentialId: id,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -170,12 +173,12 @@ export class DatabaseCredentialStorage implements CredentialStorage {
 
     try {
       const result = await this.db.query(query, [organizationId]);
-      
-      return result.rows.map(row => this.mapRowToCredentials(row));
+
+      return result.rows.map((row) => this.mapRowToCredentials(row));
     } catch (error) {
       this.logger.error('Failed to list credentials from database', {
         organizationId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -192,11 +195,11 @@ export class DatabaseCredentialStorage implements CredentialStorage {
         tokenType: row.token_type,
         expiresIn: row.expires_in,
         expiresAt: new Date(row.expires_at),
-        scope: row.scope
+        scope: row.scope,
       },
       metadata: row.metadata ? JSON.parse(row.metadata) : {},
       createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at)
+      updatedAt: new Date(row.updated_at),
     };
   }
 }

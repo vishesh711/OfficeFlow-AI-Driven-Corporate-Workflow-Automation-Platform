@@ -1,29 +1,21 @@
-import { useCallback } from 'react'
-import { useReactFlow } from 'reactflow'
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  Maximize, 
-  RotateCcw, 
-  RotateCw,
-  Download,
-  Upload
-} from 'lucide-react'
+import { useCallback } from 'react';
+import { useReactFlow } from 'reactflow';
+import { ZoomIn, ZoomOut, Maximize, RotateCcw, RotateCw, Download, Upload } from 'lucide-react';
 
 export function WorkflowToolbar() {
-  const { zoomIn, zoomOut, fitView } = useReactFlow()
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   const handleZoomIn = useCallback(() => {
-    zoomIn()
-  }, [zoomIn])
+    zoomIn();
+  }, [zoomIn]);
 
   const handleZoomOut = useCallback(() => {
-    zoomOut()
-  }, [zoomOut])
+    zoomOut();
+  }, [zoomOut]);
 
   const handleFitView = useCallback(() => {
-    fitView()
-  }, [fitView])
+    fitView();
+  }, [fitView]);
 
   return (
     <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-white rounded-xl shadow-xl border-2 border-gray-200 p-1.5 backdrop-blur-sm bg-opacity-95">
@@ -81,5 +73,5 @@ export function WorkflowToolbar() {
         </button>
       </div>
     </div>
-  )
+  );
 }

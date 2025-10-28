@@ -2,19 +2,13 @@
  * Main workflow engine service implementation
  */
 
-import {
-  UUID,
-  WorkflowEngine,
-  WorkflowRun,
-  ExecutionContext
-} from '@officeflow/types';
-import {
-  WorkflowRepository,
-  WorkflowRunRepository,
-  EmployeeRepository
-} from '@officeflow/types';
+import { UUID, WorkflowEngine, WorkflowRun, ExecutionContext } from '@officeflow/types';
+import { WorkflowRepository, WorkflowRunRepository, EmployeeRepository } from '@officeflow/types';
 import { OfficeFlowProducer, OfficeFlowConsumer } from '@officeflow/kafka';
-import { WorkflowOrchestrator, WorkflowOrchestratorConfig } from '../orchestrator/workflow-orchestrator';
+import {
+  WorkflowOrchestrator,
+  WorkflowOrchestratorConfig,
+} from '../orchestrator/workflow-orchestrator';
 import { RedisStateManager, StateManagerConfig } from '../state/redis-state-manager';
 import { RedisClusterManager } from '../state/redis-cluster-manager';
 import { ExecutionContextManager } from '../execution/context-manager';
@@ -76,11 +70,7 @@ export class WorkflowEngineService implements WorkflowEngine {
     });
 
     // Initialize node dispatcher
-    this.nodeDispatcher = new NodeDispatcher(
-      this.producer,
-      this.contextManager,
-      this.stateManager
-    );
+    this.nodeDispatcher = new NodeDispatcher(this.producer, this.contextManager, this.stateManager);
 
     // Initialize orchestrator
     this.orchestrator = new WorkflowOrchestrator(
@@ -144,7 +134,6 @@ export class WorkflowEngineService implements WorkflowEngine {
 
       this.isRunning = true;
       console.log('Workflow Engine Service started successfully');
-
     } catch (error) {
       console.error('Failed to start Workflow Engine Service:', error);
       throw error;
@@ -174,7 +163,6 @@ export class WorkflowEngineService implements WorkflowEngine {
 
       this.isRunning = false;
       console.log('Workflow Engine Service stopped successfully');
-
     } catch (error) {
       console.error('Error stopping Workflow Engine Service:', error);
       throw error;
@@ -365,7 +353,6 @@ export class WorkflowEngineService implements WorkflowEngine {
 
         // Update node dispatcher with result
         await this.nodeDispatcher.handleNodeResult(result);
-
       } catch (error) {
         console.error('Failed to handle node execution result:', error);
         throw error;
@@ -394,7 +381,7 @@ export class WorkflowEngineService implements WorkflowEngine {
       // Check Redis connection health
       const connectionHealth = await this.stateManager.getConnectionHealth();
       components.redis = connectionHealth.status === 'connected' ? 'up' : 'down';
-      
+
       redisHealth = {
         latencyMs: connectionHealth.latencyMs,
         memoryUsage: connectionHealth.memoryUsage,
@@ -405,7 +392,10 @@ export class WorkflowEngineService implements WorkflowEngine {
       const workflowStats = await this.stateManager.getWorkflowStats();
       metrics.activeWorkflows = workflowStats.totalActiveWorkflows;
       metrics.scheduledRetries = workflowStats.totalScheduledRetries;
-      metrics.queuedNodes = Object.values(workflowStats.nodeStatusCounts).reduce((sum, count) => sum + count, 0);
+      metrics.queuedNodes = Object.values(workflowStats.nodeStatusCounts).reduce(
+        (sum, count) => sum + count,
+        0
+      );
     } catch (error) {
       console.error('Failed to get Redis health:', error);
       components.redis = 'down';
@@ -415,7 +405,7 @@ export class WorkflowEngineService implements WorkflowEngine {
     components.orchestrator = this.isRunning ? 'up' : 'down';
     components.kafka = this.isRunning ? 'up' : 'down';
 
-    const allUp = Object.values(components).every(status => status === 'up');
+    const allUp = Object.values(components).every((status) => status === 'up');
 
     return {
       status: allUp ? 'healthy' : 'unhealthy',

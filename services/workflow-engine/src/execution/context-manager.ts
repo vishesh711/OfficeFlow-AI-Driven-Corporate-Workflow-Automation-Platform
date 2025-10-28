@@ -22,9 +22,7 @@ export interface ParameterMapping {
 }
 
 export class ExecutionContextManager {
-  constructor(
-    private stateManager: RedisStateManager
-  ) {}
+  constructor(private stateManager: RedisStateManager) {}
 
   /**
    * Create initial execution context for a workflow run
@@ -45,10 +43,10 @@ export class ExecutionContextManager {
         'system.organizationId': organizationId,
         'system.employeeId': employeeId,
         'system.triggerEvent': triggerEvent,
-        
+
         // Workflow-specific variables
         ...workflowVariables,
-        
+
         // Event data variables
         'event.type': triggerEvent.type,
         'event.payload': triggerEvent.payload,
@@ -98,17 +96,15 @@ export class ExecutionContextManager {
   ): Record<string, any> {
     const resolvedInput: Record<string, any> = {};
 
-    parameterMappings.forEach(mapping => {
+    parameterMappings.forEach((mapping) => {
       try {
         const value = this.resolveParameterValue(mapping, context, nodeOutputs);
         this.setNestedValue(resolvedInput, mapping.targetPath, value);
       } catch (error) {
         if (mapping.required) {
-          throw new Error(
-            `Failed to resolve required parameter '${mapping.targetPath}': ${error}`
-          );
+          throw new Error(`Failed to resolve required parameter '${mapping.targetPath}': ${error}`);
         }
-        
+
         if (mapping.defaultValue !== undefined) {
           this.setNestedValue(resolvedInput, mapping.targetPath, mapping.defaultValue);
         }
@@ -129,16 +125,16 @@ export class ExecutionContextManager {
     switch (mapping.sourceType) {
       case 'static':
         return this.parseStaticValue(mapping.sourcePath);
-        
+
       case 'context':
         return this.getNestedValue(context.variables, mapping.sourcePath);
-        
+
       case 'node_output':
         return this.resolveNodeOutputValue(mapping.sourcePath, nodeOutputs);
-        
+
       case 'expression':
         return this.evaluateExpression(mapping.sourcePath, context, nodeOutputs);
-        
+
       default:
         throw new Error(`Unknown parameter source type: ${mapping.sourceType}`);
     }
@@ -175,14 +171,14 @@ export class ExecutionContextManager {
   private setNestedValue(obj: Record<string, any>, path: string, value: any): void {
     const keys = path.split('.');
     const lastKey = keys.pop()!;
-    
+
     const target = keys.reduce((current, key) => {
       if (!(key in current)) {
         current[key] = {};
       }
       return current[key];
     }, obj);
-    
+
     target[lastKey] = value;
   }
 
@@ -196,17 +192,17 @@ export class ExecutionContextManager {
     // Format: nodeId.outputKey or nodeName.outputKey
     const [nodeRef, ...pathParts] = sourcePath.split('.');
     const outputPath = pathParts.join('.');
-    
+
     // Try to find by node ID first
     const output = nodeOutputs.get(nodeRef);
     if (!output) {
       throw new Error(`Node output not found for: ${nodeRef}`);
     }
-    
+
     if (!outputPath) {
       return output;
     }
-    
+
     return this.getNestedValue(output, outputPath);
   }
 
@@ -220,19 +216,16 @@ export class ExecutionContextManager {
   ): any {
     // This is a simplified expression evaluator
     // In production, you'd want a more robust solution like JSONata or similar
-    
+
     // Replace context variables
-    let processedExpression = expression.replace(
-      /\$\{([^}]+)\}/g,
-      (match, varPath) => {
-        try {
-          const value = this.getNestedValue(context.variables, varPath);
-          return JSON.stringify(value);
-        } catch {
-          return match; // Keep original if not found
-        }
+    let processedExpression = expression.replace(/\$\{([^}]+)\}/g, (match, varPath) => {
+      try {
+        const value = this.getNestedValue(context.variables, varPath);
+        return JSON.stringify(value);
+      } catch {
+        return match; // Keep original if not found
       }
-    );
+    });
 
     // Replace node outputs
     processedExpression = processedExpression.replace(
@@ -300,10 +293,13 @@ export class ExecutionContextManager {
     return JSON.stringify({
       ...context,
       // Don't serialize secrets for security
-      secrets: Object.keys(context.secrets).reduce((acc, key) => {
-        acc[key] = '[REDACTED]';
-        return acc;
-      }, {} as Record<string, string>),
+      secrets: Object.keys(context.secrets).reduce(
+        (acc, key) => {
+          acc[key] = '[REDACTED]';
+          return acc;
+        },
+        {} as Record<string, string>
+      ),
     });
   }
 

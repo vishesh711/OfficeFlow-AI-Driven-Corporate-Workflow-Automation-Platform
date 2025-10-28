@@ -11,11 +11,13 @@ When you modify a template, you might encounter validation errors. Here's how to
 Every workflow must have:
 
 ### 1. **At Least One Trigger Node**
+
 - Every workflow needs a starting point
 - Use "Event Trigger" or "Schedule" node
 - Trigger should be connected to other nodes
 
 ### 2. **All Nodes Connected**
+
 - Nodes must form a connected path from trigger
 - No isolated/floating nodes (unless warnings are OK)
 - No circular connections (A → B → A)
@@ -23,20 +25,25 @@ Every workflow must have:
 ### 3. **Required Fields Filled**
 
 **Email Node:**
+
 - ✅ Recipients (who gets the email)
 - ✅ Template (what email to send)
 
 **Condition Node:**
+
 - ✅ Expression (what to check)
 
 **Delay Node:**
+
 - ✅ Duration (at least 1 unit)
 
 **Identity Node:**
+
 - ✅ Action (provision/deprovision)
 - ✅ Provider (google/okta/etc)
 
 **AI Node:**
+
 - ✅ Content Type (what to generate)
 
 ---
@@ -48,6 +55,7 @@ Every workflow must have:
 **Problem:** You deleted the trigger node
 
 **Fix:**
+
 1. Drag "Event Trigger" from sidebar
 2. Connect it to your first action node
 
@@ -58,6 +66,7 @@ Every workflow must have:
 **Problem:** Email node is missing recipient email address
 
 **Fix:**
+
 1. Click on the Email node
 2. In Properties Panel (right side)
 3. Fill in "Recipients" field
@@ -71,6 +80,7 @@ Every workflow must have:
 **Problem:** Email node doesn't know what email to send
 
 **Fix:**
+
 1. Click on the Email node
 2. In Properties Panel
 3. Select a template from dropdown
@@ -85,6 +95,7 @@ Every workflow must have:
 **Problem:** You have a floating node that's not connected
 
 **Fix:**
+
 1. Connect the node to your workflow
    - Drag from bottom circle of source node
    - Drop on top circle of target node
@@ -98,6 +109,7 @@ Every workflow must have:
 **Problem:** Node is connected but can't be reached from trigger
 
 **Fix:**
+
 1. Trace path from trigger
 2. Make sure there's a connection path to this node
 3. Check for disconnected sections
@@ -109,6 +121,7 @@ Every workflow must have:
 **Problem:** Nodes form a loop (A → B → C → A)
 
 **Fix:**
+
 1. Delete one of the circular connections
 2. Workflows must flow forward, not in circles
 3. Use the validation panel to see which nodes are in the loop
@@ -120,18 +133,21 @@ Every workflow must have:
 ### Example: Customize "Employee Onboarding" Template
 
 1. **Select Template**
+
    ```
    Templates → Employee Onboarding → Use Template
    ```
 
 2. **Template Loads**
+
    ```
    Trigger → Identity → Email → Slack
    ```
 
 3. **Make Your Changes**
-   
+
    **Add a Delay:**
+
    ```
    - Drag "Delay" node
    - Place between Email and Slack
@@ -140,6 +156,7 @@ Every workflow must have:
    ```
 
    **Change Email Template:**
+
    ```
    - Click Email node
    - In Properties Panel
@@ -147,6 +164,7 @@ Every workflow must have:
    ```
 
    **Remove Slack (if not needed):**
+
    ```
    - Select Slack node
    - Press Delete key
@@ -154,6 +172,7 @@ Every workflow must have:
    ```
 
 4. **Validate**
+
    ```
    - Check for validation errors (bottom right)
    - Fix any red errors
@@ -161,6 +180,7 @@ Every workflow must have:
    ```
 
 5. **Save**
+
    ```
    - Click "Save" button
    - Fix any errors shown
@@ -180,6 +200,7 @@ Every workflow must have:
 ### Tip 1: Use Validation Panel
 
 **How:**
+
 1. Look at bottom right of screen
 2. Click validation panel if it appears
 3. Click on errors to jump to problem nodes
@@ -187,14 +208,16 @@ Every workflow must have:
 ### Tip 2: Check Required Fields
 
 **Before Saving:**
+
 1. Click each node
 2. Check Properties Panel (right)
 3. Make sure all required fields are filled
-4. Look for red asterisks (*)
+4. Look for red asterisks (\*)
 
 ### Tip 3: Test Connections
 
 **Good Connection:**
+
 ```
 [Trigger]
     ↓
@@ -204,6 +227,7 @@ Every workflow must have:
 ```
 
 **Bad Connection (disconnected):**
+
 ```
 [Trigger]     [Email]
     ↓            ↓
@@ -213,6 +237,7 @@ Every workflow must have:
 ### Tip 4: Save Often
 
 **Workflow:**
+
 ```
 Make change → Save → Test → Repeat
 ```
@@ -289,16 +314,16 @@ Can't save? Check this list:
 
 ## 📋 **Validation Error Reference**
 
-| Error Message | What It Means | How to Fix |
-|---------------|---------------|------------|
-| "No trigger node" | Missing start | Add Event Trigger or Schedule |
-| "No recipients" | Email needs address | Fill Recipients field |
-| "No template" | Email needs template | Select template |
-| "No expression" | Condition needs logic | Fill expression |
-| "Invalid duration" | Delay time wrong | Set to 1 or more |
-| "Not connected" | Floating node | Connect or delete |
-| "Not reachable" | Path broken | Fix connection path |
-| "Circular dependency" | Loop detected | Remove circular connection |
+| Error Message         | What It Means         | How to Fix                    |
+| --------------------- | --------------------- | ----------------------------- |
+| "No trigger node"     | Missing start         | Add Event Trigger or Schedule |
+| "No recipients"       | Email needs address   | Fill Recipients field         |
+| "No template"         | Email needs template  | Select template               |
+| "No expression"       | Condition needs logic | Fill expression               |
+| "Invalid duration"    | Delay time wrong      | Set to 1 or more              |
+| "Not connected"       | Floating node         | Connect or delete             |
+| "Not reachable"       | Path broken           | Fix connection path           |
+| "Circular dependency" | Loop detected         | Remove circular connection    |
 
 ---
 
@@ -365,4 +390,3 @@ Your workflow is ready to save when:
 **Remember:** The validation errors will tell you exactly what's wrong! Read them carefully and fix each issue one by one.
 
 Good luck! 🚀
-

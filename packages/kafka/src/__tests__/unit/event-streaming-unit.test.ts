@@ -54,17 +54,14 @@ describe('Event Streaming Unit Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     producer = new OfficeFlowProducer(mockConfig);
-    consumer = new OfficeFlowConsumer(
-      mockConfig,
-      {
-        groupId: 'test-group',
-        sessionTimeout: 30000,
-        rebalanceTimeout: 60000,
-        heartbeatInterval: 3000,
-      }
-    );
+    consumer = new OfficeFlowConsumer(mockConfig, {
+      groupId: 'test-group',
+      sessionTimeout: 30000,
+      rebalanceTimeout: 60000,
+      heartbeatInterval: 3000,
+    });
   });
 
   afterEach(async () => {
@@ -87,7 +84,7 @@ describe('Event Streaming Unit Tests', () => {
       const result = await producer.sendMessage('test.topic', testMessage);
 
       expect(result).toEqual([{ partition: 0, offset: '123' }]);
-      
+
       // Verify the producer.send was called with correct structure
       const mockProducer = require('kafkajs').Kafka().producer();
       expect(mockProducer.send).toHaveBeenCalledWith({
@@ -98,7 +95,7 @@ describe('Event Streaming Unit Tests', () => {
             value: expect.stringContaining('"type":"employee.onboard"'),
             headers: expect.objectContaining({
               'message-type': 'employee.onboard',
-              'source': 'test',
+              source: 'test',
               'organization-id': 'org-456',
             }),
           }),
@@ -189,7 +186,7 @@ describe('Event Streaming Unit Tests', () => {
             value: expect.stringContaining('"type":"dlq.message"'),
             headers: expect.objectContaining({
               'message-type': 'dlq.message',
-              'source': 'dlq-handler',
+              source: 'dlq-handler',
             }),
           }),
         ],
@@ -200,9 +197,9 @@ describe('Event Streaming Unit Tests', () => {
   describe('Consumer Functionality', () => {
     it('should register message handlers correctly', () => {
       const handler = jest.fn();
-      
+
       consumer.registerHandler('employee.onboard', handler);
-      
+
       // Verify handler is registered (internal state check)
       expect(consumer['messageHandlers'].get('employee.onboard')).toBe(handler);
     });
@@ -213,9 +210,9 @@ describe('Event Streaming Unit Tests', () => {
         'employee.exit': jest.fn(),
         'node.execute': jest.fn(),
       };
-      
+
       consumer.registerHandlers(handlers);
-      
+
       // Verify all handlers are registered
       Object.entries(handlers).forEach(([type, handler]) => {
         expect(consumer['messageHandlers'].get(type)).toBe(handler);
@@ -254,23 +251,27 @@ describe('Event Streaming Unit Tests', () => {
 
     it('should handle pause and resume operations', async () => {
       await consumer.connect();
-      
+
       await consumer.pause([{ topic: 'test.topic', partitions: [0, 1] }]);
       await consumer.resume([{ topic: 'test.topic', partitions: [0, 1] }]);
 
       const mockConsumer = require('kafkajs').Kafka().consumer();
-      expect(mockConsumer.pause).toHaveBeenCalledWith([{ topic: 'test.topic', partitions: [0, 1] }]);
-      expect(mockConsumer.resume).toHaveBeenCalledWith([{ topic: 'test.topic', partitions: [0, 1] }]);
+      expect(mockConsumer.pause).toHaveBeenCalledWith([
+        { topic: 'test.topic', partitions: [0, 1] },
+      ]);
+      expect(mockConsumer.resume).toHaveBeenCalledWith([
+        { topic: 'test.topic', partitions: [0, 1] },
+      ]);
     });
 
     it('should commit offsets when requested', async () => {
       await consumer.connect();
-      
+
       const offsets = [
         { topic: 'test.topic', partition: 0, offset: '123' },
         { topic: 'test.topic', partition: 1, offset: '456' },
       ];
-      
+
       await consumer.commitOffsets(offsets);
 
       const mockConsumer = require('kafkajs').Kafka().consumer();
@@ -282,17 +283,19 @@ describe('Event Streaming Unit Tests', () => {
     it('should parse valid OfficeFlow messages', () => {
       const validMessage = {
         key: Buffer.from('test-key'),
-        value: Buffer.from(JSON.stringify({
-          id: 'msg-123',
-          type: 'employee.onboard',
-          metadata: {
-            correlationId: 'corr-456',
-            timestamp: new Date().toISOString(),
-            source: 'test',
-            version: '1.0',
-          },
-          payload: { employeeId: 'emp-123' },
-        })),
+        value: Buffer.from(
+          JSON.stringify({
+            id: 'msg-123',
+            type: 'employee.onboard',
+            metadata: {
+              correlationId: 'corr-456',
+              timestamp: new Date().toISOString(),
+              source: 'test',
+              version: '1.0',
+            },
+            payload: { employeeId: 'emp-123' },
+          })
+        ),
         timestamp: '1234567890',
         attributes: 0,
         offset: '100',
@@ -303,7 +306,7 @@ describe('Event Streaming Unit Tests', () => {
       };
 
       const parsed = consumer['parseMessage'](validMessage);
-      
+
       expect(parsed).toEqual(
         expect.objectContaining({
           id: 'msg-123',
@@ -342,7 +345,7 @@ describe('Event Streaming Unit Tests', () => {
       };
 
       const headers = consumer['extractHeaders'](message);
-      
+
       expect(headers).toEqual({
         'correlation-id': 'corr-123',
         'message-type': 'employee.onboard',
@@ -447,9 +450,7 @@ describe('Event Streaming Unit Tests', () => {
 
       const customDlqHandler = new DLQHandler(mockConfig, customOptions);
 
-      expect(customDlqHandler['options']).toEqual(
-        expect.objectContaining(customOptions)
-      );
+      expect(customDlqHandler['options']).toEqual(expect.objectContaining(customOptions));
     });
   });
 

@@ -31,32 +31,30 @@ class MigrationRunner {
         executed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `;
-    
+
     await this.pool.query(createMigrationsTable);
   }
 
   async getExecutedMigrations(): Promise<string[]> {
-    const result = await this.pool.query(
-      'SELECT id FROM schema_migrations ORDER BY executed_at'
-    );
-    return result.rows.map(row => row.id);
+    const result = await this.pool.query('SELECT id FROM schema_migrations ORDER BY executed_at');
+    return result.rows.map((row) => row.id);
   }
 
   async executeMigration(migration: Migration): Promise<void> {
     const client = await this.pool.connect();
-    
+
     try {
       await client.query('BEGIN');
-      
+
       // Execute the migration SQL
       await client.query(migration.sql);
-      
+
       // Record the migration as executed
-      await client.query(
-        'INSERT INTO schema_migrations (id, filename) VALUES ($1, $2)',
-        [migration.id, migration.filename]
-      );
-      
+      await client.query('INSERT INTO schema_migrations (id, filename) VALUES ($1, $2)', [
+        migration.id,
+        migration.filename,
+      ]);
+
       await client.query('COMMIT');
       console.log(`✓ Executed migration: ${migration.filename}`);
     } catch (error) {
@@ -71,19 +69,20 @@ class MigrationRunner {
   async loadMigrations(): Promise<Migration[]> {
     const migrationsDir = join(__dirname, '../../migrations');
     const fs = require('fs');
-    
-    const files = fs.readdirSync(migrationsDir)
+
+    const files = fs
+      .readdirSync(migrationsDir)
       .filter((file: string) => file.endsWith('.sql'))
       .sort();
 
     return files.map((filename: string) => {
       const id = filename.replace('.sql', '');
       const sql = readFileSync(join(migrationsDir, filename), 'utf8');
-      
+
       return {
         id,
         filename,
-        sql
+        sql,
       };
     });
   }
@@ -91,14 +90,14 @@ class MigrationRunner {
   async run(): Promise<void> {
     try {
       console.log('🚀 Starting database migrations...');
-      
+
       await this.initialize();
-      
+
       const allMigrations = await this.loadMigrations();
       const executedMigrations = await this.getExecutedMigrations();
-      
+
       const pendingMigrations = allMigrations.filter(
-        migration => !executedMigrations.includes(migration.id)
+        (migration) => !executedMigrations.includes(migration.id)
       );
 
       if (pendingMigrations.length === 0) {
@@ -107,7 +106,7 @@ class MigrationRunner {
       }
 
       console.log(`📋 Found ${pendingMigrations.length} pending migration(s):`);
-      pendingMigrations.forEach(migration => {
+      pendingMigrations.forEach((migration) => {
         console.log(`   - ${migration.filename}`);
       });
 

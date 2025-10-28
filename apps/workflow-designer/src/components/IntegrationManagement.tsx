@@ -1,111 +1,130 @@
-import React, { useState } from 'react'
-import { Plus, Edit, Trash2, Key, CheckCircle, XCircle, AlertTriangle, TestTube } from 'lucide-react'
-import { adminApi, IntegrationCredential } from '../lib/api'
+import React, { useState } from 'react';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Key,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  TestTube,
+} from 'lucide-react';
+import { adminApi, IntegrationCredential } from '../lib/api';
 
 interface IntegrationManagementProps {
-  integrations: IntegrationCredential[]
-  onIntegrationsChange: (integrations: IntegrationCredential[]) => void
+  integrations: IntegrationCredential[];
+  onIntegrationsChange: (integrations: IntegrationCredential[]) => void;
 }
 
-export function IntegrationManagement({ integrations, onIntegrationsChange }: IntegrationManagementProps) {
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [editingIntegration, setEditingIntegration] = useState<IntegrationCredential | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [testingId, setTestingId] = useState<string | null>(null)
+export function IntegrationManagement({
+  integrations,
+  onIntegrationsChange,
+}: IntegrationManagementProps) {
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingIntegration, setEditingIntegration] = useState<IntegrationCredential | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [testingId, setTestingId] = useState<string | null>(null);
 
-  const handleCreateIntegration = async (integrationData: Omit<IntegrationCredential, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setLoading(true)
+  const handleCreateIntegration = async (
+    integrationData: Omit<IntegrationCredential, 'id' | 'createdAt' | 'updatedAt'>
+  ) => {
+    setLoading(true);
     try {
-      const response = await adminApi.createIntegrationCredential(integrationData)
-      onIntegrationsChange([...integrations, response.data])
-      setShowCreateModal(false)
+      const response = await adminApi.createIntegrationCredential(integrationData);
+      onIntegrationsChange([...integrations, response.data]);
+      setShowCreateModal(false);
     } catch (error) {
-      console.error('Failed to create integration:', error)
+      console.error('Failed to create integration:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleUpdateIntegration = async (integrationId: string, integrationData: Partial<IntegrationCredential>) => {
-    setLoading(true)
+  const handleUpdateIntegration = async (
+    integrationId: string,
+    integrationData: Partial<IntegrationCredential>
+  ) => {
+    setLoading(true);
     try {
-      const response = await adminApi.updateIntegrationCredential(integrationId, integrationData)
-      onIntegrationsChange(integrations.map(integration => 
-        integration.id === integrationId ? response.data : integration
-      ))
-      setEditingIntegration(null)
+      const response = await adminApi.updateIntegrationCredential(integrationId, integrationData);
+      onIntegrationsChange(
+        integrations.map((integration) =>
+          integration.id === integrationId ? response.data : integration
+        )
+      );
+      setEditingIntegration(null);
     } catch (error) {
-      console.error('Failed to update integration:', error)
+      console.error('Failed to update integration:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleDeleteIntegration = async (integrationId: string) => {
-    if (!confirm('Are you sure you want to delete this integration?')) return
-    
-    setLoading(true)
+    if (!confirm('Are you sure you want to delete this integration?')) return;
+
+    setLoading(true);
     try {
-      await adminApi.deleteIntegrationCredential(integrationId)
-      onIntegrationsChange(integrations.filter(integration => integration.id !== integrationId))
+      await adminApi.deleteIntegrationCredential(integrationId);
+      onIntegrationsChange(integrations.filter((integration) => integration.id !== integrationId));
     } catch (error) {
-      console.error('Failed to delete integration:', error)
+      console.error('Failed to delete integration:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleTestIntegration = async (integrationId: string) => {
-    setTestingId(integrationId)
+    setTestingId(integrationId);
     try {
-      const response = await adminApi.testIntegrationCredential(integrationId)
+      const response = await adminApi.testIntegrationCredential(integrationId);
       if (response.data.success) {
-        alert('Integration test successful!')
+        alert('Integration test successful!');
       } else {
-        alert(`Integration test failed: ${response.data.error}`)
+        alert(`Integration test failed: ${response.data.error}`);
       }
     } catch (error) {
-      console.error('Failed to test integration:', error)
-      alert('Integration test failed')
+      console.error('Failed to test integration:', error);
+      alert('Integration test failed');
     } finally {
-      setTestingId(null)
+      setTestingId(null);
     }
-  }
+  };
 
   const getProviderIcon = () => {
     // In a real app, you'd have specific icons for each provider
-    return <Key className="h-5 w-5 text-gray-400" />
-  }
+    return <Key className="h-5 w-5 text-gray-400" />;
+  };
 
   const getStatusIcon = (isActive: boolean, expiresAt?: string) => {
     if (!isActive) {
-      return <XCircle className="h-4 w-4 text-red-500" />
+      return <XCircle className="h-4 w-4 text-red-500" />;
     }
-    
+
     if (expiresAt && new Date(expiresAt) < new Date()) {
-      return <AlertTriangle className="h-4 w-4 text-yellow-500" />
+      return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
     }
-    
-    return <CheckCircle className="h-4 w-4 text-green-500" />
-  }
+
+    return <CheckCircle className="h-4 w-4 text-green-500" />;
+  };
 
   const getStatusColor = (isActive: boolean, expiresAt?: string) => {
     if (!isActive) {
-      return 'bg-red-100 text-red-800'
+      return 'bg-red-100 text-red-800';
     }
-    
+
     if (expiresAt && new Date(expiresAt) < new Date()) {
-      return 'bg-yellow-100 text-yellow-800'
+      return 'bg-yellow-100 text-yellow-800';
     }
-    
-    return 'bg-green-100 text-green-800'
-  }
+
+    return 'bg-green-100 text-green-800';
+  };
 
   const getStatusText = (isActive: boolean, expiresAt?: string) => {
-    if (!isActive) return 'Inactive'
-    if (expiresAt && new Date(expiresAt) < new Date()) return 'Expired'
-    return 'Active'
-  }
+    if (!isActive) return 'Inactive';
+    if (expiresAt && new Date(expiresAt) < new Date()) return 'Expired';
+    return 'Active';
+  };
 
   return (
     <div className="space-y-6">
@@ -117,10 +136,7 @@ export function IntegrationManagement({ integrations, onIntegrationsChange }: In
           </p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="btn btn-primary"
-          >
+          <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">
             <Plus className="h-4 w-4 mr-2" />
             Add Integration
           </button>
@@ -157,9 +173,7 @@ export function IntegrationManagement({ integrations, onIntegrationsChange }: In
               <tr key={integration.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      {getProviderIcon()}
-                    </div>
+                    <div className="flex-shrink-0">{getProviderIcon()}</div>
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900">{integration.name}</div>
                       <div className="text-sm text-gray-500">{integration.organizationId}</div>
@@ -175,13 +189,19 @@ export function IntegrationManagement({ integrations, onIntegrationsChange }: In
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(integration.isActive, integration.expiresAt)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(integration.isActive, integration.expiresAt)}`}
+                  >
                     {getStatusIcon(integration.isActive, integration.expiresAt)}
-                    <span className="ml-1">{getStatusText(integration.isActive, integration.expiresAt)}</span>
+                    <span className="ml-1">
+                      {getStatusText(integration.isActive, integration.expiresAt)}
+                    </span>
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {integration.lastUsed ? new Date(integration.lastUsed).toLocaleDateString() : 'Never'}
+                  {integration.lastUsed
+                    ? new Date(integration.lastUsed).toLocaleDateString()
+                    : 'Never'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
@@ -191,7 +211,9 @@ export function IntegrationManagement({ integrations, onIntegrationsChange }: In
                       title="Test Integration"
                       disabled={testingId === integration.id}
                     >
-                      <TestTube className={`h-4 w-4 ${testingId === integration.id ? 'animate-pulse' : ''}`} />
+                      <TestTube
+                        className={`h-4 w-4 ${testingId === integration.id ? 'animate-pulse' : ''}`}
+                      />
                     </button>
                     <button
                       onClick={() => setEditingIntegration(integration)}
@@ -213,7 +235,7 @@ export function IntegrationManagement({ integrations, onIntegrationsChange }: In
             ))}
           </tbody>
         </table>
-        
+
         {integrations.length === 0 && (
           <div className="text-center py-8">
             <Key className="mx-auto h-12 w-12 text-gray-400" />
@@ -227,26 +249,27 @@ export function IntegrationManagement({ integrations, onIntegrationsChange }: In
       {(showCreateModal || editingIntegration) && (
         <IntegrationModal
           integration={editingIntegration}
-          onSave={editingIntegration ? 
-            (integrationData) => handleUpdateIntegration(editingIntegration.id, integrationData) :
-            handleCreateIntegration
+          onSave={
+            editingIntegration
+              ? (integrationData) => handleUpdateIntegration(editingIntegration.id, integrationData)
+              : handleCreateIntegration
           }
           onClose={() => {
-            setShowCreateModal(false)
-            setEditingIntegration(null)
+            setShowCreateModal(false);
+            setEditingIntegration(null);
           }}
           loading={loading}
         />
       )}
     </div>
-  )
+  );
 }
 
 interface IntegrationModalProps {
-  integration?: IntegrationCredential | null
-  onSave: (integrationData: any) => void
-  onClose: () => void
-  loading: boolean
+  integration?: IntegrationCredential | null;
+  onSave: (integrationData: any) => void;
+  onClose: () => void;
+  loading: boolean;
 }
 
 function IntegrationModal({ integration, onSave, onClose, loading }: IntegrationModalProps) {
@@ -256,13 +279,13 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
     type: integration?.type || 'oauth2',
     organizationId: integration?.organizationId || '',
     isActive: integration?.isActive ?? true,
-    expiresAt: integration?.expiresAt || ''
-  })
+    expiresAt: integration?.expiresAt || '',
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-  }
+    e.preventDefault();
+    onSave(formData);
+  };
 
   const providers = [
     'google_workspace',
@@ -271,8 +294,8 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
     'slack',
     'workday',
     'bamboohr',
-    'successfactors'
-  ]
+    'successfactors',
+  ];
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -281,7 +304,7 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             {integration ? 'Edit Integration' : 'Create Integration'}
           </h3>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -293,7 +316,7 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Provider</label>
               <select
@@ -301,14 +324,14 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
                 value={formData.provider}
                 onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
               >
-                {providers.map(provider => (
+                {providers.map((provider) => (
                   <option key={provider} value={provider}>
-                    {provider.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    {provider.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                   </option>
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Type</label>
               <select
@@ -321,7 +344,7 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
                 <option value="basic_auth">Basic Auth</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Organization ID</label>
               <input
@@ -332,9 +355,11 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
                 onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
               />
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-gray-700">Expires At (Optional)</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Expires At (Optional)
+              </label>
               <input
                 type="datetime-local"
                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -342,7 +367,7 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
                 onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
               />
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -355,7 +380,7 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
                 Active
               </label>
             </div>
-            
+
             <div className="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
@@ -365,17 +390,13 @@ function IntegrationModal({ integration, onSave, onClose, loading }: Integration
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : (integration ? 'Update' : 'Create')}
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? 'Saving...' : integration ? 'Update' : 'Create'}
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }

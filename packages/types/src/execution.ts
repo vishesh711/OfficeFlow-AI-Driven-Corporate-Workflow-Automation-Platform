@@ -5,7 +5,7 @@
 import { BaseEntity, UUID, ErrorDetails, ExecutionMetadata } from './common';
 import { LifecycleEventType } from './events';
 
-export type WorkflowRunStatus = 
+export type WorkflowRunStatus =
   | 'PENDING'
   | 'RUNNING'
   | 'PAUSED'
@@ -15,7 +15,7 @@ export type WorkflowRunStatus =
   | 'TIMEOUT'
   | 'COMPENSATING';
 
-export type NodeRunStatus = 
+export type NodeRunStatus =
   | 'QUEUED'
   | 'RUNNING'
   | 'COMPLETED'
@@ -74,7 +74,11 @@ export interface WorkflowEngine {
 }
 
 export interface WorkflowScheduler {
-  scheduleWorkflow(workflowId: UUID, cronExpression: string, context: ExecutionContext): Promise<void>;
+  scheduleWorkflow(
+    workflowId: UUID,
+    cronExpression: string,
+    context: ExecutionContext
+  ): Promise<void>;
   unscheduleWorkflow(workflowId: UUID): Promise<void>;
   getScheduledWorkflows(organizationId: UUID): Promise<ScheduledWorkflow[]>;
 }

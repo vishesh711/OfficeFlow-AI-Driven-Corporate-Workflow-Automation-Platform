@@ -50,11 +50,13 @@ class PinoLogger implements Logger {
   error(message: string, error?: Error, context?: LogContext): void {
     const logContext = {
       ...context,
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      } : undefined,
+      error: error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          }
+        : undefined,
     };
     this.pino.error(logContext, message);
   }
@@ -62,11 +64,13 @@ class PinoLogger implements Logger {
   fatal(message: string, error?: Error, context?: LogContext): void {
     const logContext = {
       ...context,
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      } : undefined,
+      error: error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          }
+        : undefined,
     };
     this.pino.fatal(logContext, message);
   }
@@ -76,10 +80,13 @@ class PinoLogger implements Logger {
   }
 }
 
-export function createLogger(serviceName: string, options?: {
-  level?: string;
-  pretty?: boolean;
-}): Logger {
+export function createLogger(
+  serviceName: string,
+  options?: {
+    level?: string;
+    pretty?: boolean;
+  }
+): Logger {
   const pinoOptions: pino.LoggerOptions = {
     name: serviceName,
     level: options?.level || process.env.LOG_LEVEL || 'info',
@@ -114,7 +121,9 @@ export function generateCorrelationId(): string {
   return uuidv4();
 }
 
-export function extractCorrelationId(headers: Record<string, string | string[] | undefined>): string | undefined {
+export function extractCorrelationId(
+  headers: Record<string, string | string[] | undefined>
+): string | undefined {
   const correlationId = headers['x-correlation-id'] || headers['X-Correlation-ID'];
   return Array.isArray(correlationId) ? correlationId[0] : correlationId;
 }

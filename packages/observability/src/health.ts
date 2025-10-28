@@ -58,7 +58,7 @@ export class HealthService {
           check.check(),
           this.timeoutPromise(5000), // 5 second timeout
         ]);
-        
+
         result.responseTime = Date.now() - startTime;
         checkResults[name] = result;
 
@@ -76,7 +76,7 @@ export class HealthService {
         };
         checkResults[name] = result;
         overallStatus = 'unhealthy';
-        
+
         this.logger.warn('Health check failed', {
           checkName: name,
           error: error instanceof Error ? error.message : String(error),
@@ -107,12 +107,15 @@ export class HealthService {
     return async (req: Request, res: Response): Promise<void> => {
       try {
         const health = await this.getHealth();
-        const statusCode = health.status === 'healthy' ? 200 : 
-                          health.status === 'degraded' ? 200 : 503;
-        
+        const statusCode =
+          health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503;
+
         res.status(statusCode).json(health);
       } catch (error) {
-        this.logger.error('Health check endpoint error', error instanceof Error ? error : new Error(String(error)));
+        this.logger.error(
+          'Health check endpoint error',
+          error instanceof Error ? error : new Error(String(error))
+        );
         res.status(500).json({
           status: 'unhealthy',
           timestamp: new Date().toISOString(),
@@ -142,7 +145,7 @@ export class HealthService {
       try {
         const health = await this.getHealth();
         const isReady = health.status === 'healthy' || health.status === 'degraded';
-        
+
         res.status(isReady ? 200 : 503).json({
           status: isReady ? 'ready' : 'not_ready',
           timestamp: new Date().toISOString(),
@@ -150,7 +153,10 @@ export class HealthService {
           checks: health.checks,
         });
       } catch (error) {
-        this.logger.error('Readiness check error', error instanceof Error ? error : new Error(String(error)));
+        this.logger.error(
+          'Readiness check error',
+          error instanceof Error ? error : new Error(String(error))
+        );
         res.status(503).json({
           status: 'not_ready',
           timestamp: new Date().toISOString(),
@@ -225,9 +231,9 @@ export const commonHealthChecks = {
       const usage = process.memoryUsage();
       const usedMB = usage.heapUsed / 1024 / 1024;
       const totalMB = usage.heapTotal / 1024 / 1024;
-      
+
       const status = usedMB > thresholdMB ? 'degraded' : 'healthy';
-      
+
       return {
         status,
         message: `Memory usage: ${usedMB.toFixed(2)}MB / ${totalMB.toFixed(2)}MB`,

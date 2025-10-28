@@ -1,16 +1,16 @@
-import { useCallback } from 'react'
-import { 
-  User, 
-  Mail, 
-  Calendar, 
-  MessageSquare, 
-  FileText, 
+import { useCallback } from 'react';
+import {
+  User,
+  Mail,
+  Calendar,
+  MessageSquare,
+  FileText,
   Brain,
   GitBranch,
   Clock,
-  Zap
-} from 'lucide-react'
-import { useWorkflowStore } from '@/store/workflow'
+  Zap,
+} from 'lucide-react';
+import { useWorkflowStore } from '@/store/workflow';
 
 const nodeCategories = [
   {
@@ -98,63 +98,66 @@ const nodeCategories = [
       },
     ],
   },
-]
+];
 
 export function NodeSidebar() {
-  const { addNode } = useWorkflowStore()
+  const { addNode } = useWorkflowStore();
 
   const onDragStart = useCallback((event: React.DragEvent, nodeType: string, label: string) => {
-    event.dataTransfer.setData('application/reactflow', nodeType)
-    event.dataTransfer.setData('application/nodelabel', label)
-    event.dataTransfer.effectAllowed = 'move'
-  }, [])
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.setData('application/nodelabel', label);
+    event.dataTransfer.effectAllowed = 'move';
+  }, []);
 
-  const handleAddNode = useCallback((nodeType: string, label: string) => {
-    // Add node at a default position when clicked (not dragged)
-    const newNode = {
-      id: `${nodeType}-${Date.now()}`,
-      type: nodeType,
-      position: { x: Math.random() * 400, y: Math.random() * 400 },
-      data: {
-        label,
-        params: getDefaultParams(nodeType),
-        retryPolicy: {
-          maxRetries: 3,
-          backoffMs: 1000,
+  const handleAddNode = useCallback(
+    (nodeType: string, label: string) => {
+      // Add node at a default position when clicked (not dragged)
+      const newNode = {
+        id: `${nodeType}-${Date.now()}`,
+        type: nodeType,
+        position: { x: Math.random() * 400, y: Math.random() * 400 },
+        data: {
+          label,
+          params: getDefaultParams(nodeType),
+          retryPolicy: {
+            maxRetries: 3,
+            backoffMs: 1000,
+          },
+          timeoutMs: 300000,
         },
-        timeoutMs: 300000,
-      },
-    }
+      };
 
-    addNode(newNode)
-  }, [addNode])
+      addNode(newNode);
+    },
+    [addNode]
+  );
 
   const getDefaultParams = (nodeType: string): Record<string, any> => {
     switch (nodeType) {
       case 'trigger':
-        return { eventType: 'employee.onboard' }
+        return { eventType: 'employee.onboard' };
       case 'identity':
-        return { action: 'provision', provider: 'google' }
+        return { action: 'provision', provider: 'google' };
       case 'email':
-        return { template: 'welcome', recipients: '{{employee.email}}' }
+        return { template: 'welcome', recipients: '{{employee.email}}' };
       case 'ai':
-        return { contentType: 'welcome_message' }
+        return { contentType: 'welcome_message' };
       case 'condition':
-        return { expression: '{{employee.department}} === "Engineering"' }
+        return { expression: '{{employee.department}} === "Engineering"' };
       case 'delay':
-        return { duration: 1, unit: 'hours' }
+        return { duration: 1, unit: 'hours' };
       case 'calendar':
-        return { action: 'schedule_meeting' }
+        return { action: 'schedule_meeting' };
       case 'slack':
-        return { action: 'send_message', channel: '#general' }
+        return { action: 'send_message', channel: '#general' };
       case 'document':
-        return { action: 'distribute', documentType: 'handbook' }
+        return { action: 'distribute', documentType: 'handbook' };
       case 'schedule':
-        return { schedule: '0 9 * * 1' }
+        return { schedule: '0 9 * * 1' };
       default:
-        return {}
+        return {};
     }
-  }
+  };
 
   return (
     <div className="w-72 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 overflow-y-auto shadow-sm">
@@ -163,7 +166,7 @@ export function NodeSidebar() {
           <h2 className="text-xl font-bold text-gray-900 mb-1">Node Library</h2>
           <p className="text-xs text-gray-500">Drag nodes to canvas or click to add</p>
         </div>
-        
+
         <div className="space-y-6">
           {nodeCategories.map((category) => (
             <div key={category.name}>
@@ -199,5 +202,5 @@ export function NodeSidebar() {
         </div>
       </div>
     </div>
-  )
+  );
 }

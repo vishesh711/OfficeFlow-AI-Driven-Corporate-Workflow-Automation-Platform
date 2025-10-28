@@ -77,7 +77,7 @@ export const getEmailConfig = (): EmailServiceConfig => {
     uploadDir: process.env.UPLOAD_DIR || './uploads',
     maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760'), // 10MB
     templateCacheTtl: parseInt(process.env.TEMPLATE_CACHE_TTL || '3600000'), // 1 hour
-    defaultProvider: providers.find(p => p.isDefault)?.name || 'smtp',
+    defaultProvider: providers.find((p) => p.isDefault)?.name || 'smtp',
     providers,
   };
 };

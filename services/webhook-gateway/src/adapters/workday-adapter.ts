@@ -37,9 +37,9 @@ export class WorkdayAdapter extends BaseHRMSAdapter {
 
   constructor(config: PollingConfig) {
     super(config);
-    
+
     this.tenantUrl = config.credentials.tenantUrl;
-    
+
     this.client = axios.create({
       baseURL: this.tenantUrl,
       timeout: 30000,
@@ -49,7 +49,7 @@ export class WorkdayAdapter extends BaseHRMSAdapter {
       },
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     });
 
@@ -206,7 +206,7 @@ export class WorkdayAdapter extends BaseHRMSAdapter {
   async healthCheck(): Promise<{ healthy: boolean; details: Record<string, any> }> {
     try {
       const response = await this.client.get('/api/v1/health', { timeout: 5000 });
-      
+
       return {
         healthy: response.status === 200,
         details: {
@@ -219,7 +219,7 @@ export class WorkdayAdapter extends BaseHRMSAdapter {
       };
     } catch (error) {
       logger.error('Workday health check failed', { error });
-      
+
       return {
         healthy: false,
         details: {

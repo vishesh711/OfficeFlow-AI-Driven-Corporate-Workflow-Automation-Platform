@@ -40,10 +40,10 @@ export class SuccessFactorsAdapter extends BaseHRMSAdapter {
 
   constructor(config: PollingConfig) {
     super(config);
-    
+
     this.apiUrl = config.credentials.apiUrl;
     this.companyId = config.credentials.companyId;
-    
+
     this.client = axios.create({
       baseURL: this.apiUrl,
       timeout: 30000,
@@ -53,8 +53,8 @@ export class SuccessFactorsAdapter extends BaseHRMSAdapter {
       },
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'DataServiceVersion': '2.0',
+        Accept: 'application/json',
+        DataServiceVersion: '2.0',
       },
     });
 
@@ -72,7 +72,10 @@ export class SuccessFactorsAdapter extends BaseHRMSAdapter {
 
     this.client.interceptors.response.use(
       (response) => {
-        logger.debug('SuccessFactors API response', { status: response.status, url: response.config.url });
+        logger.debug('SuccessFactors API response', {
+          status: response.status,
+          url: response.config.url,
+        });
         return response;
       },
       (error) => {
@@ -99,7 +102,9 @@ export class SuccessFactorsAdapter extends BaseHRMSAdapter {
     }
 
     try {
-      logger.info('Starting SuccessFactors polling', { organizationId: this.config.organizationId });
+      logger.info('Starting SuccessFactors polling', {
+        organizationId: this.config.organizationId,
+      });
 
       const events = await this.fetchEvents();
       const normalizedEvents: NormalizedLifecycleEvent[] = [];
@@ -155,7 +160,7 @@ export class SuccessFactorsAdapter extends BaseHRMSAdapter {
 
         // Add filters
         const filters: string[] = [];
-        
+
         // Filter by event types
         const eventTypes = [
           'employee.hired',
@@ -227,7 +232,7 @@ export class SuccessFactorsAdapter extends BaseHRMSAdapter {
   async healthCheck(): Promise<{ healthy: boolean; details: Record<string, any> }> {
     try {
       const response = await this.client.get('/odata/v2/$metadata', { timeout: 5000 });
-      
+
       return {
         healthy: response.status === 200,
         details: {
@@ -241,7 +246,7 @@ export class SuccessFactorsAdapter extends BaseHRMSAdapter {
       };
     } catch (error) {
       logger.error('SuccessFactors health check failed', { error });
-      
+
       return {
         healthy: false,
         details: {

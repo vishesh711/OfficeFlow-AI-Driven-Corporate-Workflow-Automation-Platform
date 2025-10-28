@@ -3,7 +3,13 @@
  */
 
 import { WorkflowRepositoryImpl } from '../../repositories/workflow';
-import { getTestPool, createTestOrganization, createTestUser, createTestWorkflow, cleanupTestData } from '../setup';
+import {
+  getTestPool,
+  createTestOrganization,
+  createTestUser,
+  createTestWorkflow,
+  cleanupTestData,
+} from '../setup';
 import { Pool } from 'pg';
 
 describe('WorkflowRepository', () => {
@@ -18,12 +24,12 @@ describe('WorkflowRepository', () => {
   beforeAll(async () => {
     pool = getTestPool();
     repository = new WorkflowRepositoryImpl();
-    
+
     // Create test organization
     const orgData = createTestOrganization();
     testOrgId = orgData.org_id;
     createdOrgIds.push(testOrgId);
-    
+
     await pool.query(
       'INSERT INTO organizations (org_id, name, domain, plan, settings) VALUES ($1, $2, $3, $4, $5)',
       [orgData.org_id, orgData.name, orgData.domain, orgData.plan, JSON.stringify(orgData.settings)]
@@ -33,10 +39,18 @@ describe('WorkflowRepository', () => {
     const userData = createTestUser(testOrgId);
     testUserId = userData.user_id;
     createdUserIds.push(testUserId);
-    
+
     await pool.query(
       'INSERT INTO users (user_id, org_id, email, first_name, last_name, role, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      [userData.user_id, userData.org_id, userData.email, userData.first_name, userData.last_name, userData.role, userData.is_active]
+      [
+        userData.user_id,
+        userData.org_id,
+        userData.email,
+        userData.first_name,
+        userData.last_name,
+        userData.role,
+        userData.is_active,
+      ]
     );
   });
 
@@ -58,7 +72,7 @@ describe('WorkflowRepository', () => {
   describe('create', () => {
     it('should create workflow with valid data', async () => {
       const workflowData = createTestWorkflow(testOrgId, testUserId);
-      
+
       const created = await repository.create(workflowData);
       createdWorkflowIds.push(created.workflow_id);
 
@@ -109,7 +123,7 @@ describe('WorkflowRepository', () => {
 
       const found = await repository.findByOrganization(testOrgId);
       expect(found.length).toBeGreaterThanOrEqual(3);
-      expect(found.every(w => w.org_id === testOrgId)).toBe(true);
+      expect(found.every((w) => w.org_id === testOrgId)).toBe(true);
     });
   });
 
@@ -128,16 +142,28 @@ describe('WorkflowRepository', () => {
 
       const onboardWorkflows = await repository.findByEventTrigger('employee.onboard');
       expect(onboardWorkflows.length).toBeGreaterThanOrEqual(2);
-      expect(onboardWorkflows.every(w => w.event_trigger === 'employee.onboard')).toBe(true);
+      expect(onboardWorkflows.every((w) => w.event_trigger === 'employee.onboard')).toBe(true);
     });
   });
 
   describe('findActiveByTrigger', () => {
     it('should find only active workflows by trigger', async () => {
       const workflows = [
-        { ...createTestWorkflow(testOrgId, testUserId), event_trigger: 'employee.onboard', is_active: true },
-        { ...createTestWorkflow(testOrgId, testUserId), event_trigger: 'employee.onboard', is_active: false },
-        { ...createTestWorkflow(testOrgId, testUserId), event_trigger: 'employee.onboard', is_active: true },
+        {
+          ...createTestWorkflow(testOrgId, testUserId),
+          event_trigger: 'employee.onboard',
+          is_active: true,
+        },
+        {
+          ...createTestWorkflow(testOrgId, testUserId),
+          event_trigger: 'employee.onboard',
+          is_active: false,
+        },
+        {
+          ...createTestWorkflow(testOrgId, testUserId),
+          event_trigger: 'employee.onboard',
+          is_active: true,
+        },
       ];
 
       for (const workflow of workflows) {
@@ -147,7 +173,7 @@ describe('WorkflowRepository', () => {
 
       const activeWorkflows = await repository.findActiveByTrigger(testOrgId, 'employee.onboard');
       expect(activeWorkflows.length).toBe(2);
-      expect(activeWorkflows.every(w => w.is_active === true)).toBe(true);
+      expect(activeWorkflows.every((w) => w.is_active === true)).toBe(true);
     });
   });
 
@@ -165,7 +191,7 @@ describe('WorkflowRepository', () => {
 
       const createdWorkflows = await repository.findByCreator(testUserId);
       expect(createdWorkflows.length).toBeGreaterThanOrEqual(2);
-      expect(createdWorkflows.every(w => w.created_by === testUserId)).toBe(true);
+      expect(createdWorkflows.every((w) => w.created_by === testUserId)).toBe(true);
     });
   });
 
@@ -189,23 +215,23 @@ describe('WorkflowRepository', () => {
     it('should search workflows by name', async () => {
       const workflowData = createTestWorkflow(testOrgId, testUserId);
       workflowData.name = 'Searchable Workflow Name';
-      
+
       const created = await repository.create(workflowData);
       createdWorkflowIds.push(created.workflow_id);
 
       const results = await repository.search(testOrgId, 'Searchable');
-      expect(results.some(w => w.workflow_id === created.workflow_id)).toBe(true);
+      expect(results.some((w) => w.workflow_id === created.workflow_id)).toBe(true);
     });
 
     it('should search workflows by description', async () => {
       const workflowData = createTestWorkflow(testOrgId, testUserId);
       workflowData.description = 'Searchable workflow description';
-      
+
       const created = await repository.create(workflowData);
       createdWorkflowIds.push(created.workflow_id);
 
       const results = await repository.search(testOrgId, 'Searchable');
-      expect(results.some(w => w.workflow_id === created.workflow_id)).toBe(true);
+      expect(results.some((w) => w.workflow_id === created.workflow_id)).toBe(true);
     });
 
     it('should limit search results', async () => {
@@ -266,12 +292,12 @@ describe('WorkflowRepository', () => {
 
       const workflowData = createTestWorkflow(testOrgId, testUserId);
       workflowData.definition = complexDefinition;
-      
+
       const created = await repository.create(workflowData);
       createdWorkflowIds.push(created.workflow_id);
 
       expect(created.definition).toEqual(complexDefinition);
-      
+
       const found = await repository.findById(created.workflow_id);
       expect(found?.definition).toEqual(complexDefinition);
     });
@@ -314,9 +340,14 @@ describe('WorkflowRepository', () => {
           // Create first workflow
           await client.query(
             'INSERT INTO workflows (org_id, name, event_trigger, definition) VALUES ($1, $2, $3, $4)',
-            [workflowData1.org_id, workflowData1.name, workflowData1.event_trigger, JSON.stringify(workflowData1.definition)]
+            [
+              workflowData1.org_id,
+              workflowData1.name,
+              workflowData1.event_trigger,
+              JSON.stringify(workflowData1.definition),
+            ]
           );
-          
+
           // Force an error
           throw new Error('Transaction failed');
         })
@@ -324,7 +355,7 @@ describe('WorkflowRepository', () => {
 
       // Verify no workflow was created
       const workflows = await repository.findByOrganization(testOrgId);
-      const createdWorkflow = workflows.find(w => w.name === workflowData1.name);
+      const createdWorkflow = workflows.find((w) => w.name === workflowData1.name);
       expect(createdWorkflow).toBeUndefined();
     });
   });

@@ -1,18 +1,18 @@
 import { GoogleCalendarProvider } from '../providers/google-calendar-provider';
 import { MicrosoftCalendarProvider } from '../providers/microsoft-calendar-provider';
-import { 
-  CalendarEvent, 
+import {
+  CalendarEvent,
   CalendarEventRequest,
-  CalendarEventResponse, 
+  CalendarEventResponse,
   CalendarListRequest,
-  CalendarListResponse, 
-  AvailabilityRequest, 
+  CalendarListResponse,
+  AvailabilityRequest,
   AvailabilityResponse,
   FindMeetingTimeRequest,
   FindMeetingTimeResponse,
   MeetingTimeSuggestion,
   CalendarCredentials,
-  CalendarServiceConfig
+  CalendarServiceConfig,
 } from '../types/calendar-types';
 import { logger } from '../utils/logger';
 import moment from 'moment-timezone';
@@ -23,12 +23,12 @@ export class CalendarService {
 
   constructor(private config: CalendarServiceConfig) {
     // Initialize providers based on configuration
-    const googleConfig = config.providers.find(p => p.type === 'google');
+    const googleConfig = config.providers.find((p) => p.type === 'google');
     if (googleConfig && googleConfig.type === 'google') {
       this.googleProvider = new GoogleCalendarProvider(googleConfig.config);
     }
 
-    const microsoftConfig = config.providers.find(p => p.type === 'microsoft');
+    const microsoftConfig = config.providers.find((p) => p.type === 'microsoft');
     if (microsoftConfig && microsoftConfig.type === 'microsoft') {
       this.microsoftProvider = new MicrosoftCalendarProvider(microsoftConfig.config);
     }
@@ -51,10 +51,13 @@ export class CalendarService {
     }
   }
 
-  async createEvent(request: CalendarEventRequest, credentials: CalendarCredentials): Promise<CalendarEventResponse> {
+  async createEvent(
+    request: CalendarEventRequest,
+    credentials: CalendarCredentials
+  ): Promise<CalendarEventResponse> {
     try {
       const provider = this.getProvider(request.provider);
-      
+
       // Validate timezone
       if (!moment.tz.zone(request.event.timezone)) {
         request.event.timezone = this.config.defaultTimezone;
@@ -99,7 +102,7 @@ export class CalendarService {
   ): Promise<CalendarEventResponse> {
     try {
       const calendarProvider = this.getProvider(provider);
-      
+
       // Validate timezone
       if (!moment.tz.zone(event.timezone)) {
         event.timezone = this.config.defaultTimezone;
@@ -176,7 +179,10 @@ export class CalendarService {
     }
   }
 
-  async listEvents(request: CalendarListRequest, credentials: CalendarCredentials): Promise<CalendarListResponse> {
+  async listEvents(
+    request: CalendarListRequest,
+    credentials: CalendarCredentials
+  ): Promise<CalendarListResponse> {
     try {
       const provider = this.getProvider(request.provider);
 
@@ -259,7 +265,7 @@ export class CalendarService {
       };
 
       const availability = await this.getAvailability(provider, availabilityRequest, credentials);
-      
+
       // Find available time slots
       const suggestions = this.findAvailableSlots(request, availability);
 
@@ -301,11 +307,16 @@ export class CalendarService {
 
     // Create a map of busy times for each attendee
     const busyTimes = new Map<string, Array<{ start: Date; end: Date }>>();
-    availability.forEach(response => {
-      busyTimes.set(response.email, response.slots.filter(slot => slot.status === 'busy').map(slot => ({
-        start: slot.startTime,
-        end: slot.endTime,
-      })));
+    availability.forEach((response) => {
+      busyTimes.set(
+        response.email,
+        response.slots
+          .filter((slot) => slot.status === 'busy')
+          .map((slot) => ({
+            start: slot.startTime,
+            end: slot.endTime,
+          }))
+      );
     });
 
     // Generate time slots within working hours
@@ -320,12 +331,14 @@ export class CalendarService {
       }
 
       // Set working hours for the current day
-      const dayStart = currentDate.clone()
+      const dayStart = currentDate
+        .clone()
         .hour(parseInt(workingHours.start.split(':')[0]))
         .minute(parseInt(workingHours.start.split(':')[1]))
         .second(0);
-      
-      const dayEnd = currentDate.clone()
+
+      const dayEnd = currentDate
+        .clone()
         .hour(parseInt(workingHours.end.split(':')[0]))
         .minute(parseInt(workingHours.end.split(':')[1]))
         .second(0);
@@ -334,7 +347,7 @@ export class CalendarService {
       const slotStart = dayStart.clone();
       while (slotStart.clone().add(request.duration, 'minutes').isBefore(dayEnd)) {
         const slotEnd = slotStart.clone().add(request.duration, 'minutes');
-        
+
         // Check if this slot conflicts with any attendee's busy time
         const conflicts = this.checkConflicts(
           slotStart.toDate(),
@@ -349,22 +362,24 @@ export class CalendarService {
             startTime: slotStart.toDate(),
             endTime: slotEnd.toDate(),
             confidence: 1.0,
-            attendeeAvailability: request.attendees.map(email => ({
+            attendeeAvailability: request.attendees.map((email) => ({
               email,
               status: 'available' as const,
             })),
           });
         } else if (conflicts.length < request.attendees.length) {
           // Some attendees are available
-          const confidence = (request.attendees.length - conflicts.length) / request.attendees.length;
-          if (confidence >= 0.5) { // At least 50% available
+          const confidence =
+            (request.attendees.length - conflicts.length) / request.attendees.length;
+          if (confidence >= 0.5) {
+            // At least 50% available
             suggestions.push({
               startTime: slotStart.toDate(),
               endTime: slotEnd.toDate(),
               confidence,
-              attendeeAvailability: request.attendees.map(email => ({
+              attendeeAvailability: request.attendees.map((email) => ({
                 email,
-                status: conflicts.includes(email) ? 'busy' as const : 'available' as const,
+                status: conflicts.includes(email) ? ('busy' as const) : ('available' as const),
               })),
             });
           }
@@ -391,11 +406,11 @@ export class CalendarService {
     const conflicts: string[] = [];
 
     busyTimes.forEach((times, email) => {
-      const hasConflict = times.some(busy => {
+      const hasConflict = times.some((busy) => {
         const busyStart = new Date(busy.start.getTime() - bufferMs);
         const busyEnd = new Date(busy.end.getTime() + bufferMs);
-        
-        return (slotStart < busyEnd && slotEnd > busyStart);
+
+        return slotStart < busyEnd && slotEnd > busyStart;
       });
 
       if (hasConflict) {
@@ -411,7 +426,10 @@ export class CalendarService {
     return calendarProvider.getAuthUrl(state);
   }
 
-  async exchangeCodeForTokens(provider: string, code: string): Promise<{
+  async exchangeCodeForTokens(
+    provider: string,
+    code: string
+  ): Promise<{
     accessToken: string;
     refreshToken?: string;
     expiresAt?: Date;
@@ -420,7 +438,10 @@ export class CalendarService {
     return calendarProvider.exchangeCodeForTokens(code);
   }
 
-  async refreshAccessToken(provider: string, refreshToken: string): Promise<{
+  async refreshAccessToken(
+    provider: string,
+    refreshToken: string
+  ): Promise<{
     accessToken: string;
     expiresAt?: Date;
   }> {

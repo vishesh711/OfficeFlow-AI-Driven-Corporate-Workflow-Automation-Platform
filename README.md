@@ -30,6 +30,7 @@ chmod +x just-run.sh
 ```
 
 This will:
+
 - Install all dependencies using pnpm
 - Start Docker infrastructure (PostgreSQL, Redis, Kafka, MinIO)
 - Launch all microservices
@@ -112,6 +113,7 @@ curl http://localhost:5173
    - Check what's using these ports: `lsof -i :PORT_NUMBER`
 
 2. **Docker Issues**
+
    ```bash
    # Restart Docker services
    docker-compose -f docker-compose.dev.yml down
@@ -225,23 +227,27 @@ officeflow-platform/
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd officeflow-platform
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .env.example .env
 # Edit .env with your configuration
 ```
 
 4. Build all packages:
+
 ```bash
 npm run build
 ```
@@ -249,21 +255,25 @@ npm run build
 ### Development
 
 Start all services in development mode:
+
 ```bash
 npm run dev
 ```
 
 Run tests:
+
 ```bash
 npm run test
 ```
 
 Lint code:
+
 ```bash
 npm run lint
 ```
 
 Format code:
+
 ```bash
 npm run format
 ```
@@ -271,10 +281,13 @@ npm run format
 ## Core Concepts
 
 ### Workflows
+
 Workflows are defined as Directed Acyclic Graphs (DAGs) where each node represents a specific task (e.g., create user account, send email, schedule meeting).
 
 ### Node Executors
+
 Independent microservices that execute specific workflow tasks:
+
 - **Identity Service**: User provisioning/deprovisioning
 - **Email Service**: Template-based communications
 - **Calendar Service**: Meeting scheduling
@@ -283,14 +296,18 @@ Independent microservices that execute specific workflow tasks:
 - **Document Service**: File distribution
 
 ### Event Streaming
+
 All system interactions flow through Kafka events, enabling:
+
 - Loose coupling between services
 - Reliable message delivery
 - Event sourcing and audit trails
 - Horizontal scalability
 
 ### Lifecycle Events
+
 Standard events that trigger workflows:
+
 - `employee.onboard`: New employee joining
 - `employee.exit`: Employee leaving
 - `employee.transfer`: Role/department changes
@@ -299,6 +316,7 @@ Standard events that trigger workflows:
 ## Deployment
 
 ### Local Development
+
 ```bash
 # Docker Compose (recommended for local development)
 docker-compose up -d
@@ -314,6 +332,7 @@ docker-compose up -d
 The platform supports enterprise-grade deployment with multiple strategies:
 
 #### Kubernetes Deployment
+
 ```bash
 # Quick deployment to staging
 ./scripts/k8s-deploy.sh --namespace officeflow-staging
@@ -326,6 +345,7 @@ The platform supports enterprise-grade deployment with multiple strategies:
 ```
 
 #### Container Security
+
 ```bash
 # Build and scan all containers
 ./scripts/docker-build-push.sh --local-only
@@ -336,7 +356,9 @@ The platform supports enterprise-grade deployment with multiple strategies:
 ```
 
 #### CI/CD Pipeline
+
 Comprehensive GitHub Actions workflows provide:
+
 - **Continuous Integration**: Automated testing, linting, security scanning
 - **Continuous Deployment**: Multi-environment deployment with rollback
 - **Security Scanning**: Daily vulnerability and compliance checks
@@ -353,6 +375,7 @@ The platform uses a hierarchical configuration system:
 3. **Default values** (lowest priority)
 
 Key configuration areas:
+
 - Database connections
 - Kafka brokers
 - Redis clusters
@@ -364,6 +387,7 @@ Key configuration areas:
 ## Monitoring and Observability
 
 Built-in observability features:
+
 - **Structured logging** with correlation IDs
 - **Distributed tracing** with OpenTelemetry
 - **Metrics collection** with Prometheus
@@ -373,6 +397,7 @@ Built-in observability features:
 ## Security
 
 Security features include:
+
 - JWT-based authentication
 - Role-based access control (RBAC)
 - API rate limiting
@@ -398,6 +423,7 @@ Security features include:
 📚 **[Complete Documentation](docs/README.md)** - Comprehensive guides and references
 
 ### Quick Links
+
 - **[Getting Started](GETTING_STARTED.md)** - Quick start guide
 - **[Deployment Guide](DEPLOYMENT.md)** - Production deployment
 - **[Observability](docs/OBSERVABILITY.md)** - Monitoring and logging
@@ -406,6 +432,7 @@ Security features include:
 ## Support
 
 For questions and support:
+
 - **Documentation**: [docs/](docs/) directory
 - **Issues**: GitHub Issues for bug reports
 - **Discussions**: GitHub Discussions for questions

@@ -20,7 +20,7 @@ export class CostTracker {
     // Calculate estimated cost
     const pricing = this.PRICING[metrics.model as keyof typeof this.PRICING];
     if (pricing) {
-      metrics.estimatedCost = 
+      metrics.estimatedCost =
         (metrics.promptTokens / 1000) * pricing.input +
         (metrics.completionTokens / 1000) * pricing.output;
     } else {
@@ -49,18 +49,21 @@ export class CostTracker {
     }
   }
 
-  getCostSummary(organizationId: string, timeRange?: { start: Date; end: Date }): {
+  getCostSummary(
+    organizationId: string,
+    timeRange?: { start: Date; end: Date }
+  ): {
     totalCost: number;
     totalTokens: number;
     requestCount: number;
     modelBreakdown: Record<string, { cost: number; tokens: number; requests: number }>;
     nodeTypeBreakdown: Record<string, { cost: number; tokens: number; requests: number }>;
   } {
-    let filteredMetrics = this.costMetrics.filter(m => m.organizationId === organizationId);
+    let filteredMetrics = this.costMetrics.filter((m) => m.organizationId === organizationId);
 
     if (timeRange) {
-      filteredMetrics = filteredMetrics.filter(m => 
-        m.timestamp >= timeRange.start && m.timestamp <= timeRange.end
+      filteredMetrics = filteredMetrics.filter(
+        (m) => m.timestamp >= timeRange.start && m.timestamp <= timeRange.end
       );
     }
 
@@ -96,7 +99,11 @@ export class CostTracker {
     return summary;
   }
 
-  checkRateLimit(organizationId: string, requestsPerMinute: number, tokensPerMinute: number): {
+  checkRateLimit(
+    organizationId: string,
+    requestsPerMinute: number,
+    tokensPerMinute: number
+  ): {
     allowed: boolean;
     reason?: string;
     resetTime?: Date;
@@ -106,7 +113,7 @@ export class CostTracker {
     let state = this.rateLimitStates.get(key);
 
     // Initialize or reset if window expired
-    if (!state || (now.getTime() - state.windowStart.getTime()) >= 60000) {
+    if (!state || now.getTime() - state.windowStart.getTime() >= 60000) {
       state = {
         requestCount: 0,
         tokenCount: 0,
@@ -141,7 +148,7 @@ export class CostTracker {
   updateRateLimit(organizationId: string, tokensUsed: number): void {
     const key = organizationId;
     const state = this.rateLimitStates.get(key);
-    
+
     if (state) {
       state.requestCount += 1;
       state.tokenCount += tokensUsed;
@@ -158,7 +165,11 @@ export class CostTracker {
     const orgSummaries = new Map<string, { cost: number; tokens: number; requests: number }>();
 
     for (const metric of this.costMetrics) {
-      const existing = orgSummaries.get(metric.organizationId) || { cost: 0, tokens: 0, requests: 0 };
+      const existing = orgSummaries.get(metric.organizationId) || {
+        cost: 0,
+        tokens: 0,
+        requests: 0,
+      };
       existing.cost += metric.estimatedCost;
       existing.tokens += metric.totalTokens;
       existing.requests += 1;
@@ -177,8 +188,8 @@ export class CostTracker {
   }
 
   exportMetrics(organizationId?: string, format: 'json' | 'csv' = 'json'): string {
-    let metrics = organizationId 
-      ? this.costMetrics.filter(m => m.organizationId === organizationId)
+    let metrics = organizationId
+      ? this.costMetrics.filter((m) => m.organizationId === organizationId)
       : this.costMetrics;
 
     if (format === 'csv') {
@@ -196,7 +207,7 @@ export class CostTracker {
         'runId',
       ];
 
-      const rows = metrics.map(m => [
+      const rows = metrics.map((m) => [
         m.requestId,
         m.organizationId,
         m.model,
@@ -210,7 +221,7 @@ export class CostTracker {
         m.runId || '',
       ]);
 
-      return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
     }
 
     return JSON.stringify(metrics, null, 2);
@@ -218,7 +229,7 @@ export class CostTracker {
 
   clearMetrics(organizationId?: string): void {
     if (organizationId) {
-      this.costMetrics = this.costMetrics.filter(m => m.organizationId !== organizationId);
+      this.costMetrics = this.costMetrics.filter((m) => m.organizationId !== organizationId);
       this.logger.info('Cleared cost metrics for organization', { organizationId });
     } else {
       this.costMetrics = [];

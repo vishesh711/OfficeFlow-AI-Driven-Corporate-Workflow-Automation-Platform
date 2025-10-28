@@ -6,7 +6,10 @@ import { WorkflowParser } from '../orchestrator/workflow-parser';
 import { WorkflowDefinition, WorkflowDAG, WorkflowNode, WorkflowEdge } from '@officeflow/types';
 
 describe('WorkflowParser', () => {
-  const createTestWorkflow = (nodes: WorkflowNode[], edges: WorkflowEdge[] = []): WorkflowDefinition => ({
+  const createTestWorkflow = (
+    nodes: WorkflowNode[],
+    edges: WorkflowEdge[] = []
+  ): WorkflowDefinition => ({
     id: 'test-workflow-id',
     organizationId: 'test-org-id',
     name: 'Test Workflow',
@@ -17,12 +20,12 @@ describe('WorkflowParser', () => {
       nodes,
       edges,
       metadata: {
-        version: '1.0.0'
-      }
+        version: '1.0.0',
+      },
     },
     createdBy: 'test-user-id',
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   });
 
   const createTestNode = (id: string, type: any = 'email.send'): WorkflowNode => ({
@@ -34,16 +37,16 @@ describe('WorkflowParser', () => {
       maxRetries: 3,
       backoffMs: 1000,
       backoffMultiplier: 2,
-      maxBackoffMs: 30000
+      maxBackoffMs: 30000,
     },
     timeoutMs: 300000,
-    position: { x: 0, y: 0 }
+    position: { x: 0, y: 0 },
   });
 
   const createTestEdge = (id: string, fromNodeId: string, toNodeId: string): WorkflowEdge => ({
     id,
     fromNodeId,
-    toNodeId
+    toNodeId,
   });
 
   describe('validateWorkflowDefinition', () => {
@@ -56,14 +59,10 @@ describe('WorkflowParser', () => {
     });
 
     it('should validate a workflow with multiple connected nodes', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node2', 'node3')
+        createTestEdge('edge2', 'node2', 'node3'),
       ];
       const workflow = createTestWorkflow(nodes, edges);
 
@@ -78,7 +77,7 @@ describe('WorkflowParser', () => {
       expect(errors).toContainEqual(
         expect.objectContaining({
           code: 'NO_NODES',
-          message: 'Workflow must contain at least one node'
+          message: 'Workflow must contain at least one node',
         })
       );
     });
@@ -91,7 +90,7 @@ describe('WorkflowParser', () => {
       expect(errors).toContainEqual(
         expect.objectContaining({
           code: 'UNSUPPORTED_NODE_TYPE',
-          message: 'Unsupported node type: invalid.type'
+          message: 'Unsupported node type: invalid.type',
         })
       );
     });
@@ -105,7 +104,7 @@ describe('WorkflowParser', () => {
       expect(errors).toContainEqual(
         expect.objectContaining({
           code: 'INVALID_TO_NODE',
-          message: 'Edge toNodeId must reference a valid node'
+          message: 'Edge toNodeId must reference a valid node',
         })
       );
     });
@@ -119,7 +118,7 @@ describe('WorkflowParser', () => {
       expect(errors).toContainEqual(
         expect.objectContaining({
           code: 'SELF_REFERENCING_EDGE',
-          message: 'Edge cannot reference the same node as source and target'
+          message: 'Edge cannot reference the same node as source and target',
         })
       );
     });
@@ -127,14 +126,10 @@ describe('WorkflowParser', () => {
 
   describe('detectCycles', () => {
     it('should not detect cycles in linear workflow', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node2', 'node3')
+        createTestEdge('edge2', 'node2', 'node3'),
       ];
 
       expect(() => {
@@ -143,13 +138,10 @@ describe('WorkflowParser', () => {
     });
 
     it('should detect simple cycle', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node2', 'node1')
+        createTestEdge('edge2', 'node2', 'node1'),
       ];
 
       expect(() => {
@@ -158,15 +150,11 @@ describe('WorkflowParser', () => {
     });
 
     it('should detect complex cycle', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
         createTestEdge('edge2', 'node2', 'node3'),
-        createTestEdge('edge3', 'node3', 'node1')
+        createTestEdge('edge3', 'node3', 'node1'),
       ];
 
       expect(() => {
@@ -177,18 +165,14 @@ describe('WorkflowParser', () => {
 
   describe('topologicalSort', () => {
     it('should sort linear workflow correctly', () => {
-      const nodes = [
-        createTestNode('node3'),
-        createTestNode('node1'),
-        createTestNode('node2')
-      ];
+      const nodes = [createTestNode('node3'), createTestNode('node1'), createTestNode('node2')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node2', 'node3')
+        createTestEdge('edge2', 'node2', 'node3'),
       ];
 
       const sorted = WorkflowParser.topologicalSort(nodes, edges);
-      const sortedIds = sorted.map(n => n.id);
+      const sortedIds = sorted.map((n) => n.id);
 
       expect(sortedIds).toEqual(['node1', 'node2', 'node3']);
     });
@@ -198,17 +182,17 @@ describe('WorkflowParser', () => {
         createTestNode('node1'),
         createTestNode('node2'),
         createTestNode('node3'),
-        createTestNode('node4')
+        createTestNode('node4'),
       ];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
         createTestEdge('edge2', 'node1', 'node3'),
         createTestEdge('edge3', 'node2', 'node4'),
-        createTestEdge('edge4', 'node3', 'node4')
+        createTestEdge('edge4', 'node3', 'node4'),
       ];
 
       const sorted = WorkflowParser.topologicalSort(nodes, edges);
-      const sortedIds = sorted.map(n => n.id);
+      const sortedIds = sorted.map((n) => n.id);
 
       expect(sortedIds[0]).toBe('node1');
       expect(sortedIds[3]).toBe('node4');
@@ -219,14 +203,10 @@ describe('WorkflowParser', () => {
 
   describe('findEntryNodes', () => {
     it('should find single entry node', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node2', 'node3')
+        createTestEdge('edge2', 'node2', 'node3'),
       ];
 
       const entryNodes = WorkflowParser.findEntryNodes(nodes, edges);
@@ -235,33 +215,25 @@ describe('WorkflowParser', () => {
     });
 
     it('should find multiple entry nodes', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node3'),
-        createTestEdge('edge2', 'node2', 'node3')
+        createTestEdge('edge2', 'node2', 'node3'),
       ];
 
       const entryNodes = WorkflowParser.findEntryNodes(nodes, edges);
       expect(entryNodes).toHaveLength(2);
-      expect(entryNodes.map(n => n.id)).toContain('node1');
-      expect(entryNodes.map(n => n.id)).toContain('node2');
+      expect(entryNodes.map((n) => n.id)).toContain('node1');
+      expect(entryNodes.map((n) => n.id)).toContain('node2');
     });
   });
 
   describe('findExitNodes', () => {
     it('should find single exit node', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node2', 'node3')
+        createTestEdge('edge2', 'node2', 'node3'),
       ];
 
       const exitNodes = WorkflowParser.findExitNodes(nodes, edges);
@@ -270,33 +242,25 @@ describe('WorkflowParser', () => {
     });
 
     it('should find multiple exit nodes', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node1', 'node3')
+        createTestEdge('edge2', 'node1', 'node3'),
       ];
 
       const exitNodes = WorkflowParser.findExitNodes(nodes, edges);
       expect(exitNodes).toHaveLength(2);
-      expect(exitNodes.map(n => n.id)).toContain('node2');
-      expect(exitNodes.map(n => n.id)).toContain('node3');
+      expect(exitNodes.map((n) => n.id)).toContain('node2');
+      expect(exitNodes.map((n) => n.id)).toContain('node3');
     });
   });
 
   describe('parseWorkflow', () => {
     it('should successfully parse valid workflow', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node2', 'node3')
+        createTestEdge('edge2', 'node2', 'node3'),
       ];
       const workflow = createTestWorkflow(nodes, edges);
 
@@ -322,38 +286,25 @@ describe('WorkflowParser', () => {
 
   describe('getEligibleNodes', () => {
     it('should return entry nodes when no nodes completed', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node2', 'node3')
+        createTestEdge('edge2', 'node2', 'node3'),
       ];
       const workflow = createTestWorkflow(nodes, edges);
       const parsed = WorkflowParser.parseWorkflow(workflow);
 
-      const eligible = WorkflowParser.getEligibleNodes(
-        parsed,
-        new Set(),
-        new Set(),
-        new Set()
-      );
+      const eligible = WorkflowParser.getEligibleNodes(parsed, new Set(), new Set(), new Set());
 
       expect(eligible).toHaveLength(1);
       expect(eligible[0].id).toBe('node1');
     });
 
     it('should return next nodes after completion', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2'),
-        createTestNode('node3')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2'), createTestNode('node3')];
       const edges = [
         createTestEdge('edge1', 'node1', 'node2'),
-        createTestEdge('edge2', 'node2', 'node3')
+        createTestEdge('edge2', 'node2', 'node3'),
       ];
       const workflow = createTestWorkflow(nodes, edges);
       const parsed = WorkflowParser.parseWorkflow(workflow);
@@ -372,10 +323,7 @@ describe('WorkflowParser', () => {
 
   describe('isWorkflowComplete', () => {
     it('should return complete when all nodes processed successfully', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2')];
       const workflow = createTestWorkflow(nodes);
       const parsed = WorkflowParser.parseWorkflow(workflow);
 
@@ -391,10 +339,7 @@ describe('WorkflowParser', () => {
     });
 
     it('should return failed when some nodes failed', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2')];
       const workflow = createTestWorkflow(nodes);
       const parsed = WorkflowParser.parseWorkflow(workflow);
 
@@ -410,10 +355,7 @@ describe('WorkflowParser', () => {
     });
 
     it('should return running when nodes still processing', () => {
-      const nodes = [
-        createTestNode('node1'),
-        createTestNode('node2')
-      ];
+      const nodes = [createTestNode('node1'), createTestNode('node2')];
       const workflow = createTestWorkflow(nodes);
       const parsed = WorkflowParser.parseWorkflow(workflow);
 

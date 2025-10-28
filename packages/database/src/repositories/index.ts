@@ -37,7 +37,7 @@ import { IntegrationAccountRepositoryImpl } from './integration-account';
  */
 export class RepositoryFactory {
   private static instance: RepositoryFactory;
-  
+
   private organizationRepo: OrganizationRepository;
   private userRepo: UserRepository;
   private employeeRepo: EmployeeRepository;

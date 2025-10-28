@@ -42,7 +42,13 @@
     "@typescript-eslint/eslint-plugin": "^6.12.0",
     "@typescript-eslint/parser": "^6.12.0"
   },
-  "keywords": ["calendar", "google-calendar", "office365", "scheduling", "officeflow"],
+  "keywords": [
+    "calendar",
+    "google-calendar",
+    "office365",
+    "scheduling",
+    "officeflow"
+  ],
   "author": "OfficeFlow Team",
   "license": "MIT"
 }

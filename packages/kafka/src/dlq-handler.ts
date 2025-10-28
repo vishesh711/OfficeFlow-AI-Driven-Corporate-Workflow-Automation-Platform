@@ -38,15 +38,12 @@ export class DLQHandler {
       ...options,
     };
 
-    this.consumer = new OfficeFlowConsumer(
-      config,
-      {
-        groupId: 'dlq-handler',
-        sessionTimeout: 30000,
-        rebalanceTimeout: 60000,
-        heartbeatInterval: 3000,
-      }
-    );
+    this.consumer = new OfficeFlowConsumer(config, {
+      groupId: 'dlq-handler',
+      sessionTimeout: 30000,
+      rebalanceTimeout: 60000,
+      heartbeatInterval: 3000,
+    });
 
     this.producer = new OfficeFlowProducer(config);
 
@@ -79,7 +76,7 @@ export class DLQHandler {
     context: MessageContext
   ): Promise<void> {
     const dlqData = message.payload;
-    
+
     console.log('Processing DLQ message:', {
       originalTopic: dlqData.originalTopic,
       messageId: dlqData.originalMessage.id,
@@ -115,8 +112,8 @@ export class DLQHandler {
     ];
 
     const isTransientError = transientErrors.some(
-      errorType => dlqData.error.name.includes(errorType) || 
-                   dlqData.error.message.includes(errorType)
+      (errorType) =>
+        dlqData.error.name.includes(errorType) || dlqData.error.message.includes(errorType)
     );
 
     return isTransientError && dlqData.attemptCount <= this.options.maxReprocessAttempts;
@@ -149,7 +146,6 @@ export class DLQHandler {
         originalTopic: dlqData.originalTopic,
         attemptCount: dlqData.attemptCount,
       });
-
     } catch (error) {
       console.error('Failed to reprocess DLQ message:', error);
       await this.quarantineMessage(dlqData, context);
@@ -237,6 +233,6 @@ export class DLQHandler {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

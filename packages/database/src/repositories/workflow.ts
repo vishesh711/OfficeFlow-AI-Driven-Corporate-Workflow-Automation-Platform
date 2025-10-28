@@ -4,23 +4,14 @@
 
 import { WorkflowEntity, WorkflowRepository, UUID } from '@officeflow/types';
 import { BaseRepository } from './base';
-import {
-  workflowSchema,
-  createWorkflowSchema,
-  updateWorkflowSchema,
-} from '../validation/schemas';
+import { workflowSchema, createWorkflowSchema, updateWorkflowSchema } from '../validation/schemas';
 
-export class WorkflowRepositoryImpl 
-  extends BaseRepository<WorkflowEntity> 
-  implements WorkflowRepository {
-
+export class WorkflowRepositoryImpl
+  extends BaseRepository<WorkflowEntity>
+  implements WorkflowRepository
+{
   constructor() {
-    super(
-      'workflows',
-      'workflow_id',
-      createWorkflowSchema,
-      updateWorkflowSchema
-    );
+    super('workflows', 'workflow_id', createWorkflowSchema, updateWorkflowSchema);
   }
 
   /**
@@ -35,12 +26,15 @@ export class WorkflowRepositoryImpl
    */
   async findByEventTrigger(eventTrigger: string): Promise<WorkflowEntity[]>;
   async findByEventTrigger(orgId: UUID, eventTrigger: string): Promise<WorkflowEntity[]>;
-  async findByEventTrigger(eventTriggerOrOrgId: string | UUID, eventTrigger?: string): Promise<WorkflowEntity[]> {
+  async findByEventTrigger(
+    eventTriggerOrOrgId: string | UUID,
+    eventTrigger?: string
+  ): Promise<WorkflowEntity[]> {
     if (eventTrigger) {
       // Two parameter version: findByEventTrigger(orgId, eventTrigger)
-      return this.findAll({ 
+      return this.findAll({
         org_id: eventTriggerOrOrgId,
-        event_trigger: eventTrigger 
+        event_trigger: eventTrigger,
       });
     } else {
       // One parameter version: findByEventTrigger(eventTrigger)
@@ -52,10 +46,10 @@ export class WorkflowRepositoryImpl
    * Find active workflows by trigger for organization
    */
   async findActiveByTrigger(orgId: UUID, eventTrigger: string): Promise<WorkflowEntity[]> {
-    return this.findAll({ 
+    return this.findAll({
       org_id: orgId,
       event_trigger: eventTrigger,
-      is_active: true 
+      is_active: true,
     });
   }
 
@@ -126,37 +120,43 @@ export class WorkflowRepositoryImpl
 
       // Clone nodes
       for (const node of workflowData.nodes) {
-        await client.query(`
+        await client.query(
+          `
           INSERT INTO workflow_nodes (
             workflow_id, type, name, description, params, 
             retry_policy, timeout_ms, position
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        `, [
-          newWorkflow.workflow_id,
-          node.type,
-          node.name,
-          node.description,
-          node.params,
-          node.retry_policy,
-          node.timeout_ms,
-          node.position,
-        ]);
+        `,
+          [
+            newWorkflow.workflow_id,
+            node.type,
+            node.name,
+            node.description,
+            node.params,
+            node.retry_policy,
+            node.timeout_ms,
+            node.position,
+          ]
+        );
       }
 
       // Clone edges
       for (const edge of workflowData.edges) {
-        await client.query(`
+        await client.query(
+          `
           INSERT INTO workflow_edges (
             workflow_id, from_node_id, to_node_id, 
             condition_expr, label
           ) VALUES ($1, $2, $3, $4, $5)
-        `, [
-          newWorkflow.workflow_id,
-          edge.from_node_id,
-          edge.to_node_id,
-          edge.condition_expr,
-          edge.label,
-        ]);
+        `,
+          [
+            newWorkflow.workflow_id,
+            edge.from_node_id,
+            edge.to_node_id,
+            edge.condition_expr,
+            edge.label,
+          ]
+        );
       }
 
       return newWorkflow;
@@ -166,7 +166,10 @@ export class WorkflowRepositoryImpl
   /**
    * Get workflow execution statistics
    */
-  async getExecutionStats(workflowId: UUID, days: number = 30): Promise<{
+  async getExecutionStats(
+    workflowId: UUID,
+    days: number = 30
+  ): Promise<{
     totalRuns: number;
     successfulRuns: number;
     failedRuns: number;
@@ -184,7 +187,7 @@ export class WorkflowRepositoryImpl
       WHERE workflow_id = $1 
         AND started_at >= NOW() - INTERVAL '${days} days'
     `;
-    
+
     const result = await this.pool.query(query, [workflowId]);
     const row = result.rows[0];
 
@@ -218,9 +221,9 @@ export class WorkflowRepositoryImpl
       ORDER BY name
       LIMIT $3
     `;
-    
+
     const searchPattern = `%${searchTerm}%`;
     const result = await this.pool.query(query, [orgId, searchPattern, limit]);
-    return result.rows.map(row => this.mapRowToEntity(row));
+    return result.rows.map((row) => this.mapRowToEntity(row));
   }
 }

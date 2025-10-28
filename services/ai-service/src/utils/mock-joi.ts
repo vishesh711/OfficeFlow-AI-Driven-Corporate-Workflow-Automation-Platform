@@ -53,7 +53,7 @@ export class MockJoi {
       },
       optional: () => createObjectSchema(),
       required: () => createObjectSchema(),
-      default: (value: any) => createObjectSchema()
+      default: (value: any) => createObjectSchema(),
     });
     return createObjectSchema();
   }
@@ -64,7 +64,7 @@ export class MockJoi {
       required: () => createStringSchema(),
       optional: () => createStringSchema(),
       valid: (...values: string[]) => createStringSchema(),
-      default: (defaultValue: string) => createStringSchema()
+      default: (defaultValue: string) => createStringSchema(),
     });
     return createStringSchema();
   }
@@ -77,7 +77,7 @@ export class MockJoi {
       max: (max: number) => createNumberSchema(),
       optional: () => createNumberSchema(),
       required: () => createNumberSchema(),
-      default: (value: any) => createNumberSchema()
+      default: (value: any) => createNumberSchema(),
     });
     return createNumberSchema();
   }

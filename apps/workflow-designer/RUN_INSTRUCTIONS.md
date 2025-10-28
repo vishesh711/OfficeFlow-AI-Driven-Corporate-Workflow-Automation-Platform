@@ -5,6 +5,7 @@ The workflow designer is fully implemented but has dependency installation issue
 ## Method 1: Use a Different Package Manager
 
 ### Install pnpm (recommended for workspaces)
+
 ```bash
 npm install -g pnpm
 cd apps/workflow-designer
@@ -13,6 +14,7 @@ pnpm run dev
 ```
 
 ### Or use yarn with workspace support
+
 ```bash
 npm install -g yarn
 cd apps/workflow-designer
@@ -23,12 +25,14 @@ yarn dev
 ## Method 2: Temporary Workaround
 
 1. **Copy the workflow-designer folder outside the monorepo:**
+
    ```bash
    cp -r apps/workflow-designer /tmp/workflow-designer-standalone
    cd /tmp/workflow-designer-standalone
    ```
 
 2. **Use the simplified package.json:**
+
    ```bash
    rm package.json.backup
    npm install react@^18.2.0 react-dom@^18.2.0
@@ -40,6 +44,7 @@ yarn dev
    ```
 
 3. **Install dev dependencies:**
+
    ```bash
    npm install -D @types/react@^18.2.66 @types/react-dom@^18.2.22
    npm install -D @vitejs/plugin-react@^4.2.1 vite@^5.2.0
@@ -80,6 +85,7 @@ CMD ["npm", "run", "dev"]
 ```
 
 Then run:
+
 ```bash
 cd apps/workflow-designer
 docker build -t workflow-designer .

@@ -25,8 +25,20 @@ export interface DocumentServiceConfig {
 
 export const getDocumentConfig = (): DocumentServiceConfig => {
   const allowedTypes = process.env.ALLOWED_FILE_TYPES?.split(',') || [
-    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 
-    'txt', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'zip'
+    'pdf',
+    'doc',
+    'docx',
+    'xls',
+    'xlsx',
+    'ppt',
+    'pptx',
+    'txt',
+    'csv',
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'zip',
   ];
 
   const config: DocumentServiceConfig = {

@@ -45,15 +45,15 @@ export class CredentialManager {
         tokens: this.encryptTokens(tokens),
         metadata,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       await this.storage.store(credentials);
-      
+
       this.logger.info('Credentials stored successfully', {
         organizationId,
         provider,
-        credentialId: credentials.id
+        credentialId: credentials.id,
       });
 
       return credentials.id;
@@ -61,7 +61,7 @@ export class CredentialManager {
       this.logger.error('Failed to store credentials', {
         organizationId,
         provider,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -73,40 +73,37 @@ export class CredentialManager {
   ): Promise<OAuth2Credentials | null> {
     try {
       const credentials = await this.storage.retrieve(organizationId, provider);
-      
+
       if (!credentials) {
         return null;
       }
 
       // Decrypt tokens before returning
       credentials.tokens = this.decryptTokens(credentials.tokens);
-      
+
       return credentials;
     } catch (error) {
       this.logger.error('Failed to retrieve credentials', {
         organizationId,
         provider,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
   }
 
-  async updateTokens(
-    credentialId: string,
-    tokens: OAuth2Token
-  ): Promise<void> {
+  async updateTokens(credentialId: string, tokens: OAuth2Token): Promise<void> {
     try {
       const encryptedTokens = this.encryptTokens(tokens);
       await this.storage.update(credentialId, encryptedTokens);
-      
+
       this.logger.info('Tokens updated successfully', {
-        credentialId
+        credentialId,
       });
     } catch (error) {
       this.logger.error('Failed to update tokens', {
         credentialId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -115,14 +112,14 @@ export class CredentialManager {
   async deleteCredentials(credentialId: string): Promise<void> {
     try {
       await this.storage.delete(credentialId);
-      
+
       this.logger.info('Credentials deleted successfully', {
-        credentialId
+        credentialId,
       });
     } catch (error) {
       this.logger.error('Failed to delete credentials', {
         credentialId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -131,16 +128,16 @@ export class CredentialManager {
   async listCredentials(organizationId: string): Promise<OAuth2Credentials[]> {
     try {
       const credentialsList = await this.storage.list(organizationId);
-      
+
       // Decrypt tokens for all credentials
-      return credentialsList.map(cred => ({
+      return credentialsList.map((cred) => ({
         ...cred,
-        tokens: this.decryptTokens(cred.tokens)
+        tokens: this.decryptTokens(cred.tokens),
       }));
     } catch (error) {
       this.logger.error('Failed to list credentials', {
         organizationId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -170,7 +167,7 @@ export class CredentialManager {
       if (!tokens.refreshToken) {
         this.logger.warn('Token expiring but no refresh token available', {
           organizationId,
-          provider
+          provider,
         });
         return tokens;
       }
@@ -179,7 +176,7 @@ export class CredentialManager {
       // this would call the OAuth2 provider to refresh the tokens
       this.logger.info('Token refresh would be performed here', {
         organizationId,
-        provider
+        provider,
       });
 
       return tokens;
@@ -187,7 +184,7 @@ export class CredentialManager {
       this.logger.error('Failed to refresh tokens', {
         organizationId,
         provider,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -197,7 +194,7 @@ export class CredentialManager {
     return {
       ...tokens,
       accessToken: this.encrypt(tokens.accessToken),
-      refreshToken: tokens.refreshToken ? this.encrypt(tokens.refreshToken) : undefined
+      refreshToken: tokens.refreshToken ? this.encrypt(tokens.refreshToken) : undefined,
     };
   }
 
@@ -205,7 +202,7 @@ export class CredentialManager {
     return {
       ...tokens,
       accessToken: this.decrypt(tokens.accessToken),
-      refreshToken: tokens.refreshToken ? this.decrypt(tokens.refreshToken) : undefined
+      refreshToken: tokens.refreshToken ? this.decrypt(tokens.refreshToken) : undefined,
     };
   }
 

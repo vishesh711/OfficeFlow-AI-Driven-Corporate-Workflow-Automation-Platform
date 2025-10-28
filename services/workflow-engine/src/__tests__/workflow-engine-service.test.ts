@@ -148,9 +148,7 @@ describe('WorkflowEngineService', () => {
 
       // This would fail in unit test without mocking the full orchestrator
       // In integration tests, you'd have the full stack
-      await expect(
-        workflowEngine.processLifecycleEvent(lifecycleEvent)
-      ).rejects.toThrow();
+      await expect(workflowEngine.processLifecycleEvent(lifecycleEvent)).rejects.toThrow();
     });
 
     it('should handle workflow execution with context', async () => {
@@ -169,9 +167,7 @@ describe('WorkflowEngineService', () => {
       };
 
       // This would fail in unit test without mocking the full orchestrator
-      await expect(
-        workflowEngine.executeWorkflow(workflowId, context)
-      ).rejects.toThrow();
+      await expect(workflowEngine.executeWorkflow(workflowId, context)).rejects.toThrow();
     });
   });
 
@@ -179,42 +175,36 @@ describe('WorkflowEngineService', () => {
     const runId = uuidv4();
 
     it('should pause workflow execution', async () => {
-      await expect(
-        workflowEngine.pauseWorkflow(runId)
-      ).rejects.toThrow();
+      await expect(workflowEngine.pauseWorkflow(runId)).rejects.toThrow();
     });
 
     it('should resume workflow execution', async () => {
-      await expect(
-        workflowEngine.resumeWorkflow(runId)
-      ).rejects.toThrow();
+      await expect(workflowEngine.resumeWorkflow(runId)).rejects.toThrow();
     });
 
     it('should cancel workflow execution', async () => {
-      await expect(
-        workflowEngine.cancelWorkflow(runId)
-      ).rejects.toThrow();
+      await expect(workflowEngine.cancelWorkflow(runId)).rejects.toThrow();
     });
   });
 
   describe('Workflow Statistics and Health', () => {
     it('should get workflow statistics', async () => {
       const stats = await workflowEngine.getWorkflowStatistics('org-123');
-      
+
       expect(stats).toHaveProperty('totalWorkflows');
       expect(stats).toHaveProperty('activeWorkflows');
       expect(stats).toHaveProperty('completedWorkflows');
       expect(stats).toHaveProperty('failedWorkflows');
       expect(stats).toHaveProperty('nodeStatusBreakdown');
       expect(stats).toHaveProperty('retryStatistics');
-      
+
       expect(typeof stats.totalWorkflows).toBe('number');
       expect(typeof stats.activeWorkflows).toBe('number');
     });
 
     it('should handle statistics errors gracefully', async () => {
       const stats = await workflowEngine.getWorkflowStatistics();
-      
+
       // Should return default values on error
       expect(stats.totalWorkflows).toBe(0);
       expect(stats.activeWorkflows).toBe(0);
@@ -223,7 +213,7 @@ describe('WorkflowEngineService', () => {
 
     it('should perform maintenance operations', async () => {
       const result = await workflowEngine.performMaintenance();
-      
+
       expect(result).toHaveProperty('cleanedRetries');
       expect(result).toHaveProperty('errors');
       expect(Array.isArray(result.errors)).toBe(true);
@@ -257,40 +247,36 @@ describe('ExecutionContextManager', () => {
         metricsPrefix: 'test',
       },
     };
-    
+
     stateManager = new RedisStateManager(mockConfig);
     contextManager = new ExecutionContextManager(stateManager);
   });
 
   describe('Context Creation and Management', () => {
     it('should create initial execution context', () => {
-      const context = contextManager.createInitialContext(
-        'org-123',
-        'emp-456',
-        {
-          type: 'employee.onboard',
-          payload: { name: 'John Doe' },
-          timestamp: new Date(),
-        }
-      );
+      const context = contextManager.createInitialContext('org-123', 'emp-456', {
+        type: 'employee.onboard',
+        payload: { name: 'John Doe' },
+        timestamp: new Date(),
+      });
 
       expect(context).toHaveProperty('organizationId', 'org-123');
       expect(context).toHaveProperty('employeeId', 'emp-456');
       expect(context).toHaveProperty('variables');
       expect(context).toHaveProperty('secrets');
       expect(context).toHaveProperty('correlationId');
-      
+
       expect(context.variables).toHaveProperty('system.organizationId', 'org-123');
       expect(context.variables).toHaveProperty('system.employeeId', 'emp-456');
       expect(context.variables).toHaveProperty('event.type', 'employee.onboard');
     });
 
     it('should update context with node output', () => {
-      const initialContext = contextManager.createInitialContext(
-        'org-123',
-        'emp-456',
-        { type: 'test', payload: {}, timestamp: new Date() }
-      );
+      const initialContext = contextManager.createInitialContext('org-123', 'emp-456', {
+        type: 'test',
+        payload: {},
+        timestamp: new Date(),
+      });
 
       const updatedContext = contextManager.updateContextWithNodeOutput(
         initialContext,
@@ -306,11 +292,11 @@ describe('ExecutionContextManager', () => {
     });
 
     it('should serialize and deserialize context', () => {
-      const originalContext = contextManager.createInitialContext(
-        'org-123',
-        'emp-456',
-        { type: 'test', payload: { key: 'value' }, timestamp: new Date() }
-      );
+      const originalContext = contextManager.createInitialContext('org-123', 'emp-456', {
+        type: 'test',
+        payload: { key: 'value' },
+        timestamp: new Date(),
+      });
 
       const serialized = contextManager.serializeContext(originalContext);
       expect(typeof serialized).toBe('string');
@@ -348,7 +334,7 @@ describe('RetryManager', () => {
         metricsPrefix: 'test',
       },
     };
-    
+
     stateManager = new RedisStateManager(mockConfig);
     retryManager = new RetryManager(stateManager);
   });
@@ -396,7 +382,7 @@ describe('RetryManager', () => {
 
       const delay1 = retryManager.calculateRetryDelay(policy, 1);
       const delay2 = retryManager.calculateRetryDelay(policy, 1);
-      
+
       // With jitter, delays should be different
       expect(delay1).not.toBe(delay2);
       expect(delay1).toBeGreaterThan(0);
@@ -421,11 +407,11 @@ describe('RetryManager', () => {
 
       // Should retry for retryable error within max attempts
       expect(retryManager.shouldRetry(context, new Error('ETIMEDOUT'))).toBe(true);
-      
+
       // Should not retry when max attempts exceeded
       context.attempt = 4;
       expect(retryManager.shouldRetry(context, new Error('ETIMEDOUT'))).toBe(false);
-      
+
       // Should not retry for non-retryable error
       context.attempt = 1;
       expect(retryManager.shouldRetry(context, new Error('VALIDATION_ERROR'))).toBe(false);
@@ -438,10 +424,10 @@ describe('RetryManager', () => {
 
       expect(identityPolicy.maxRetries).toBe(5);
       expect(identityPolicy.maxBackoffMs).toBe(60000);
-      
+
       expect(emailPolicy.maxRetries).toBe(3);
       expect(emailPolicy.maxBackoffMs).toBe(30000);
-      
+
       expect(aiPolicy.maxRetries).toBe(2);
       expect(aiPolicy.maxBackoffMs).toBe(120000);
     });
@@ -476,19 +462,19 @@ describe('ErrorHandler Integration', () => {
         metricsPrefix: 'test',
       },
     };
-    
+
     stateManager = new RedisStateManager(mockConfig);
-    
+
     mockNodeDispatcher = {
       dispatchNode: jest.fn(),
       cancelNode: jest.fn(),
     };
-    
+
     mockContextManager = {
       createInitialContext: jest.fn(),
       updateContextWithNodeOutput: jest.fn(),
     };
-    
+
     mockProducer = {
       send: jest.fn(),
     };
@@ -542,10 +528,7 @@ describe('ErrorHandler Integration', () => {
         position: { x: 0, y: 0 },
       };
 
-      const result = await errorHandler.handleNodeExecutionError(
-        nodeExecutionError,
-        mockNode
-      );
+      const result = await errorHandler.handleNodeExecutionError(nodeExecutionError, mockNode);
 
       expect(result.shouldRetry).toBe(true);
       expect(result.retryAt).toBeInstanceOf(Date);
@@ -581,10 +564,7 @@ describe('ErrorHandler Integration', () => {
         position: { x: 0, y: 0 },
       };
 
-      const result = await errorHandler.handleNodeExecutionError(
-        nodeExecutionError,
-        mockNode
-      );
+      const result = await errorHandler.handleNodeExecutionError(nodeExecutionError, mockNode);
 
       expect(result.shouldRetry).toBe(false);
       expect(result.shouldFailWorkflow).toBe(true);
@@ -592,7 +572,7 @@ describe('ErrorHandler Integration', () => {
 
     it('should get error statistics', async () => {
       const stats = await errorHandler.getErrorStatistics('org-123');
-      
+
       expect(stats).toHaveProperty('errorStats');
       expect(stats).toHaveProperty('retryStats');
       expect(stats).toHaveProperty('circuitBreakerStats');
@@ -601,7 +581,7 @@ describe('ErrorHandler Integration', () => {
 
     it('should get health status', async () => {
       const health = await errorHandler.getHealthStatus();
-      
+
       expect(health).toHaveProperty('status');
       expect(health).toHaveProperty('components');
       expect(health).toHaveProperty('details');

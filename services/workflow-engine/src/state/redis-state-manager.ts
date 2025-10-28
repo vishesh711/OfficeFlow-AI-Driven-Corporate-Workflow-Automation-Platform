@@ -75,7 +75,9 @@ export class RedisStateManager {
       );
     } else if (config.redis.sentinel?.enabled) {
       this.redis = new Redis({
-        sentinels: config.redis.sentinel.sentinels || [{ host: config.redis.host, port: config.redis.port }],
+        sentinels: config.redis.sentinel.sentinels || [
+          { host: config.redis.host, port: config.redis.port },
+        ],
         name: config.redis.sentinel.name || 'mymaster',
         password: config.redis.password,
         db: config.redis.db || 0,
@@ -105,7 +107,7 @@ export class RedisStateManager {
     try {
       const key = this.getWorkflowStateKey(runId);
       const data = await this.redis.get(key);
-      
+
       if (!data) {
         return null;
       }
@@ -140,11 +142,7 @@ export class RedisStateManager {
         skippedNodes: Array.from(state.skippedNodes),
       };
 
-      await this.redis.setex(
-        key, 
-        this.ttl.workflowState, 
-        JSON.stringify(serializable)
-      );
+      await this.redis.setex(key, this.ttl.workflowState, JSON.stringify(serializable));
     } catch (error) {
       console.error('Failed to set workflow state:', error);
       throw error;
@@ -158,7 +156,7 @@ export class RedisStateManager {
     try {
       const key = this.getNodeStateKey(runId, nodeId);
       const data = await this.redis.get(key);
-      
+
       if (!data) {
         return null;
       }
@@ -182,12 +180,8 @@ export class RedisStateManager {
   async setNodeState(state: NodeState): Promise<void> {
     try {
       const key = this.getNodeStateKey(state.runId, state.nodeId);
-      
-      await this.redis.setex(
-        key, 
-        this.ttl.nodeState, 
-        JSON.stringify(state)
-      );
+
+      await this.redis.setex(key, this.ttl.nodeState, JSON.stringify(state));
     } catch (error) {
       console.error('Failed to set node state:', error);
       throw error;
@@ -202,18 +196,18 @@ export class RedisStateManager {
       // Use the full pattern including prefix
       const pattern = `${this.keyPrefix}node:${runId}:*`;
       const keys = await this.redis.keys(pattern);
-      
+
       if (keys.length === 0) {
         return [];
       }
 
       // Remove the prefix from keys for mget since ioredis adds it automatically
-      const keysWithoutPrefix = keys.map(key => key.replace(this.keyPrefix, ''));
+      const keysWithoutPrefix = keys.map((key) => key.replace(this.keyPrefix, ''));
       const values = await this.redis.mget(...keysWithoutPrefix);
-      
+
       return values
-        .filter(value => value !== null)
-        .map(value => {
+        .filter((value) => value !== null)
+        .map((value) => {
           const parsed = JSON.parse(value!);
           return {
             ...parsed,
@@ -234,14 +228,8 @@ export class RedisStateManager {
   async acquireLock(runId: UUID, lockHolder: string): Promise<boolean> {
     try {
       const key = this.getLockKey(runId);
-      const result = await this.redis.set(
-        key, 
-        lockHolder, 
-        'EX', 
-        this.ttl.lockTimeout, 
-        'NX'
-      );
-      
+      const result = await this.redis.set(key, lockHolder, 'EX', this.ttl.lockTimeout, 'NX');
+
       return result === 'OK';
     } catch (error) {
       console.error('Failed to acquire lock:', error);
@@ -255,7 +243,7 @@ export class RedisStateManager {
   async releaseLock(runId: UUID, lockHolder: string): Promise<boolean> {
     try {
       const key = this.getLockKey(runId);
-      
+
       // Use Lua script to ensure atomic check-and-delete
       const script = `
         if redis.call("GET", KEYS[1]) == ARGV[1] then
@@ -264,7 +252,7 @@ export class RedisStateManager {
           return 0
         end
       `;
-      
+
       const result = await this.redis.eval(script, 1, key, lockHolder);
       return result === 1;
     } catch (error) {
@@ -281,7 +269,7 @@ export class RedisStateManager {
       const key = this.getRetryScheduleKey();
       const member = `${runId}:${nodeId}`;
       const score = retryAt.getTime();
-      
+
       await this.redis.zadd(key, score, member);
     } catch (error) {
       console.error('Failed to schedule retry:', error);
@@ -296,17 +284,10 @@ export class RedisStateManager {
     try {
       const key = this.getRetryScheduleKey();
       const now = Date.now();
-      
-      const results = await this.redis.zrangebyscore(
-        key, 
-        '-inf', 
-        now, 
-        'LIMIT', 
-        0, 
-        limit
-      );
-      
-      return results.map(result => {
+
+      const results = await this.redis.zrangebyscore(key, '-inf', now, 'LIMIT', 0, limit);
+
+      return results.map((result) => {
         const [runId, nodeId] = result.split(':');
         return { runId, nodeId };
       });
@@ -323,7 +304,7 @@ export class RedisStateManager {
     try {
       const key = this.getRetryScheduleKey();
       const member = `${runId}:${nodeId}`;
-      
+
       await this.redis.zrem(key, member);
     } catch (error) {
       console.error('Failed to remove from retry schedule:', error);
@@ -338,10 +319,10 @@ export class RedisStateManager {
       const workflowKey = this.getWorkflowStateKey(runId);
       const nodePattern = this.getNodeStateKey(runId, '*');
       const lockKey = this.getLockKey(runId);
-      
+
       // Get all node state keys
       const nodeKeys = await this.redis.keys(nodePattern);
-      
+
       // Delete all keys
       const keysToDelete = [workflowKey, lockKey, ...nodeKeys];
       if (keysToDelete.length > 0) {
@@ -366,10 +347,10 @@ export class RedisStateManager {
       // In production, you'd want more sophisticated metrics tracking
       const activePattern = `${this.keyPrefix}workflow:*`;
       const retryKey = this.getRetryScheduleKey();
-      
+
       const activeKeys = await this.redis.keys(activePattern);
       const scheduledRetries = await this.redis.zcard(retryKey);
-      
+
       return {
         activeWorkflows: activeKeys.length,
         queuedNodes: 0, // Would need separate tracking
@@ -392,7 +373,7 @@ export class RedisStateManager {
    */
   private setupConnectionHandlers(): void {
     const isTest = process.env.NODE_ENV === 'test';
-    
+
     this.redis.on('connect', () => {
       if (!isTest) console.log('Redis connection established');
     });
@@ -422,12 +403,12 @@ export class RedisStateManager {
    * Acquire distributed lock with automatic renewal
    */
   async acquireLockWithRenewal(
-    runId: UUID, 
+    runId: UUID,
     lockHolder: string,
     renewalIntervalMs: number = 60000
   ): Promise<{ acquired: boolean; renewalTimer?: NodeJS.Timeout }> {
     const acquired = await this.acquireLock(runId, lockHolder);
-    
+
     if (!acquired) {
       return { acquired: false };
     }
@@ -437,7 +418,7 @@ export class RedisStateManager {
       try {
         const key = this.getLockKey(runId);
         const currentHolder = await this.redis.get(key);
-        
+
         if (currentHolder === lockHolder) {
           await this.redis.expire(key, this.ttl.lockTimeout);
         } else {
@@ -460,8 +441,8 @@ export class RedisStateManager {
     if (states.length === 0) return;
 
     const pipeline = this.redis.pipeline();
-    
-    states.forEach(state => {
+
+    states.forEach((state) => {
       const key = this.getNodeStateKey(state.runId, state.nodeId);
       pipeline.setex(key, this.ttl.nodeState, JSON.stringify(state));
     });
@@ -538,11 +519,11 @@ export class RedisStateManager {
     try {
       const key = this.getRetryScheduleKey();
       const now = Date.now();
-      
+
       // Remove entries older than TTL
-      const expiredBefore = now - (this.ttl.retrySchedule * 1000);
+      const expiredBefore = now - this.ttl.retrySchedule * 1000;
       const removed = await this.redis.zremrangebyscore(key, '-inf', expiredBefore);
-      
+
       return removed;
     } catch (error) {
       console.error('Failed to cleanup expired retries:', error);
@@ -567,10 +548,10 @@ export class RedisStateManager {
       };
 
       // Count active workflows
-      const workflowPattern = organizationId 
+      const workflowPattern = organizationId
         ? `${this.keyPrefix}workflow:*:${organizationId}:*`
         : `${this.keyPrefix}workflow:*`;
-      
+
       const workflowKeys = await this.redis.keys(workflowPattern);
       stats.totalActiveWorkflows = workflowKeys.length;
 
@@ -582,15 +563,15 @@ export class RedisStateManager {
       const nodePattern = organizationId
         ? `${this.keyPrefix}node:*:${organizationId}:*`
         : `${this.keyPrefix}node:*`;
-      
+
       const nodeKeys = await this.redis.keys(nodePattern);
-      
+
       if (nodeKeys.length > 0) {
         // Remove prefix from keys for mget
-        const keysWithoutPrefix = nodeKeys.map(key => key.replace(this.keyPrefix, ''));
+        const keysWithoutPrefix = nodeKeys.map((key) => key.replace(this.keyPrefix, ''));
         const nodeStates = await this.redis.mget(...keysWithoutPrefix);
-        
-        nodeStates.forEach(stateJson => {
+
+        nodeStates.forEach((stateJson) => {
           if (stateJson) {
             try {
               const state = JSON.parse(stateJson);
@@ -625,11 +606,11 @@ export class RedisStateManager {
       return await operation();
     } catch (error) {
       console.error('Redis operation failed:', error);
-      
+
       if (fallback) {
         return fallback();
       }
-      
+
       throw error;
     }
   }
@@ -670,7 +651,7 @@ export class RedisStateManager {
     try {
       const key = `circuit_breaker:${serviceName}`;
       const data = await this.redis.hgetall(key);
-      
+
       if (Object.keys(data).length === 0) {
         return null;
       }
@@ -685,7 +666,10 @@ export class RedisStateManager {
       };
     } catch (error) {
       console.error(`Failed to get circuit breaker stats for ${serviceName}:`, error);
-      throw new RedisError('getCircuitBreakerStats', error instanceof Error ? error.message : String(error));
+      throw new RedisError(
+        'getCircuitBreakerStats',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 
@@ -693,16 +677,19 @@ export class RedisStateManager {
     try {
       const key = `circuit_breaker:${serviceName}`;
       const pipeline = this.redis.pipeline();
-      
+
       pipeline.hincrby(key, 'successCount', 1);
       pipeline.hincrby(key, 'totalRequests', 1);
       pipeline.hset(key, 'lastSuccessTime', timestamp);
       pipeline.expire(key, 3600); // 1 hour TTL
-      
+
       await pipeline.exec();
     } catch (error) {
       console.error(`Failed to record circuit breaker success for ${serviceName}:`, error);
-      throw new RedisError('recordCircuitBreakerSuccess', error instanceof Error ? error.message : String(error));
+      throw new RedisError(
+        'recordCircuitBreakerSuccess',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 
@@ -710,24 +697,31 @@ export class RedisStateManager {
     try {
       const key = `circuit_breaker:${serviceName}`;
       const pipeline = this.redis.pipeline();
-      
+
       pipeline.hincrby(key, 'failureCount', 1);
       pipeline.hincrby(key, 'totalRequests', 1);
       pipeline.hset(key, 'lastFailureTime', timestamp);
       pipeline.expire(key, 3600); // 1 hour TTL
-      
+
       await pipeline.exec();
     } catch (error) {
       console.error(`Failed to record circuit breaker failure for ${serviceName}:`, error);
-      throw new RedisError('recordCircuitBreakerFailure', error instanceof Error ? error.message : String(error));
+      throw new RedisError(
+        'recordCircuitBreakerFailure',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 
-  async setCircuitBreakerState(serviceName: string, state: string, nextRetryTime?: number): Promise<void> {
+  async setCircuitBreakerState(
+    serviceName: string,
+    state: string,
+    nextRetryTime?: number
+  ): Promise<void> {
     try {
       const key = `circuit_breaker:${serviceName}`;
       const pipeline = this.redis.pipeline();
-      
+
       pipeline.hset(key, 'state', state);
       if (nextRetryTime) {
         pipeline.hset(key, 'nextRetryTime', nextRetryTime);
@@ -735,11 +729,14 @@ export class RedisStateManager {
         pipeline.hdel(key, 'nextRetryTime');
       }
       pipeline.expire(key, 3600); // 1 hour TTL
-      
+
       await pipeline.exec();
     } catch (error) {
       console.error(`Failed to set circuit breaker state for ${serviceName}:`, error);
-      throw new RedisError('setCircuitBreakerState', error instanceof Error ? error.message : String(error));
+      throw new RedisError(
+        'setCircuitBreakerState',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 
@@ -749,7 +746,10 @@ export class RedisStateManager {
       await this.redis.del(key);
     } catch (error) {
       console.error(`Failed to reset circuit breaker stats for ${serviceName}:`, error);
-      throw new RedisError('resetCircuitBreakerStats', error instanceof Error ? error.message : String(error));
+      throw new RedisError(
+        'resetCircuitBreakerStats',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 
@@ -757,15 +757,18 @@ export class RedisStateManager {
     try {
       const key = `circuit_breaker:${serviceName}`;
       const pipeline = this.redis.pipeline();
-      
+
       pipeline.hset(key, 'failureCount', 0);
       pipeline.hdel(key, 'lastFailureTime');
       pipeline.expire(key, 3600);
-      
+
       await pipeline.exec();
     } catch (error) {
       console.error(`Failed to reset circuit breaker failures for ${serviceName}:`, error);
-      throw new RedisError('resetCircuitBreakerFailures', error instanceof Error ? error.message : String(error));
+      throw new RedisError(
+        'resetCircuitBreakerFailures',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 
@@ -775,14 +778,17 @@ export class RedisStateManager {
   async storeErrorEntry(key: string, entry: any, ttl: number): Promise<void> {
     try {
       await this.redis.setex(key, ttl, JSON.stringify(entry));
-      
+
       // Also add to sorted set for time-based queries
       const scoreKey = `error_log:by_time`;
       await this.redis.zadd(scoreKey, entry.timestamp.getTime(), key);
       await this.redis.expire(scoreKey, ttl);
     } catch (error) {
       console.error('Failed to store error entry:', error);
-      throw new RedisError('storeErrorEntry', error instanceof Error ? error.message : String(error));
+      throw new RedisError(
+        'storeErrorEntry',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 
@@ -790,7 +796,7 @@ export class RedisStateManager {
     try {
       const key = `alert:${alert.id}`;
       await this.redis.setex(key, 7 * 24 * 60 * 60, JSON.stringify(alert)); // 7 days TTL
-      
+
       // Add to sorted set for time-based queries
       const scoreKey = `alerts:by_time`;
       await this.redis.zadd(scoreKey, alert.timestamp.getTime(), key);
@@ -805,15 +811,13 @@ export class RedisStateManager {
     try {
       const scoreKey = `alerts:by_time`;
       const alertKeys = await this.redis.zrevrange(scoreKey, 0, limit - 1);
-      
+
       if (alertKeys.length === 0) {
         return [];
       }
 
       const alerts = await this.redis.mget(...alertKeys);
-      return alerts
-        .filter(alert => alert !== null)
-        .map(alert => JSON.parse(alert!));
+      return alerts.filter((alert) => alert !== null).map((alert) => JSON.parse(alert!));
     } catch (error) {
       console.error('Failed to get recent alerts:', error);
       return [];
@@ -824,18 +828,21 @@ export class RedisStateManager {
     try {
       const key = `alert:${alertId}`;
       const alertData = await this.redis.get(key);
-      
+
       if (alertData) {
         const alert = JSON.parse(alertData);
         alert.acknowledged = true;
         alert.acknowledgedBy = acknowledgedBy;
         alert.acknowledgedAt = new Date().toISOString();
-        
+
         await this.redis.setex(key, 7 * 24 * 60 * 60, JSON.stringify(alert));
       }
     } catch (error) {
       console.error(`Failed to acknowledge alert ${alertId}:`, error);
-      throw new RedisError('acknowledgeAlert', error instanceof Error ? error.message : String(error));
+      throw new RedisError(
+        'acknowledgeAlert',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 

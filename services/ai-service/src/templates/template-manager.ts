@@ -16,11 +16,11 @@ export class TemplateManager {
 
   registerTemplate(template: PromptTemplate): void {
     this.templates.set(template.id, template);
-    
+
     try {
       const compiled = MockHandlebars.compile(template.template);
       this.compiledTemplates.set(template.id, compiled);
-      
+
       this.logger.info('Template registered successfully', {
         templateId: template.id,
         name: template.name,
@@ -41,9 +41,7 @@ export class TemplateManager {
 
   listTemplates(category?: string): PromptTemplate[] {
     const templates = Array.from(this.templates.values());
-    return category 
-      ? templates.filter(t => t.category === category)
-      : templates;
+    return category ? templates.filter((t) => t.category === category) : templates;
   }
 
   renderTemplate(templateId: string, data: Record<string, any>): string {
@@ -65,7 +63,7 @@ export class TemplateManager {
 
     try {
       const rendered = compiled(data);
-      
+
       this.logger.debug('Template rendered successfully', {
         templateId,
         dataKeys: Object.keys(data),
@@ -102,12 +100,18 @@ export class TemplateManager {
 
       // Type validation
       if (!this.validateVariableType(value, variable.type)) {
-        errors.push(`Variable '${variable.name}' has invalid type. Expected ${variable.type}, got ${typeof value}`);
+        errors.push(
+          `Variable '${variable.name}' has invalid type. Expected ${variable.type}, got ${typeof value}`
+        );
       }
 
       // Additional validation rules
       if (variable.validation) {
-        const validationErrors = this.validateVariableConstraints(variable.name, value, variable.validation);
+        const validationErrors = this.validateVariableConstraints(
+          variable.name,
+          value,
+          variable.validation
+        );
         errors.push(...validationErrors);
       }
     }
@@ -136,8 +140,8 @@ export class TemplateManager {
   }
 
   private validateVariableConstraints(
-    name: string, 
-    value: any, 
+    name: string,
+    value: any,
     validation: TemplateVariable['validation']
   ): string[] {
     const errors: string[] = [];
@@ -191,10 +195,10 @@ export class TemplateManager {
       if (format === 'short') {
         return d.toLocaleDateString();
       }
-      return d.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      return d.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       });
     });
 
@@ -202,9 +206,12 @@ export class TemplateManager {
       return Array.isArray(array) ? array.join(separator) : '';
     });
 
-    MockHandlebars.registerHelper('ifEquals', function(this: any, arg1: any, arg2: any, options: any) {
-      return (arg1 === arg2) ? options.fn(this) : options.inverse(this);
-    });
+    MockHandlebars.registerHelper(
+      'ifEquals',
+      function (this: any, arg1: any, arg2: any, options: any) {
+        return arg1 === arg2 ? options.fn(this) : options.inverse(this);
+      }
+    );
   }
 
   private initializeDefaultTemplates(): void {
@@ -416,6 +423,6 @@ Focus on accuracy and provide actionable insights.`,
       roleContentTemplate,
       documentSummaryTemplate,
       sentimentAnalysisTemplate,
-    ].forEach(template => this.registerTemplate(template));
+    ].forEach((template) => this.registerTemplate(template));
   }
 }

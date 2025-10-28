@@ -5,6 +5,7 @@ The Webhook Gateway service is a critical component of the OfficeFlow platform t
 ## Features
 
 ### Webhook Processing
+
 - **Multi-source Support**: Handles webhooks from Workday, SuccessFactors, BambooHR, and generic sources
 - **Signature Verification**: Validates webhook signatures using HMAC SHA256/SHA1
 - **Event Transformation**: Normalizes different HRMS event formats into standard lifecycle events
@@ -12,6 +13,7 @@ The Webhook Gateway service is a critical component of the OfficeFlow platform t
 - **Retry Logic**: Implements exponential backoff for failed webhook processing
 
 ### HRMS Adapters
+
 - **Workday Integration**: Polls Workday API for employee lifecycle events
 - **SuccessFactors Integration**: Connects to SAP SuccessFactors OData API
 - **BambooHR Integration**: Polls BambooHR API for employee changes
@@ -19,6 +21,7 @@ The Webhook Gateway service is a critical component of the OfficeFlow platform t
 - **Health Monitoring**: Continuous health checks for all adapters
 
 ### Event Streaming
+
 - **Kafka Integration**: Publishes normalized events to Kafka topics
 - **Event Correlation**: Tracks events with correlation IDs for distributed tracing
 - **Topic Partitioning**: Partitions events by organization for scalability
@@ -55,16 +58,19 @@ The Webhook Gateway service is a critical component of the OfficeFlow platform t
 ## API Endpoints
 
 ### Webhook Endpoints
+
 - `POST /api/webhook/:source/:organizationId` - Receive webhooks from HRMS systems
 - `GET /api/health` - Health check endpoint
 - `POST /api/test/webhook` - Test webhook endpoint (development only)
 
 ### Configuration Endpoints
+
 - `POST /api/config/webhook` - Register webhook configuration
 - `GET /api/config/webhook` - Get webhook configurations
 - `DELETE /api/config/webhook/:organizationId/:source` - Remove webhook configuration
 
 ### Admin Endpoints
+
 - `GET /api/admin/adapters/health` - Get adapter health status
 - `POST /api/admin/adapters/poll` - Manually trigger polling for all adapters
 - `POST /api/admin/adapters/:source/poll` - Manually trigger polling for specific adapter
@@ -176,6 +182,7 @@ curl -X POST http://localhost:3010/api/webhook/workday/org-123 \
 The service transforms HRMS-specific events into normalized lifecycle events:
 
 ### Input (Workday)
+
 ```json
 {
   "eventType": "worker.hire",
@@ -189,6 +196,7 @@ The service transforms HRMS-specific events into normalized lifecycle events:
 ```
 
 ### Output (Normalized)
+
 ```json
 {
   "type": "employee.onboard",
@@ -226,6 +234,7 @@ curl http://localhost:3010/health
 ```
 
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -253,6 +262,7 @@ Response:
 ### Metrics
 
 The service exposes metrics for monitoring:
+
 - Webhook processing rate
 - Event transformation success/failure rate
 - Adapter polling frequency
@@ -263,6 +273,7 @@ The service exposes metrics for monitoring:
 ### Signature Verification
 
 All webhooks are verified using HMAC signatures:
+
 - Supports SHA256 and SHA1 algorithms
 - Configurable secret keys per organization
 - Timing-safe comparison to prevent timing attacks
@@ -270,6 +281,7 @@ All webhooks are verified using HMAC signatures:
 ### Rate Limiting
 
 Built-in protection against abuse:
+
 - Configurable rate limits per organization
 - Exponential backoff for repeated violations
 - DDoS protection with request slowdown
@@ -277,6 +289,7 @@ Built-in protection against abuse:
 ### Input Validation
 
 Comprehensive validation of all inputs:
+
 - JSON schema validation
 - Required field checking
 - Data type validation
@@ -324,6 +337,7 @@ npm run lint
 ### Logs
 
 The service uses structured JSON logging. Key log fields:
+
 - `service`: Always "webhook-gateway"
 - `level`: Log level (error, warn, info, debug)
 - `timestamp`: ISO timestamp
@@ -333,6 +347,7 @@ The service uses structured JSON logging. Key log fields:
 - `correlationId`: Request correlation ID
 
 Example log entry:
+
 ```json
 {
   "level": "info",

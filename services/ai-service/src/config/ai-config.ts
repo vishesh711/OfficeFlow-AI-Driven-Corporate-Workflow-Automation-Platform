@@ -52,7 +52,7 @@ export interface AIServiceConfig {
 
 export function createAIServiceConfig(): AIServiceConfig {
   const provider = getEnv('LLM_PROVIDER', 'anthropic') as LLMProvider;
-  
+
   return {
     provider,
     anthropic: {

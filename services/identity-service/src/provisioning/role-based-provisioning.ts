@@ -43,9 +43,12 @@ export class RoleBasedProvisioningService {
     this.logger = logger;
   }
 
-  async loadProvisioningPolicy(organizationId: string, provider: IdentityProvider): Promise<ProvisioningPolicy | null> {
+  async loadProvisioningPolicy(
+    organizationId: string,
+    provider: IdentityProvider
+  ): Promise<ProvisioningPolicy | null> {
     const policyKey = `${organizationId}:${provider}`;
-    
+
     // In a real implementation, this would load from database
     // For now, return a cached policy or null
     return this.policies.get(policyKey) || null;
@@ -54,11 +57,11 @@ export class RoleBasedProvisioningService {
   async saveProvisioningPolicy(policy: ProvisioningPolicy): Promise<void> {
     const policyKey = `${policy.organizationId}:${policy.provider}`;
     this.policies.set(policyKey, policy);
-    
+
     this.logger.info('Provisioning policy saved', {
       organizationId: policy.organizationId,
       provider: policy.provider,
-      roleMappingsCount: policy.roleMappings.length
+      roleMappingsCount: policy.roleMappings.length,
     });
   }
 
@@ -75,11 +78,12 @@ export class RoleBasedProvisioningService {
     let permissions: string[] = [];
 
     // Find matching role mappings
-    const matchingMappings = policy.roleMappings.filter(mapping => {
+    const matchingMappings = policy.roleMappings.filter((mapping) => {
       const roleMatch = mapping.role.toLowerCase() === employee.role.toLowerCase();
-      const departmentMatch = !mapping.department || 
+      const departmentMatch =
+        !mapping.department ||
         mapping.department.toLowerCase() === employee.department.toLowerCase();
-      
+
       return roleMatch && departmentMatch;
     });
 
@@ -107,7 +111,7 @@ export class RoleBasedProvisioningService {
       department: employee.department,
       groups: groups.length,
       licenses: licenses.length,
-      permissions: permissions.length
+      permissions: permissions.length,
     });
 
     return { groups, licenses, permissions };
@@ -123,7 +127,7 @@ export class RoleBasedProvisioningService {
       role: employee.role,
       title: employee.title,
       startDate: employee.startDate.toISOString(),
-      manager: employee.manager
+      manager: employee.manager,
     };
 
     // Add provider-specific attributes
@@ -132,7 +136,7 @@ export class RoleBasedProvisioningService {
         attributes.orgUnitPath = `/Departments/${employee.department}`;
         attributes.costCenter = employee.customAttributes?.costCenter;
         break;
-      
+
       case 'office365':
         attributes.companyName = employee.customAttributes?.companyName;
         attributes.officeLocation = employee.customAttributes?.officeLocation;
@@ -160,7 +164,7 @@ export class RoleBasedProvisioningService {
     // Validate role mappings
     for (let i = 0; i < policy.roleMappings.length; i++) {
       const mapping = policy.roleMappings[i];
-      
+
       if (!mapping.role) {
         errors.push(`Role mapping ${i + 1}: Role is required`);
       }
@@ -171,7 +175,7 @@ export class RoleBasedProvisioningService {
 
       // Validate group format based on provider
       if (policy.provider === 'google_workspace') {
-        const invalidGroups = mapping.groups.filter(group => !group.includes('@'));
+        const invalidGroups = mapping.groups.filter((group) => !group.includes('@'));
         if (invalidGroups.length > 0) {
           errors.push(`Role mapping ${i + 1}: Google Workspace groups must be email addresses`);
         }
@@ -180,20 +184,20 @@ export class RoleBasedProvisioningService {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
   private generateDepartmentGroup(department: string, provider: IdentityProvider): string | null {
     const normalizedDept = department.toLowerCase().replace(/\s+/g, '-');
-    
+
     switch (provider) {
       case 'google_workspace':
         return `${normalizedDept}@company.com`; // This should be configurable
-      
+
       case 'office365':
         return `${normalizedDept}-group`; // Office 365 group naming convention
-      
+
       default:
         return null;
     }
@@ -206,36 +210,40 @@ export const getDefaultRoleMappings = (provider: IdentityProvider): RoleMapping[
     {
       role: 'Software Engineer',
       department: 'Engineering',
-      groups: provider === 'google_workspace' 
-        ? ['engineering@company.com', 'developers@company.com']
-        : ['engineering-group', 'developers-group'],
-      licenses: provider === 'google_workspace'
-        ? ['Google Workspace Business Standard']
-        : ['Microsoft 365 E3'],
-      permissions: ['code-repository-access', 'development-tools']
+      groups:
+        provider === 'google_workspace'
+          ? ['engineering@company.com', 'developers@company.com']
+          : ['engineering-group', 'developers-group'],
+      licenses:
+        provider === 'google_workspace'
+          ? ['Google Workspace Business Standard']
+          : ['Microsoft 365 E3'],
+      permissions: ['code-repository-access', 'development-tools'],
     },
     {
       role: 'Product Manager',
       department: 'Product',
-      groups: provider === 'google_workspace'
-        ? ['product@company.com', 'management@company.com']
-        : ['product-group', 'management-group'],
-      licenses: provider === 'google_workspace'
-        ? ['Google Workspace Business Plus']
-        : ['Microsoft 365 E5'],
-      permissions: ['analytics-access', 'user-research-tools']
+      groups:
+        provider === 'google_workspace'
+          ? ['product@company.com', 'management@company.com']
+          : ['product-group', 'management-group'],
+      licenses:
+        provider === 'google_workspace' ? ['Google Workspace Business Plus'] : ['Microsoft 365 E5'],
+      permissions: ['analytics-access', 'user-research-tools'],
     },
     {
       role: 'Sales Representative',
       department: 'Sales',
-      groups: provider === 'google_workspace'
-        ? ['sales@company.com', 'crm-users@company.com']
-        : ['sales-group', 'crm-users-group'],
-      licenses: provider === 'google_workspace'
-        ? ['Google Workspace Business Standard']
-        : ['Microsoft 365 E3'],
-      permissions: ['crm-access', 'sales-tools']
-    }
+      groups:
+        provider === 'google_workspace'
+          ? ['sales@company.com', 'crm-users@company.com']
+          : ['sales-group', 'crm-users-group'],
+      licenses:
+        provider === 'google_workspace'
+          ? ['Google Workspace Business Standard']
+          : ['Microsoft 365 E3'],
+      permissions: ['crm-access', 'sales-tools'],
+    },
   ];
 
   return baseMappings;

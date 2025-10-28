@@ -35,16 +35,16 @@ export class BambooHRAdapter extends BaseHRMSAdapter {
 
   constructor(config: PollingConfig) {
     super(config);
-    
+
     this.subdomain = config.credentials.subdomain;
     this.apiKey = config.credentials.apiKey;
-    
+
     this.client = axios.create({
       baseURL: `https://api.bamboohr.com/api/gateway.php/${this.subdomain}/v1`,
       timeout: 30000,
       headers: {
-        'Accept': 'application/json',
-        'Authorization': `Basic ${Buffer.from(`${this.apiKey}:x`).toString('base64')}`,
+        Accept: 'application/json',
+        Authorization: `Basic ${Buffer.from(`${this.apiKey}:x`).toString('base64')}`,
       },
     });
 
@@ -62,7 +62,10 @@ export class BambooHRAdapter extends BaseHRMSAdapter {
 
     this.client.interceptors.response.use(
       (response) => {
-        logger.debug('BambooHR API response', { status: response.status, url: response.config.url });
+        logger.debug('BambooHR API response', {
+          status: response.status,
+          url: response.config.url,
+        });
         return response;
       },
       (error) => {
@@ -205,12 +208,12 @@ export class BambooHRAdapter extends BaseHRMSAdapter {
   private filterChangedEmployees(employees: BambooHREmployee[]): BambooHREmployee[] {
     if (!this.config.lastPolledAt) {
       // First poll - consider all active employees as new
-      return employees.filter(emp => emp.status === 'Active');
+      return employees.filter((emp) => emp.status === 'Active');
     }
 
     const lastPollTime = this.config.lastPolledAt.getTime();
-    
-    return employees.filter(employee => {
+
+    return employees.filter((employee) => {
       if (!employee.lastChanged) {
         return false;
       }
@@ -228,7 +231,7 @@ export class BambooHRAdapter extends BaseHRMSAdapter {
     if (employee.hireDate) {
       const hireDate = new Date(employee.hireDate);
       const daysSinceHire = (Date.now() - hireDate.getTime()) / (1000 * 60 * 60 * 24);
-      
+
       if (daysSinceHire <= 7 && employee.status === 'Active') {
         return 'employee.new';
       }
@@ -253,7 +256,7 @@ export class BambooHRAdapter extends BaseHRMSAdapter {
   async healthCheck(): Promise<{ healthy: boolean; details: Record<string, any> }> {
     try {
       const response = await this.client.get('/meta/users', { timeout: 5000 });
-      
+
       return {
         healthy: response.status === 200,
         details: {
@@ -266,7 +269,7 @@ export class BambooHRAdapter extends BaseHRMSAdapter {
       };
     } catch (error) {
       logger.error('BambooHR health check failed', { error });
-      
+
       return {
         healthy: false,
         details: {
@@ -314,7 +317,8 @@ export class BambooHRAdapter extends BaseHRMSAdapter {
     try {
       const response = await this.client.get(`/employees/${employeeId}`, {
         params: {
-          fields: 'id,workEmail,firstName,lastName,department,jobTitle,supervisorId,hireDate,terminationDate,location,employmentStatus,status,lastChanged',
+          fields:
+            'id,workEmail,firstName,lastName,department,jobTitle,supervisorId,hireDate,terminationDate,location,employmentStatus,status,lastChanged',
         },
       });
       return response.data;
@@ -334,7 +338,8 @@ export class BambooHRAdapter extends BaseHRMSAdapter {
     try {
       const response = await this.client.get('/employees/directory', {
         params: {
-          fields: 'id,workEmail,firstName,lastName,department,jobTitle,supervisorId,hireDate,terminationDate,location,employmentStatus,status,lastChanged',
+          fields:
+            'id,workEmail,firstName,lastName,department,jobTitle,supervisorId,hireDate,terminationDate,location,employmentStatus,status,lastChanged',
         },
       });
       return response.data.employees || [];

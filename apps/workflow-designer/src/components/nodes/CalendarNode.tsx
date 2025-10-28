@@ -1,10 +1,10 @@
-import { NodeProps } from 'reactflow'
-import { Calendar } from 'lucide-react'
-import { BaseNode } from './BaseNode'
+import { NodeProps } from 'reactflow';
+import { Calendar } from 'lucide-react';
+import { BaseNode } from './BaseNode';
 
 export function CalendarNode({ data, selected }: NodeProps) {
-  const action = data.params?.action || 'schedule_meeting'
-  
+  const action = data.params?.action || 'schedule_meeting';
+
   return (
     <BaseNode
       data={data}
@@ -14,5 +14,5 @@ export function CalendarNode({ data, selected }: NodeProps) {
     >
       <div>Action: {action.replace('_', ' ')}</div>
     </BaseNode>
-  )
+  );
 }

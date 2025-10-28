@@ -8,7 +8,7 @@ import { getErrorHandlingConfig } from './error-handling-config';
 export function createWorkflowEngineConfig(): WorkflowEngineConfig {
   return {
     instanceId: process.env.INSTANCE_ID || `workflow-engine-${Date.now()}`,
-    
+
     orchestrator: {
       instanceId: process.env.INSTANCE_ID || `orchestrator-${Date.now()}`,
       maxConcurrentWorkflows: parseInt(process.env.MAX_CONCURRENT_WORKFLOWS || '100'),
@@ -26,8 +26,8 @@ export function createWorkflowEngineConfig(): WorkflowEngineConfig {
         keyPrefix: process.env.REDIS_KEY_PREFIX || 'officeflow:',
         cluster: {
           enabled: process.env.REDIS_CLUSTER_ENABLED === 'true',
-          nodes: process.env.REDIS_CLUSTER_NODES 
-            ? process.env.REDIS_CLUSTER_NODES.split(',').map(node => {
+          nodes: process.env.REDIS_CLUSTER_NODES
+            ? process.env.REDIS_CLUSTER_NODES.split(',').map((node) => {
                 const [host, port] = node.split(':');
                 return { host, port: parseInt(port) };
               })
@@ -42,7 +42,7 @@ export function createWorkflowEngineConfig(): WorkflowEngineConfig {
         sentinel: {
           enabled: process.env.REDIS_SENTINEL_ENABLED === 'true',
           sentinels: process.env.REDIS_SENTINEL_NODES
-            ? process.env.REDIS_SENTINEL_NODES.split(',').map(node => {
+            ? process.env.REDIS_SENTINEL_NODES.split(',').map((node) => {
                 const [host, port] = node.split(':');
                 return { host, port: parseInt(port) };
               })

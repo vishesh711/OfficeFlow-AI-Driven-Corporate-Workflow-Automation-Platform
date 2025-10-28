@@ -41,6 +41,7 @@ The server-side architecture follows a microservices pattern with event-driven c
 ### Core Services
 
 #### 1. Workflow Engine (`services/workflow-engine/`)
+
 - **Purpose**: Orchestrates workflow execution and manages state
 - **Port**: 3000
 - **Dependencies**: PostgreSQL, Redis, Kafka
@@ -51,6 +52,7 @@ The server-side architecture follows a microservices pattern with event-driven c
   - Retry and error handling
 
 #### 2. Auth Service (`services/auth-service/`)
+
 - **Purpose**: Authentication, authorization, and session management
 - **Port**: 3001
 - **Dependencies**: PostgreSQL, Redis
@@ -62,6 +64,7 @@ The server-side architecture follows a microservices pattern with event-driven c
   - Password policies and security
 
 #### 3. Identity Service (`services/identity-service/`)
+
 - **Purpose**: User lifecycle management and external identity integration
 - **Port**: 3002
 - **Dependencies**: PostgreSQL, Kafka
@@ -74,6 +77,7 @@ The server-side architecture follows a microservices pattern with event-driven c
 ### Integration Services
 
 #### 4. AI Service (`services/ai-service/`)
+
 - **Purpose**: AI-powered content generation and decision making
 - **Port**: 3003
 - **Dependencies**: Kafka, OpenAI API
@@ -84,6 +88,7 @@ The server-side architecture follows a microservices pattern with event-driven c
   - Decision support
 
 #### 5. Email Service (`services/email-service/`)
+
 - **Purpose**: Email template management and delivery
 - **Port**: 3004
 - **Dependencies**: PostgreSQL, Kafka, SMTP/SES
@@ -94,6 +99,7 @@ The server-side architecture follows a microservices pattern with event-driven c
   - Bounce and complaint handling
 
 #### 6. Document Service (`services/document-service/`)
+
 - **Purpose**: File storage, management, and distribution
 - **Port**: 3005
 - **Dependencies**: PostgreSQL, Kafka, MinIO/S3
@@ -104,6 +110,7 @@ The server-side architecture follows a microservices pattern with event-driven c
   - Metadata management
 
 #### 7. Calendar Service (`services/calendar-service/`)
+
 - **Purpose**: Calendar integration and meeting management
 - **Port**: 3006
 - **Dependencies**: Kafka, Google Calendar API, Microsoft Graph
@@ -114,6 +121,7 @@ The server-side architecture follows a microservices pattern with event-driven c
   - Event notifications
 
 #### 8. Slack Service (`services/slack-service/`)
+
 - **Purpose**: Team communication and notifications
 - **Port**: 3007
 - **Dependencies**: Kafka, Slack API
@@ -124,6 +132,7 @@ The server-side architecture follows a microservices pattern with event-driven c
   - Workflow notifications
 
 #### 9. Webhook Gateway (`services/webhook-gateway/`)
+
 - **Purpose**: External system integration via webhooks
 - **Port**: 3008
 - **Dependencies**: Kafka
@@ -138,6 +147,7 @@ The server-side architecture follows a microservices pattern with event-driven c
 ### Local Development
 
 #### Docker Compose Setup
+
 ```bash
 # Start all services
 docker-compose up -d
@@ -154,6 +164,7 @@ docker-compose up -d [service-name]
 ```
 
 #### Environment Configuration
+
 Create `.env` file in project root:
 
 ```env
@@ -197,6 +208,7 @@ ENCRYPTION_KEY=your_encryption_key_32_characters
 #### Kubernetes Deployment
 
 ##### Quick Deployment
+
 ```bash
 # Deploy to staging
 ./scripts/k8s-deploy.sh --namespace officeflow-staging
@@ -206,6 +218,7 @@ ENCRYPTION_KEY=your_encryption_key_32_characters
 ```
 
 ##### Advanced Deployment Strategies
+
 ```bash
 # Blue-green deployment (zero downtime)
 ./scripts/deploy.sh --strategy blue-green --environment production
@@ -218,6 +231,7 @@ ENCRYPTION_KEY=your_encryption_key_32_characters
 ```
 
 ##### Manual Kubernetes Deployment
+
 ```bash
 # 1. Create namespace and base configuration
 kubectl apply -f k8s/namespace.yaml
@@ -238,6 +252,7 @@ kubectl apply -f k8s/ingress/
 #### Container Management
 
 ##### Building Images
+
 ```bash
 # Build all images locally
 ./scripts/docker-build-push.sh --local-only
@@ -253,6 +268,7 @@ kubectl apply -f k8s/ingress/
 ```
 
 ##### Security Scanning
+
 ```bash
 # Scan all containers for vulnerabilities
 ./scripts/docker-security-scan.sh
@@ -269,6 +285,7 @@ kubectl apply -f k8s/ingress/
 ### Environment-Specific Configuration
 
 #### Development
+
 - **Namespace**: `officeflow-dev`
 - **Replicas**: 1 per service
 - **Resources**: Minimal (100m CPU, 128Mi RAM)
@@ -277,6 +294,7 @@ kubectl apply -f k8s/ingress/
 - **Caching**: Single Redis instance
 
 #### Staging
+
 - **Namespace**: `officeflow-staging`
 - **Replicas**: 2 per service
 - **Resources**: Medium (250m CPU, 256Mi RAM)
@@ -285,6 +303,7 @@ kubectl apply -f k8s/ingress/
 - **Caching**: Redis cluster
 
 #### Production
+
 - **Namespace**: `officeflow`
 - **Replicas**: 3+ per service
 - **Resources**: High (500m+ CPU, 512Mi+ RAM)
@@ -301,28 +320,29 @@ Each service uses hierarchical configuration:
 3. **Default Values** (lowest priority)
 
 #### Common Configuration Patterns
+
 ```typescript
 // services/[service-name]/src/config.ts
 export const config = {
   port: parseInt(process.env.PORT || '3000'),
   nodeEnv: process.env.NODE_ENV || 'development',
   logLevel: process.env.LOG_LEVEL || 'info',
-  
+
   database: {
     url: process.env.POSTGRES_URL || 'postgresql://localhost:5432/officeflow',
     maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '10'),
-    ssl: process.env.NODE_ENV === 'production'
+    ssl: process.env.NODE_ENV === 'production',
   },
-  
+
   redis: {
     url: process.env.REDIS_URL || 'redis://localhost:6379',
-    keyPrefix: process.env.REDIS_KEY_PREFIX || 'officeflow:'
+    keyPrefix: process.env.REDIS_KEY_PREFIX || 'officeflow:',
   },
-  
+
   kafka: {
     brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
-    clientId: process.env.KAFKA_CLIENT_ID || 'officeflow-service'
-  }
+    clientId: process.env.KAFKA_CLIENT_ID || 'officeflow-service',
+  },
 };
 ```
 
@@ -338,25 +358,22 @@ All services implement standardized health check endpoints:
 - **`/metrics`** - Prometheus metrics
 
 #### Health Check Implementation
+
 ```typescript
 // Example health check implementation
 app.get('/health', async (req, res) => {
-  const checks = await Promise.allSettled([
-    checkDatabase(),
-    checkRedis(),
-    checkKafka()
-  ]);
-  
-  const healthy = checks.every(check => check.status === 'fulfilled');
-  
+  const checks = await Promise.allSettled([checkDatabase(), checkRedis(), checkKafka()]);
+
+  const healthy = checks.every((check) => check.status === 'fulfilled');
+
   res.status(healthy ? 200 : 503).json({
     status: healthy ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
     checks: checks.map((check, index) => ({
       name: ['database', 'redis', 'kafka'][index],
       status: check.status === 'fulfilled' ? 'healthy' : 'unhealthy',
-      message: check.status === 'fulfilled' ? 'OK' : check.reason.message
-    }))
+      message: check.status === 'fulfilled' ? 'OK' : check.reason.message,
+    })),
   });
 });
 ```
@@ -364,6 +381,7 @@ app.get('/health', async (req, res) => {
 ### Logging
 
 #### Structured Logging
+
 All services use structured JSON logging:
 
 ```json
@@ -381,6 +399,7 @@ All services use structured JSON logging:
 ```
 
 #### Log Levels
+
 - **TRACE**: Detailed debugging information
 - **DEBUG**: Debug information
 - **INFO**: General information
@@ -391,6 +410,7 @@ All services use structured JSON logging:
 ### Metrics
 
 #### Prometheus Metrics
+
 Each service exposes metrics on `/metrics` endpoint:
 
 ```typescript
@@ -398,31 +418,32 @@ Each service exposes metrics on `/metrics` endpoint:
 const httpRequestsTotal = new Counter({
   name: 'officeflow_http_requests_total',
   help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status_code']
+  labelNames: ['method', 'route', 'status_code'],
 });
 
 const httpRequestDuration = new Histogram({
   name: 'officeflow_http_request_duration_seconds',
   help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route']
+  labelNames: ['method', 'route'],
 });
 
 const workflowExecutions = new Counter({
   name: 'officeflow_workflow_executions_total',
   help: 'Total number of workflow executions',
-  labelNames: ['organization_id', 'workflow_id', 'status']
+  labelNames: ['organization_id', 'workflow_id', 'status'],
 });
 ```
 
 ### Distributed Tracing
 
 #### OpenTelemetry Integration
+
 ```typescript
 import { initializeObservability } from '@officeflow/observability';
 
 const { logger, tracer, metrics } = initializeObservability({
   serviceName: 'workflow-engine',
-  serviceVersion: '1.0.0'
+  serviceVersion: '1.0.0',
 });
 
 // Automatic tracing for HTTP requests
@@ -447,6 +468,7 @@ try {
 ### Authentication & Authorization
 
 #### JWT Token Management
+
 ```typescript
 // Token generation
 const token = jwt.sign(
@@ -454,13 +476,13 @@ const token = jwt.sign(
     userId: user.id,
     organizationId: user.organizationId,
     roles: user.roles,
-    permissions: user.permissions
+    permissions: user.permissions,
   },
   config.jwt.secret,
   {
     expiresIn: config.jwt.expiresIn,
     issuer: 'officeflow-auth',
-    audience: 'officeflow-api'
+    audience: 'officeflow-api',
   }
 );
 
@@ -468,11 +490,11 @@ const token = jwt.sign(
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  
+
   if (!token) {
     return res.sendStatus(401);
   }
-  
+
   jwt.verify(token, config.jwt.secret, (err, user) => {
     if (err) return res.sendStatus(403);
     req.user = user;
@@ -482,12 +504,12 @@ const authenticateToken = (req, res, next) => {
 ```
 
 #### Role-Based Access Control (RBAC)
+
 ```typescript
 // Permission checking
 const hasPermission = (user, resource, action) => {
-  return user.permissions.some(permission => 
-    permission.resource === resource && 
-    permission.actions.includes(action)
+  return user.permissions.some(
+    (permission) => permission.resource === resource && permission.actions.includes(action)
   );
 };
 
@@ -502,28 +524,30 @@ const authorize = (resource, action) => {
 };
 
 // Usage
-app.get('/api/workflows', 
-  authenticateToken, 
-  authorize('workflows', 'read'), 
-  getWorkflows
-);
+app.get('/api/workflows', authenticateToken, authorize('workflows', 'read'), getWorkflows);
 ```
 
 ### Input Validation
 
 #### Request Validation
+
 ```typescript
 import Joi from 'joi';
 
 const createWorkflowSchema = Joi.object({
   name: Joi.string().min(1).max(100).required(),
   description: Joi.string().max(500),
-  nodes: Joi.array().items(Joi.object({
-    id: Joi.string().required(),
-    type: Joi.string().required(),
-    config: Joi.object().required()
-  })).min(1).required(),
-  organizationId: Joi.string().uuid().required()
+  nodes: Joi.array()
+    .items(
+      Joi.object({
+        id: Joi.string().required(),
+        type: Joi.string().required(),
+        config: Joi.object().required(),
+      })
+    )
+    .min(1)
+    .required(),
+  organizationId: Joi.string().uuid().required(),
 });
 
 const validateRequest = (schema) => {
@@ -532,7 +556,7 @@ const validateRequest = (schema) => {
     if (error) {
       return res.status(400).json({
         error: 'Validation failed',
-        details: error.details
+        details: error.details,
       });
     }
     next();
@@ -543,6 +567,7 @@ const validateRequest = (schema) => {
 ### Rate Limiting
 
 #### API Rate Limiting
+
 ```typescript
 import rateLimit from 'express-rate-limit';
 
@@ -555,7 +580,7 @@ const createRateLimiter = (windowMs, max, message) => {
     legacyHeaders: false,
     keyGenerator: (req) => {
       return req.user?.id || req.ip;
-    }
+    },
   });
 };
 
@@ -567,6 +592,7 @@ app.use('/api/', createRateLimiter(15 * 60 * 1000, 100, 'Too many API requests')
 ## 🚨 Error Handling
 
 ### Centralized Error Handling
+
 ```typescript
 class AppError extends Error {
   constructor(message, statusCode, isOperational = true) {
@@ -579,20 +605,19 @@ class AppError extends Error {
 
 const errorHandler = (err, req, res, next) => {
   const { statusCode = 500, message } = err;
-  
+
   logger.error('Request error', err, {
     correlationId: req.correlationId,
     userId: req.user?.id,
     path: req.path,
-    method: req.method
+    method: req.method,
   });
-  
+
   res.status(statusCode).json({
     error: {
-      message: process.env.NODE_ENV === 'production' ? 
-        'Internal server error' : message,
-      correlationId: req.correlationId
-    }
+      message: process.env.NODE_ENV === 'production' ? 'Internal server error' : message,
+      correlationId: req.correlationId,
+    },
   });
 };
 
@@ -600,6 +625,7 @@ app.use(errorHandler);
 ```
 
 ### Retry Logic
+
 ```typescript
 const retry = async (fn, maxAttempts = 3, delay = 1000) => {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -609,14 +635,14 @@ const retry = async (fn, maxAttempts = 3, delay = 1000) => {
       if (attempt === maxAttempts) {
         throw error;
       }
-      
+
       logger.warn(`Attempt ${attempt} failed, retrying in ${delay}ms`, {
         error: error.message,
         attempt,
-        maxAttempts
+        maxAttempts,
       });
-      
-      await new Promise(resolve => setTimeout(resolve, delay));
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
       delay *= 2; // Exponential backoff
     }
   }
@@ -628,6 +654,7 @@ const retry = async (fn, maxAttempts = 3, delay = 1000) => {
 ### Database Optimization
 
 #### Connection Pooling
+
 ```typescript
 import { Pool } from 'pg';
 
@@ -651,6 +678,7 @@ const query = async (text, params) => {
 ```
 
 #### Query Optimization
+
 ```sql
 -- Add indexes for common queries
 CREATE INDEX CONCURRENTLY idx_workflows_org_id ON workflows(organization_id);
@@ -670,6 +698,7 @@ LIMIT 50;
 ### Caching Strategy
 
 #### Redis Caching
+
 ```typescript
 import Redis from 'ioredis';
 
@@ -680,39 +709,39 @@ const cache = {
     const value = await redis.get(key);
     return value ? JSON.parse(value) : null;
   },
-  
+
   async set(key, value, ttl = 3600) {
     await redis.setex(key, ttl, JSON.stringify(value));
   },
-  
+
   async del(key) {
     await redis.del(key);
   },
-  
+
   async invalidatePattern(pattern) {
     const keys = await redis.keys(pattern);
     if (keys.length > 0) {
       await redis.del(...keys);
     }
-  }
+  },
 };
 
 // Usage in service
 const getWorkflow = async (id, organizationId) => {
   const cacheKey = `workflow:${organizationId}:${id}`;
-  
+
   let workflow = await cache.get(cacheKey);
   if (!workflow) {
-    workflow = await db.query(
-      'SELECT * FROM workflows WHERE id = $1 AND organization_id = $2',
-      [id, organizationId]
-    );
-    
+    workflow = await db.query('SELECT * FROM workflows WHERE id = $1 AND organization_id = $2', [
+      id,
+      organizationId,
+    ]);
+
     if (workflow) {
       await cache.set(cacheKey, workflow, 1800); // 30 minutes
     }
   }
-  
+
   return workflow;
 };
 ```
@@ -722,6 +751,7 @@ const getWorkflow = async (id, organizationId) => {
 ### GitHub Actions Workflows
 
 #### Continuous Integration
+
 - **Linting**: ESLint, Prettier
 - **Type Checking**: TypeScript compilation
 - **Unit Tests**: Jest with coverage reporting
@@ -730,6 +760,7 @@ const getWorkflow = async (id, organizationId) => {
 - **Container Building**: Multi-stage Docker builds
 
 #### Continuous Deployment
+
 - **Image Building**: Multi-architecture container builds
 - **Security Scanning**: Container vulnerability assessment
 - **Staging Deployment**: Automated deployment to staging
@@ -739,16 +770,19 @@ const getWorkflow = async (id, organizationId) => {
 ### Deployment Strategies
 
 #### Rolling Update (Default)
+
 ```bash
 ./scripts/deploy.sh --strategy rolling --environment staging
 ```
 
 #### Blue-Green Deployment
+
 ```bash
 ./scripts/deploy.sh --strategy blue-green --environment production
 ```
 
 #### Canary Deployment
+
 ```bash
 ./scripts/deploy.sh --strategy canary --environment production
 ```
@@ -756,6 +790,7 @@ const getWorkflow = async (id, organizationId) => {
 ## 🛠️ Development Tools
 
 ### Local Development Scripts
+
 ```bash
 # Start all services
 ./run.sh dev
@@ -774,6 +809,7 @@ const getWorkflow = async (id, organizationId) => {
 ```
 
 ### Database Management
+
 ```bash
 # Run migrations
 npm run migrate
@@ -789,6 +825,7 @@ npm run migrate:generate -- --name add_user_table
 ```
 
 ### Testing
+
 ```bash
 # Unit tests
 npm run test:unit
@@ -806,11 +843,13 @@ npm run test:coverage
 ## 📚 API Documentation
 
 ### OpenAPI/Swagger
+
 Each service exposes API documentation at `/api-docs` endpoint.
 
 ### Service Endpoints
 
 #### Workflow Engine (`http://localhost:3000`)
+
 - `GET /health` - Health check
 - `GET /api/v1/workflows` - List workflows
 - `POST /api/v1/workflows` - Create workflow
@@ -820,6 +859,7 @@ Each service exposes API documentation at `/api-docs` endpoint.
 - `POST /api/v1/workflows/:id/execute` - Execute workflow
 
 #### Auth Service (`http://localhost:3001`)
+
 - `POST /api/v1/auth/login` - User login
 - `POST /api/v1/auth/logout` - User logout
 - `POST /api/v1/auth/refresh` - Refresh token
@@ -834,6 +874,7 @@ For complete API documentation, see individual service README files.
 ### Common Issues
 
 #### Service Won't Start
+
 ```bash
 # Check logs
 docker-compose logs [service-name]
@@ -846,6 +887,7 @@ docker-compose exec [service-name] env | grep -E "(POSTGRES|REDIS|KAFKA)"
 ```
 
 #### Database Connection Issues
+
 ```bash
 # Test database connectivity
 docker-compose exec postgres psql -U officeflow -d officeflow -c "SELECT 1;"
@@ -858,6 +900,7 @@ echo $POSTGRES_URL
 ```
 
 #### Kafka Issues
+
 ```bash
 # Check Kafka logs
 docker-compose logs kafka
@@ -872,6 +915,7 @@ docker-compose exec kafka kafka-consumer-groups --bootstrap-server localhost:909
 ### Performance Issues
 
 #### High Memory Usage
+
 ```bash
 # Check memory usage
 docker stats
@@ -884,6 +928,7 @@ node --trace-gc dist/index.js
 ```
 
 #### Slow Database Queries
+
 ```sql
 -- Enable query logging
 ALTER SYSTEM SET log_statement = 'all';

@@ -108,11 +108,10 @@ export class ContentGenerator {
       },
     };
 
-    return this.llmService.generateContent(
-      organizationId,
-      request,
-      { ...context, nodeType: 'welcome_message' }
-    );
+    return this.llmService.generateContent(organizationId, request, {
+      ...context,
+      nodeType: 'welcome_message',
+    });
   }
 
   async generateRoleSpecificContent(
@@ -155,11 +154,10 @@ export class ContentGenerator {
       },
     };
 
-    return this.llmService.generateContent(
-      organizationId,
-      request,
-      { ...context, nodeType: 'role_specific_content' }
-    );
+    return this.llmService.generateContent(organizationId, request, {
+      ...context,
+      nodeType: 'role_specific_content',
+    });
   }
 
   async summarizeDocument(
@@ -183,9 +181,10 @@ export class ContentGenerator {
 
     // Truncate content if too long (keep within token limits)
     const maxContentLength = 8000; // Rough estimate for token limits
-    const truncatedContent = document.content.length > maxContentLength
-      ? document.content.substring(0, maxContentLength) + '...[truncated]'
-      : document.content;
+    const truncatedContent =
+      document.content.length > maxContentLength
+        ? document.content.substring(0, maxContentLength) + '...[truncated]'
+        : document.content;
 
     const templateData = {
       document: {
@@ -209,11 +208,10 @@ export class ContentGenerator {
       },
     };
 
-    return this.llmService.generateContent(
-      organizationId,
-      request,
-      { ...context, nodeType: 'document_summary' }
-    );
+    return this.llmService.generateContent(organizationId, request, {
+      ...context,
+      nodeType: 'document_summary',
+    });
   }
 
   async analyzeSentiment(
@@ -246,21 +244,20 @@ export class ContentGenerator {
       },
     };
 
-    const result = await this.llmService.generateContent(
-      organizationId,
-      request,
-      { ...context, nodeType: 'sentiment_analysis' }
-    );
+    const result = await this.llmService.generateContent(organizationId, request, {
+      ...context,
+      nodeType: 'sentiment_analysis',
+    });
 
     // Validate JSON response
     try {
       const parsed = JSON.parse(result.content);
-      
+
       // Add confidence score to metadata
       if (parsed.confidence !== undefined) {
         result.metadata.confidence = parsed.confidence;
       }
-      
+
       return result;
     } catch (error) {
       this.logger.warn('Sentiment analysis returned invalid JSON', {
@@ -268,7 +265,7 @@ export class ContentGenerator {
         error: error instanceof Error ? error.message : 'Unknown error',
         content: result.content.substring(0, 200),
       });
-      
+
       // Return a structured error response
       result.content = JSON.stringify({
         sentiment: 'neutral',
@@ -280,7 +277,7 @@ export class ContentGenerator {
         recommendations: ['Please review the input text and try again'],
         error: 'Failed to parse sentiment analysis response',
       });
-      
+
       return result;
     }
   }
@@ -324,11 +321,10 @@ export class ContentGenerator {
       },
     };
 
-    return this.llmService.generateContent(
-      organizationId,
-      request,
-      { ...context, nodeType: 'custom_content' }
-    );
+    return this.llmService.generateContent(organizationId, request, {
+      ...context,
+      nodeType: 'custom_content',
+    });
   }
 
   async generateBulkContent(
@@ -349,10 +345,10 @@ export class ContentGenerator {
     const results = await Promise.allSettled(
       requests.map(async (req, index) => {
         const id = req.id || `bulk_${index}`;
-        
+
         try {
           let result: ContentGenerationResult;
-          
+
           switch (req.type) {
             case 'welcome_message':
               result = await this.generateWelcomeMessage(
@@ -363,7 +359,7 @@ export class ContentGenerator {
                 context
               );
               break;
-              
+
             case 'role_specific_content':
               result = await this.generateRoleSpecificContent(
                 organizationId,
@@ -373,7 +369,7 @@ export class ContentGenerator {
                 context
               );
               break;
-              
+
             case 'document_summary':
               result = await this.summarizeDocument(
                 organizationId,
@@ -382,7 +378,7 @@ export class ContentGenerator {
                 context
               );
               break;
-              
+
             case 'sentiment_analysis':
               result = await this.analyzeSentiment(
                 organizationId,
@@ -391,16 +387,16 @@ export class ContentGenerator {
                 context
               );
               break;
-              
+
             default:
               throw new Error(`Unsupported bulk content type: ${req.type}`);
           }
-          
+
           return { id, result };
         } catch (error) {
-          return { 
-            id, 
-            error: error instanceof Error ? error.message : 'Unknown error' 
+          return {
+            id,
+            error: error instanceof Error ? error.message : 'Unknown error',
           };
         }
       })

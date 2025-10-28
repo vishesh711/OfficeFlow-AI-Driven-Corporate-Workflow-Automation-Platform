@@ -12,6 +12,7 @@
 Please report security vulnerabilities to: security@officeflow.com
 
 Include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
@@ -22,9 +23,8 @@ We will respond within 48 hours and provide regular updates on progress.
 ## Security Features
 
 - JWT authentication
-- RBAC authorization  
+- RBAC authorization
 - Rate limiting
 - Input validation
 - Container security
 - Kubernetes security policies
-

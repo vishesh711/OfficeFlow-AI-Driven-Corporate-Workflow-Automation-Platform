@@ -42,12 +42,7 @@ type TestEntity = z.infer<typeof testEntitySchema>;
 // Test repository implementation
 class TestRepository extends BaseRepository<TestEntity> {
   constructor(mockPool: Pool) {
-    super(
-      'test_entities',
-      'id',
-      createTestEntitySchema,
-      updateTestEntitySchema
-    );
+    super('test_entities', 'id', createTestEntitySchema, updateTestEntitySchema);
     this.pool = mockPool;
   }
 }
@@ -83,7 +78,7 @@ describe('BaseRepository Unit Tests', () => {
           { org_id: '123e4567-e89b-12d3-a456-426614174000' }, // Missing name
         ];
 
-        invalidCases.forEach(data => {
+        invalidCases.forEach((data) => {
           expect(() => createTestEntitySchema.parse(data)).toThrow();
         });
       });
@@ -109,7 +104,7 @@ describe('BaseRepository Unit Tests', () => {
           {}, // Empty update should be valid
         ];
 
-        validUpdates.forEach(update => {
+        validUpdates.forEach((update) => {
           expect(() => updateTestEntitySchema.parse(update)).not.toThrow();
         });
       });
@@ -120,7 +115,7 @@ describe('BaseRepository Unit Tests', () => {
           { org_id: 'invalid-uuid' }, // Invalid UUID
         ];
 
-        invalidUpdates.forEach(update => {
+        invalidUpdates.forEach((update) => {
           expect(() => updateTestEntitySchema.parse(update)).toThrow();
         });
       });
@@ -134,10 +129,7 @@ describe('BaseRepository Unit Tests', () => {
 
         await repository.findAll();
 
-        expect(mockPool.query).toHaveBeenCalledWith(
-          'SELECT * FROM test_entities',
-          []
-        );
+        expect(mockPool.query).toHaveBeenCalledWith('SELECT * FROM test_entities', []);
       });
 
       it('should build query with single filter', async () => {
@@ -154,9 +146,9 @@ describe('BaseRepository Unit Tests', () => {
       it('should build query with multiple filters', async () => {
         mockPool.query.mockResolvedValue({ rows: [] });
 
-        await repository.findAll({ 
-          is_active: true, 
-          org_id: '123e4567-e89b-12d3-a456-426614174000' 
+        await repository.findAll({
+          is_active: true,
+          org_id: '123e4567-e89b-12d3-a456-426614174000',
         });
 
         expect(mockPool.query).toHaveBeenCalledWith(
@@ -168,8 +160,8 @@ describe('BaseRepository Unit Tests', () => {
       it('should build query with array filter (IN clause)', async () => {
         mockPool.query.mockResolvedValue({ rows: [] });
 
-        await repository.findAll({ 
-          org_id: ['uuid1', 'uuid2', 'uuid3'] 
+        await repository.findAll({
+          org_id: ['uuid1', 'uuid2', 'uuid3'],
         });
 
         expect(mockPool.query).toHaveBeenCalledWith(
@@ -192,10 +184,13 @@ describe('BaseRepository Unit Tests', () => {
       it('should build query with ordering', async () => {
         mockPool.query.mockResolvedValue({ rows: [] });
 
-        await repository.findAll({}, { 
-          orderBy: 'created_at', 
-          orderDirection: 'DESC' 
-        });
+        await repository.findAll(
+          {},
+          {
+            orderBy: 'created_at',
+            orderDirection: 'DESC',
+          }
+        );
 
         expect(mockPool.query).toHaveBeenCalledWith(
           'SELECT * FROM test_entities ORDER BY created_at DESC',
@@ -208,11 +203,11 @@ describe('BaseRepository Unit Tests', () => {
 
         await repository.findAll(
           { is_active: true },
-          { 
-            orderBy: 'name', 
+          {
+            orderBy: 'name',
             orderDirection: 'ASC',
             limit: 5,
-            offset: 10
+            offset: 10,
           }
         );
 
@@ -229,10 +224,7 @@ describe('BaseRepository Unit Tests', () => {
 
         const result = await repository.count();
 
-        expect(mockPool.query).toHaveBeenCalledWith(
-          'SELECT COUNT(*) FROM test_entities',
-          []
-        );
+        expect(mockPool.query).toHaveBeenCalledWith('SELECT COUNT(*) FROM test_entities', []);
         expect(result).toBe(5);
       });
 
@@ -359,7 +351,7 @@ describe('BaseRepository Unit Tests', () => {
     it('should handle null values in filters', async () => {
       mockPool.query.mockResolvedValue({ rows: [] });
 
-      await repository.findAll({ 
+      await repository.findAll({
         is_active: true,
         description: null,
         undefined_field: undefined,
@@ -375,8 +367,8 @@ describe('BaseRepository Unit Tests', () => {
     it('should handle empty array filters', async () => {
       mockPool.query.mockResolvedValue({ rows: [] });
 
-      await repository.findAll({ 
-        org_id: [] 
+      await repository.findAll({
+        org_id: [],
       });
 
       // Empty array should create IN () condition

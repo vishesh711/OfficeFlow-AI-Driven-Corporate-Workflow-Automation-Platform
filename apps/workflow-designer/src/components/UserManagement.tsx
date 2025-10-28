@@ -1,82 +1,82 @@
-import React, { useState } from 'react'
-import { Plus, Edit, Trash2, Shield, User as UserIcon, Mail, Calendar } from 'lucide-react'
-import { adminApi, User } from '../lib/api'
+import React, { useState } from 'react';
+import { Plus, Edit, Trash2, Shield, User as UserIcon, Mail, Calendar } from 'lucide-react';
+import { adminApi, User } from '../lib/api';
 
 interface UserManagementProps {
-  users: User[]
-  onUsersChange: (users: User[]) => void
+  users: User[];
+  onUsersChange: (users: User[]) => void;
 }
 
 export function UserManagement({ users, onUsersChange }: UserManagementProps) {
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleCreateUser = async (userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await adminApi.createUser(userData)
-      onUsersChange([...users, response.data])
-      setShowCreateModal(false)
+      const response = await adminApi.createUser(userData);
+      onUsersChange([...users, response.data]);
+      setShowCreateModal(false);
     } catch (error) {
-      console.error('Failed to create user:', error)
+      console.error('Failed to create user:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleUpdateUser = async (userId: string, userData: Partial<User>) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await adminApi.updateUser(userId, userData)
-      onUsersChange(users.map(user => user.id === userId ? response.data : user))
-      setEditingUser(null)
+      const response = await adminApi.updateUser(userId, userData);
+      onUsersChange(users.map((user) => (user.id === userId ? response.data : user)));
+      setEditingUser(null);
     } catch (error) {
-      console.error('Failed to update user:', error)
+      console.error('Failed to update user:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return
-    
-    setLoading(true)
+    if (!confirm('Are you sure you want to delete this user?')) return;
+
+    setLoading(true);
     try {
-      await adminApi.deleteUser(userId)
-      onUsersChange(users.filter(user => user.id !== userId))
+      await adminApi.deleteUser(userId);
+      onUsersChange(users.filter((user) => user.id !== userId));
     } catch (error) {
-      console.error('Failed to delete user:', error)
+      console.error('Failed to delete user:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Shield className="h-4 w-4 text-red-500" />
+        return <Shield className="h-4 w-4 text-red-500" />;
       case 'user':
-        return <UserIcon className="h-4 w-4 text-blue-500" />
+        return <UserIcon className="h-4 w-4 text-blue-500" />;
       case 'viewer':
-        return <UserIcon className="h-4 w-4 text-gray-500" />
+        return <UserIcon className="h-4 w-4 text-gray-500" />;
       default:
-        return <UserIcon className="h-4 w-4 text-gray-500" />
+        return <UserIcon className="h-4 w-4 text-gray-500" />;
     }
-  }
+  };
 
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       case 'user':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800';
       case 'viewer':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -88,10 +88,7 @@ export function UserManagement({ users, onUsersChange }: UserManagementProps) {
           </p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="btn btn-primary"
-          >
+          <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">
             <Plus className="h-4 w-4 mr-2" />
             Add User
           </button>
@@ -143,7 +140,9 @@ export function UserManagement({ users, onUsersChange }: UserManagementProps) {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}
+                  >
                     {getRoleIcon(user.role)}
                     <span className="ml-1 capitalize">{user.role}</span>
                   </span>
@@ -152,9 +151,11 @@ export function UserManagement({ users, onUsersChange }: UserManagementProps) {
                   {user.organizationId}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}
+                  >
                     {user.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </td>
@@ -190,7 +191,7 @@ export function UserManagement({ users, onUsersChange }: UserManagementProps) {
             ))}
           </tbody>
         </table>
-        
+
         {users.length === 0 && (
           <div className="text-center py-8">
             <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -204,26 +205,27 @@ export function UserManagement({ users, onUsersChange }: UserManagementProps) {
       {(showCreateModal || editingUser) && (
         <UserModal
           user={editingUser}
-          onSave={editingUser ? 
-            (userData) => handleUpdateUser(editingUser.id, userData) :
-            handleCreateUser
+          onSave={
+            editingUser
+              ? (userData) => handleUpdateUser(editingUser.id, userData)
+              : handleCreateUser
           }
           onClose={() => {
-            setShowCreateModal(false)
-            setEditingUser(null)
+            setShowCreateModal(false);
+            setEditingUser(null);
           }}
           loading={loading}
         />
       )}
     </div>
-  )
+  );
 }
 
 interface UserModalProps {
-  user?: User | null
-  onSave: (userData: any) => void
-  onClose: () => void
-  loading: boolean
+  user?: User | null;
+  onSave: (userData: any) => void;
+  onClose: () => void;
+  loading: boolean;
 }
 
 function UserModal({ user, onSave, onClose, loading }: UserModalProps) {
@@ -232,13 +234,13 @@ function UserModal({ user, onSave, onClose, loading }: UserModalProps) {
     email: user?.email || '',
     role: user?.role || 'user',
     organizationId: user?.organizationId || '',
-    isActive: user?.isActive ?? true
-  })
+    isActive: user?.isActive ?? true,
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-  }
+    e.preventDefault();
+    onSave(formData);
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -247,7 +249,7 @@ function UserModal({ user, onSave, onClose, loading }: UserModalProps) {
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             {user ? 'Edit User' : 'Create User'}
           </h3>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -259,7 +261,7 @@ function UserModal({ user, onSave, onClose, loading }: UserModalProps) {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Email</label>
               <input
@@ -270,7 +272,7 @@ function UserModal({ user, onSave, onClose, loading }: UserModalProps) {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Role</label>
               <select
@@ -283,7 +285,7 @@ function UserModal({ user, onSave, onClose, loading }: UserModalProps) {
                 <option value="admin">Admin</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Organization ID</label>
               <input
@@ -294,7 +296,7 @@ function UserModal({ user, onSave, onClose, loading }: UserModalProps) {
                 onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
               />
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -307,7 +309,7 @@ function UserModal({ user, onSave, onClose, loading }: UserModalProps) {
                 Active
               </label>
             </div>
-            
+
             <div className="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
@@ -317,17 +319,13 @@ function UserModal({ user, onSave, onClose, loading }: UserModalProps) {
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : (user ? 'Update' : 'Create')}
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? 'Saving...' : user ? 'Update' : 'Create'}
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }

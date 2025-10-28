@@ -1,20 +1,21 @@
-import { WorkflowDefinition } from './api'
+import { WorkflowDefinition } from './api';
 
 export interface WorkflowTemplate {
-  id: string
-  name: string
-  description: string
-  category: string
-  definition: WorkflowDefinition
-  tags: string[]
-  createdAt: string
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  definition: WorkflowDefinition;
+  tags: string[];
+  createdAt: string;
 }
 
 export const workflowTemplates: WorkflowTemplate[] = [
   {
     id: 'employee-onboarding',
     name: 'Employee Onboarding',
-    description: 'Complete onboarding workflow for new employees including account setup, document distribution, and team introductions',
+    description:
+      'Complete onboarding workflow for new employees including account setup, document distribution, and team introductions',
     category: 'HR',
     tags: ['onboarding', 'hr', 'identity', 'communication'],
     createdAt: '2024-01-01T00:00:00Z',
@@ -99,7 +100,8 @@ export const workflowTemplates: WorkflowTemplate[] = [
   {
     id: 'employee-offboarding',
     name: 'Employee Offboarding',
-    description: 'Secure offboarding process including account deactivation, access revocation, and equipment return',
+    description:
+      'Secure offboarding process including account deactivation, access revocation, and equipment return',
     category: 'HR',
     tags: ['offboarding', 'hr', 'security', 'identity'],
     createdAt: '2024-01-01T00:00:00Z',
@@ -160,7 +162,8 @@ export const workflowTemplates: WorkflowTemplate[] = [
   {
     id: 'access-request-approval',
     name: 'Access Request Approval',
-    description: 'Automated approval workflow for system access requests with manager approval and provisioning',
+    description:
+      'Automated approval workflow for system access requests with manager approval and provisioning',
     category: 'Security',
     tags: ['access', 'approval', 'security', 'identity'],
     createdAt: '2024-01-01T00:00:00Z',
@@ -230,32 +233,36 @@ export const workflowTemplates: WorkflowTemplate[] = [
       ],
     },
   },
-]
+];
 
 export const getTemplatesByCategory = () => {
-  const categories = workflowTemplates.reduce((acc, template) => {
-    if (!acc[template.category]) {
-      acc[template.category] = []
-    }
-    acc[template.category].push(template)
-    return acc
-  }, {} as Record<string, WorkflowTemplate[]>)
-  
-  return categories
-}
+  const categories = workflowTemplates.reduce(
+    (acc, template) => {
+      if (!acc[template.category]) {
+        acc[template.category] = [];
+      }
+      acc[template.category].push(template);
+      return acc;
+    },
+    {} as Record<string, WorkflowTemplate[]>
+  );
+
+  return categories;
+};
 
 export const searchTemplates = (query: string): WorkflowTemplate[] => {
-  const lowercaseQuery = query.toLowerCase()
-  return workflowTemplates.filter(template =>
-    template.name.toLowerCase().includes(lowercaseQuery) ||
-    template.description.toLowerCase().includes(lowercaseQuery) ||
-    template.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery))
-  )
-}
+  const lowercaseQuery = query.toLowerCase();
+  return workflowTemplates.filter(
+    (template) =>
+      template.name.toLowerCase().includes(lowercaseQuery) ||
+      template.description.toLowerCase().includes(lowercaseQuery) ||
+      template.tags.some((tag) => tag.toLowerCase().includes(lowercaseQuery))
+  );
+};
 
 export const cloneWorkflow = (workflow: { name: string; definition: WorkflowDefinition }) => {
   const clonedDefinition: WorkflowDefinition = {
-    nodes: workflow.definition.nodes.map(node => ({
+    nodes: workflow.definition.nodes.map((node) => ({
       ...node,
       id: `${node.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       position: {
@@ -263,26 +270,26 @@ export const cloneWorkflow = (workflow: { name: string; definition: WorkflowDefi
         y: node.position.y + 50,
       },
     })),
-    edges: workflow.definition.edges.map(edge => {
-      const sourceNode = workflow.definition.nodes.find(n => n.id === edge.source)
-      const targetNode = workflow.definition.nodes.find(n => n.id === edge.target)
-      
-      if (!sourceNode || !targetNode) return edge
-      
-      const newSourceId = `${sourceNode.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      const newTargetId = `${targetNode.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      
+    edges: workflow.definition.edges.map((edge) => {
+      const sourceNode = workflow.definition.nodes.find((n) => n.id === edge.source);
+      const targetNode = workflow.definition.nodes.find((n) => n.id === edge.target);
+
+      if (!sourceNode || !targetNode) return edge;
+
+      const newSourceId = `${sourceNode.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const newTargetId = `${targetNode.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
       return {
         ...edge,
         id: `e-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         source: newSourceId,
         target: newTargetId,
-      }
+      };
     }),
-  }
+  };
 
   return {
     name: `${workflow.name} (Copy)`,
     definition: clonedDefinition,
-  }
-}
+  };
+};

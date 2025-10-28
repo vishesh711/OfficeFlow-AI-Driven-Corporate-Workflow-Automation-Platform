@@ -56,7 +56,7 @@ export class CompensationManager {
       workflowId: workflowState.workflowId,
       runId: workflowState.runId,
       compensationNodes,
-      executionOrder: orderedNodes.map(node => node.id),
+      executionOrder: orderedNodes.map((node) => node.id),
       failedNodes: workflowState.failedNodes,
       completedNodes: workflowState.completedNodes,
     };
@@ -90,20 +90,15 @@ export class CompensationManager {
     try {
       // Execute compensation nodes in order
       for (const nodeId of plan.executionOrder) {
-        const compensationNode = plan.compensationNodes.find(n => n.id === nodeId);
+        const compensationNode = plan.compensationNodes.find((n) => n.id === nodeId);
         if (!compensationNode) {
           continue;
         }
 
-        await this.executeCompensationNode(
-          compensationNode,
-          plan,
-          compensatingState
-        );
+        await this.executeCompensationNode(compensationNode, plan, compensatingState);
       }
 
       console.log(`Compensation execution completed for workflow: ${plan.runId}`);
-
     } catch (error) {
       console.error(`Compensation execution failed for workflow ${plan.runId}:`, error);
       throw error;
@@ -118,12 +113,12 @@ export class CompensationManager {
     plan: CompensationPlan,
     workflowState: WorkflowState
   ): Promise<void> {
-    console.log(`Executing compensation node: ${compensationNode.id} (${compensationNode.compensationType})`);
+    console.log(
+      `Executing compensation node: ${compensationNode.id} (${compensationNode.compensationType})`
+    );
 
     // Prepare compensation context
-    const context = this.contextManager.deserializeContext(
-      JSON.stringify(workflowState.context)
-    );
+    const context = this.contextManager.deserializeContext(JSON.stringify(workflowState.context));
 
     // Add compensation-specific context
     const compensationContext = {
@@ -160,10 +155,9 @@ export class CompensationManager {
         compensationNode.id,
         30000 // 30 second timeout
       );
-
     } catch (error) {
       console.error(`Compensation node ${compensationNode.id} failed:`, error);
-      
+
       // Decide whether to continue or abort compensation
       if (this.shouldContinueCompensationOnFailure(compensationNode)) {
         console.warn(`Continuing compensation despite node failure: ${compensationNode.id}`);
@@ -187,7 +181,7 @@ export class CompensationManager {
     for (const node of parsedWorkflow.definition.definition.nodes) {
       if (this.isCompensationNode(node)) {
         const compensationNode = node as CompensationNode;
-        
+
         // Check if this compensation node should be executed
         if (this.shouldExecuteCompensation(compensationNode, completedNodes, failedNodes)) {
           compensationNodes.push(compensationNode);
@@ -202,9 +196,11 @@ export class CompensationManager {
    * Check if a node is a compensation node
    */
   private isCompensationNode(node: WorkflowNode): boolean {
-    return node.type === 'compensation' || 
-           (node.params && node.params.compensationType) ||
-           (node.params && node.params.compensatesFor);
+    return (
+      node.type === 'compensation' ||
+      (node.params && node.params.compensationType) ||
+      (node.params && node.params.compensatesFor)
+    );
   }
 
   /**
@@ -216,8 +212,8 @@ export class CompensationManager {
     failedNodes: Set<UUID>
   ): boolean {
     // Execute if any of the nodes it compensates for were completed
-    return compensationNode.compensatesFor.some(nodeId => 
-      completedNodes.has(nodeId) || failedNodes.has(nodeId)
+    return compensationNode.compensatesFor.some(
+      (nodeId) => completedNodes.has(nodeId) || failedNodes.has(nodeId)
     );
   }
 
@@ -242,10 +238,10 @@ export class CompensationManager {
     timeoutMs: number
   ): Promise<void> {
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeoutMs) {
       const nodeState = await this.stateManager.getNodeState(runId, nodeId);
-      
+
       if (nodeState) {
         if (nodeState.status === 'COMPLETED') {
           return;
@@ -255,7 +251,7 @@ export class CompensationManager {
       }
 
       // Wait before checking again
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     throw new Error(`Compensation node ${nodeId} timed out`);
@@ -266,8 +262,10 @@ export class CompensationManager {
    */
   private shouldContinueCompensationOnFailure(compensationNode: CompensationNode): boolean {
     // Continue for cleanup and notification types, but not for rollback
-    return compensationNode.compensationType === 'cleanup' || 
-           compensationNode.compensationType === 'notification';
+    return (
+      compensationNode.compensationType === 'cleanup' ||
+      compensationNode.compensationType === 'notification'
+    );
   }
 
   /**
@@ -292,10 +290,7 @@ export class CompensationManager {
   /**
    * Create compensation node for a specific node type
    */
-  private createCompensationForNode(
-    node: WorkflowNode,
-    workflowId: UUID
-  ): CompensationNode | null {
+  private createCompensationForNode(node: WorkflowNode, workflowId: UUID): CompensationNode | null {
     const compensationId = `${node.id}_compensation`;
 
     switch (node.type) {

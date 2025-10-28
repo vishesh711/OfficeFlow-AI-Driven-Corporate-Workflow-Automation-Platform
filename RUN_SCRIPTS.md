@@ -5,6 +5,7 @@ This document describes the run scripts available for managing the OfficeFlow pl
 ## Quick Start
 
 ### For Unix/Linux/macOS users:
+
 ```bash
 # Make the script executable (first time only)
 chmod +x run.sh
@@ -17,6 +18,7 @@ chmod +x run.sh
 ```
 
 ### For Windows users:
+
 ```cmd
 # Setup the entire project
 run.bat setup
@@ -28,10 +30,12 @@ run.bat dev
 ## Available Commands
 
 ### Setup and Installation
+
 - `setup` - Complete project setup (install dependencies, build, and test)
 - `install` - Install all dependencies using npm workspaces
 
 ### Development
+
 - `dev` - Start all services in development mode with hot reload
 - `dev <service>` - Start a specific service in development mode
   - `dev ai-service` - Start AI service only
@@ -39,34 +43,41 @@ run.bat dev
   - `dev workflow-engine` - Start Workflow engine only
 
 ### Building
+
 - `build` - Build all services for production
 - `clean` - Clean all build artifacts and dist folders
 
 ### Testing
+
 - `test` - Run all tests across all services
 - `test <service>` - Run tests for a specific service
 - `type-check` - Run TypeScript type checking across all services
 
 ### Code Quality
+
 - `format` - Format all code using Prettier
 - `format:check` - Check if code is properly formatted
 
 ### Help
+
 - `help` - Show detailed usage information
 
 ## Services Overview
 
 ### AI Service (`ai-service`)
+
 - **Purpose**: AI-powered content generation and processing
 - **Port**: Typically runs on port 3001
 - **Features**: OpenAI integration, template management, content generation
 
 ### Identity Service (`identity-service`)
+
 - **Purpose**: Identity and access management
 - **Port**: Typically runs on port 3002
 - **Features**: OAuth2, user provisioning, credential management
 
 ### Workflow Engine (`workflow-engine`)
+
 - **Purpose**: Core workflow orchestration
 - **Port**: Typically runs on port 3000
 - **Features**: Workflow execution, event processing, task management
@@ -82,16 +93,18 @@ Before using the run scripts, ensure you have:
 ## Environment Setup
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repository-url>
    cd OfficeFlow-AI-Driven-Corporate-Workflow-Automation-Platform
    ```
 
 2. **Run initial setup**:
+
    ```bash
    # Unix/Linux/macOS
    ./run.sh setup
-   
+
    # Windows
    run.bat setup
    ```
@@ -103,6 +116,7 @@ Before using the run scripts, ensure you have:
 ## Development Workflow
 
 ### Starting Development
+
 ```bash
 # Start all services
 ./run.sh dev
@@ -114,6 +128,7 @@ Before using the run scripts, ensure you have:
 ```
 
 ### Running Tests
+
 ```bash
 # Run all tests
 ./run.sh test
@@ -123,6 +138,7 @@ Before using the run scripts, ensure you have:
 ```
 
 ### Building for Production
+
 ```bash
 # Build all services
 ./run.sh build
@@ -137,6 +153,7 @@ Before using the run scripts, ensure you have:
 ### Common Issues
 
 1. **Permission denied on Unix/Linux/macOS**:
+
    ```bash
    chmod +x run.sh
    ```
@@ -166,6 +183,7 @@ Before using the run scripts, ensure you have:
 ## Advanced Usage
 
 ### Custom Environment Variables
+
 Each service can be configured with environment variables. Create `.env` files in each service directory:
 
 ```bash
@@ -183,6 +201,7 @@ KAFKA_BROKERS=localhost:9092
 ```
 
 ### Running with Docker (Future Enhancement)
+
 The run scripts are designed to be extended with Docker support:
 
 ```bash
@@ -204,6 +223,7 @@ When adding new services or modifying existing ones:
 ## Script Architecture
 
 The run scripts use:
+
 - **Turbo** for monorepo task orchestration
 - **npm workspaces** for dependency management
 - **TypeScript** for type checking

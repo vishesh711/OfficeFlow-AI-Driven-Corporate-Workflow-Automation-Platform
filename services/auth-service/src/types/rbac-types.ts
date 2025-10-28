@@ -77,7 +77,7 @@ export const RESOURCES = {
   ORGANIZATION: 'organization',
   AUDIT_LOG: 'audit_log',
   INTEGRATION: 'integration',
-  SYSTEM: 'system'
+  SYSTEM: 'system',
 } as const;
 
 export const ACTIONS = {
@@ -87,7 +87,7 @@ export const ACTIONS = {
   DELETE: 'delete',
   EXECUTE: 'execute',
   MANAGE: 'manage',
-  ADMIN: 'admin'
+  ADMIN: 'admin',
 } as const;
 
 // System roles with predefined permissions
@@ -101,8 +101,8 @@ export const SYSTEM_ROLES = {
       `${RESOURCES.USER}:${ACTIONS.MANAGE}`,
       `${RESOURCES.WORKFLOW}:${ACTIONS.MANAGE}`,
       `${RESOURCES.AUDIT_LOG}:${ACTIONS.READ}`,
-      `${RESOURCES.INTEGRATION}:${ACTIONS.MANAGE}`
-    ]
+      `${RESOURCES.INTEGRATION}:${ACTIONS.MANAGE}`,
+    ],
   },
   MANAGER: {
     name: 'manager',
@@ -117,8 +117,8 @@ export const SYSTEM_ROLES = {
       `${RESOURCES.USER}:${ACTIONS.UPDATE}`,
       `${RESOURCES.AUDIT_LOG}:${ACTIONS.READ}`,
       `${RESOURCES.INTEGRATION}:${ACTIONS.READ}`,
-      `${RESOURCES.INTEGRATION}:${ACTIONS.UPDATE}`
-    ]
+      `${RESOURCES.INTEGRATION}:${ACTIONS.UPDATE}`,
+    ],
   },
   USER: {
     name: 'user',
@@ -127,17 +127,14 @@ export const SYSTEM_ROLES = {
       `${RESOURCES.WORKFLOW}:${ACTIONS.READ}`,
       `${RESOURCES.WORKFLOW}:${ACTIONS.EXECUTE}`,
       `${RESOURCES.USER}:${ACTIONS.READ}`,
-      `${RESOURCES.AUDIT_LOG}:${ACTIONS.READ}`
-    ]
+      `${RESOURCES.AUDIT_LOG}:${ACTIONS.READ}`,
+    ],
   },
   VIEWER: {
     name: 'viewer',
     description: 'Read-only access to workflows and basic information',
-    permissions: [
-      `${RESOURCES.WORKFLOW}:${ACTIONS.READ}`,
-      `${RESOURCES.USER}:${ACTIONS.READ}`
-    ]
-  }
+    permissions: [`${RESOURCES.WORKFLOW}:${ACTIONS.READ}`, `${RESOURCES.USER}:${ACTIONS.READ}`],
+  },
 } as const;
 
 // Permission validation helpers
@@ -152,16 +149,18 @@ export function parsePermission(permission: string): { resource: string; action:
 
 export function isValidPermission(permission: string): boolean {
   const { resource, action } = parsePermission(permission);
-  return Object.values(RESOURCES).includes(resource as any) && 
-         Object.values(ACTIONS).includes(action as any);
+  return (
+    Object.values(RESOURCES).includes(resource as any) &&
+    Object.values(ACTIONS).includes(action as any)
+  );
 }
 
 // Role hierarchy for permission inheritance
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
-  'viewer': 1,
-  'user': 2,
-  'manager': 3,
-  'admin': 4
+  viewer: 1,
+  user: 2,
+  manager: 3,
+  admin: 4,
 };
 
 export function hasRoleHierarchy(userRole: UserRole, requiredRole: UserRole): boolean {

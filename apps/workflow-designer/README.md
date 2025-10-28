@@ -82,22 +82,27 @@ VITE_API_BASE_URL=http://localhost:3000/api
 ## Node Types
 
 ### Triggers
+
 - **Event Trigger**: Responds to lifecycle events
 - **Schedule**: Time-based triggers
 
 ### Identity & Access
+
 - **Identity Service**: Account provisioning/deprovisioning
 
 ### Communication
+
 - **Email**: Send personalized emails
 - **Slack**: Team communication
 - **Calendar**: Meeting scheduling
 
 ### Documents & AI
+
 - **Document**: File distribution
 - **AI Content**: LLM-powered content generation
 
 ### Flow Control
+
 - **Condition**: Conditional branching
 - **Delay**: Time delays
 

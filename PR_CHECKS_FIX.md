@@ -3,25 +3,30 @@
 ## ✅ Issues Fixed
 
 ### **1. Bundle Size Check Failing**
+
 **Problem**: Missing `.size-limit.json` configuration file  
 **Fix**: Created `.size-limit.json` with bundle size limits  
 **Location**: `.size-limit.json`
 
 ### **2. Security.md Missing**
+
 **Problem**: Security policy compliance check needed this file  
 **Fix**: Created minimal `SECURITY.md` file  
 **Location**: `SECURITY.md`
 
 ### **3. PR Checks Too Strict**
+
 **Problem**: PR checks were failing the entire workflow  
 **Fix**: Added `continue-on-error: true` to non-critical checks:
+
 - PR Labels check
-- Bundle size check  
+- Bundle size check
 - Dependency review
 - License compliance
 - Infrastructure as Code scan
 
 **Modified Files**:
+
 - `.github/workflows/pr-checks.yml`
 - `.github/workflows/security.yml`
 
@@ -30,6 +35,7 @@
 After these fixes:
 
 ✅ **Will Pass:**
+
 - Security Policy Compliance (SECURITY.md exists)
 - Secret Scanning
 - SAST (CodeQL, Semgrep)
@@ -37,6 +43,7 @@ After these fixes:
 - Code Quality Checks
 
 ⚠️ **May Warn (but won't fail):**
+
 - PR Labels (if no labels added)
 - Bundle Size Check
 - Dependency Review
@@ -44,6 +51,7 @@ After these fixes:
 - IaC Scan
 
 ❌ **May Still Fail (needs code fixes):**
+
 - Lint & Type Check (if code has linting errors)
 - Run Tests (if tests are failing)
 
@@ -77,6 +85,7 @@ pnpm run test -- --verbose
 ### **To Add PR Label (Optional):**
 
 On your PR page, add one of these labels:
+
 - `enhancement` - New feature
 - `bug` - Bug fix
 - `documentation` - Documentation changes
@@ -122,13 +131,15 @@ Go to your PR and add an appropriate label from the list above.
 ## 📊 Expected Results
 
 ### **Before Fixes:**
+
 ```
 ❌ 10 failing
-⏭️ 7 skipped  
+⏭️ 7 skipped
 ✅ 6 successful
 ```
 
 ### **After Fixes:**
+
 ```
 ✅ 15+ passing (including checks that now continue on error)
 ⚠️ 2-3 warnings (non-critical)
@@ -138,18 +149,24 @@ Go to your PR and add an appropriate label from the list above.
 ## 🔍 What Each Fix Does
 
 ### **.size-limit.json**
+
 Defines acceptable bundle sizes for the frontend:
+
 - Main bundle: 500 KB limit
 - CSS bundle: 100 KB limit
 
 ### **SECURITY.md**
+
 Provides security policy information:
+
 - Supported versions
 - How to report vulnerabilities
 - Security features
 
 ### **continue-on-error: true**
+
 Makes checks non-blocking:
+
 - PR can merge even if these checks have warnings
 - Still provides feedback but doesn't block workflow
 
@@ -220,7 +237,7 @@ Update `.github/workflows/ci.yml`:
 ```yaml
 - name: Run tests
   run: pnpm run test
-  continue-on-error: true  # Add this if tests aren't critical yet
+  continue-on-error: true # Add this if tests aren't critical yet
 ```
 
 ## 📞 Still Having Issues?
@@ -234,30 +251,32 @@ Update `.github/workflows/ci.yml`:
 
 ### **Common Solutions:**
 
-| Issue | Solution |
-|-------|----------|
-| Lint failures | Run `pnpm run lint --fix` |
-| Type errors | Fix TypeScript errors in code |
-| Test failures | Fix or skip failing tests temporarily |
-| Bundle too large | Optimize imports and code splitting |
+| Issue            | Solution                              |
+| ---------------- | ------------------------------------- |
+| Lint failures    | Run `pnpm run lint --fix`             |
+| Type errors      | Fix TypeScript errors in code         |
+| Test failures    | Fix or skip failing tests temporarily |
+| Bundle too large | Optimize imports and code splitting   |
 
 ---
 
 ## ✅ Summary
 
 **Fixed:**
+
 - ✅ Missing configuration files
 - ✅ Overly strict PR checks
 - ✅ Security compliance requirements
 
 **Remaining:**
+
 - ⚠️ Code linting (if applicable)
 - ⚠️ Test failures (if applicable)
 
 **Next Step:**
+
 ```bash
 git add . && git commit -m "fix: PR checks configuration" && git push
 ```
 
 Then fix any remaining lint/test issues in your code!
-

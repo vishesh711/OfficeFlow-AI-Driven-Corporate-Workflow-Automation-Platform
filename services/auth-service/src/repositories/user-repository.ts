@@ -14,14 +14,17 @@ export class UserRepository {
    */
   async findByEmail(email: string): Promise<User | null> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         SELECT user_id, org_id, email, password_hash, first_name, last_name,
                role, is_active, last_login_at, mfa_enabled, mfa_setup_required,
                password_changed_at, failed_login_attempts, locked_until,
                created_at, updated_at
         FROM users
         WHERE email = $1
-      `, [email.toLowerCase()]);
+      `,
+        [email.toLowerCase()]
+      );
 
       if (result.rows.length === 0) {
         return null;
@@ -31,7 +34,7 @@ export class UserRepository {
     } catch (error) {
       this.logger.error('Error finding user by email', {
         email,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -42,14 +45,17 @@ export class UserRepository {
    */
   async findById(userId: UUID): Promise<User | null> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         SELECT user_id, org_id, email, password_hash, first_name, last_name,
                role, is_active, last_login_at, mfa_enabled, mfa_setup_required,
                password_changed_at, failed_login_attempts, locked_until,
                created_at, updated_at
         FROM users
         WHERE user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       if (result.rows.length === 0) {
         return null;
@@ -59,7 +65,7 @@ export class UserRepository {
     } catch (error) {
       this.logger.error('Error finding user by ID', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -78,7 +84,8 @@ export class UserRepository {
     mfaSetupRequired?: boolean;
   }): Promise<User> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         INSERT INTO users (
           org_id, email, password_hash, first_name, last_name, role,
           mfa_setup_required, password_changed_at
@@ -88,29 +95,31 @@ export class UserRepository {
                   role, is_active, last_login_at, mfa_enabled, mfa_setup_required,
                   password_changed_at, failed_login_attempts, locked_until,
                   created_at, updated_at
-      `, [
-        userData.orgId,
-        userData.email.toLowerCase(),
-        userData.passwordHash,
-        userData.firstName,
-        userData.lastName,
-        userData.role,
-        userData.mfaSetupRequired || false
-      ]);
+      `,
+        [
+          userData.orgId,
+          userData.email.toLowerCase(),
+          userData.passwordHash,
+          userData.firstName,
+          userData.lastName,
+          userData.role,
+          userData.mfaSetupRequired || false,
+        ]
+      );
 
       const user = this.mapRowToUser(result.rows[0]);
 
       this.logger.info('User created', {
         userId: user.userId,
         email: user.email,
-        role: user.role
+        role: user.role,
       });
 
       return user;
     } catch (error) {
       this.logger.error('Error creating user', {
         email: userData.email,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -122,25 +131,31 @@ export class UserRepository {
   async updatePassword(userId: UUID, passwordHash: string): Promise<void> {
     try {
       // Store old password in history
-      await this.db.query(`
+      await this.db.query(
+        `
         INSERT INTO password_history (user_id, password_hash)
         SELECT user_id, password_hash
         FROM users
         WHERE user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       // Update password
-      await this.db.query(`
+      await this.db.query(
+        `
         UPDATE users
         SET password_hash = $1, password_changed_at = NOW(), failed_login_attempts = 0, locked_until = NULL
         WHERE user_id = $2
-      `, [passwordHash, userId]);
+      `,
+        [passwordHash, userId]
+      );
 
       this.logger.info('User password updated', { userId });
     } catch (error) {
       this.logger.error('Error updating user password', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -151,15 +166,18 @@ export class UserRepository {
    */
   async updateLastLogin(userId: UUID): Promise<void> {
     try {
-      await this.db.query(`
+      await this.db.query(
+        `
         UPDATE users
         SET last_login_at = NOW(), failed_login_attempts = 0, locked_until = NULL
         WHERE user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
     } catch (error) {
       this.logger.error('Error updating last login', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -170,7 +188,8 @@ export class UserRepository {
    */
   async incrementFailedLoginAttempts(userId: UUID): Promise<void> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         UPDATE users
         SET failed_login_attempts = failed_login_attempts + 1,
             locked_until = CASE 
@@ -179,20 +198,22 @@ export class UserRepository {
             END
         WHERE user_id = $1
         RETURNING failed_login_attempts, locked_until
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       if (result.rows.length > 0) {
         const { failed_login_attempts, locked_until } = result.rows[0];
         this.logger.warn('Failed login attempt recorded', {
           userId,
           failedAttempts: failed_login_attempts,
-          lockedUntil: locked_until
+          lockedUntil: locked_until,
         });
       }
     } catch (error) {
       this.logger.error('Error incrementing failed login attempts', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -203,17 +224,20 @@ export class UserRepository {
    */
   async enableMfa(userId: UUID): Promise<void> {
     try {
-      await this.db.query(`
+      await this.db.query(
+        `
         UPDATE users
         SET mfa_enabled = true, mfa_setup_required = false
         WHERE user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       this.logger.info('MFA enabled for user', { userId });
     } catch (error) {
       this.logger.error('Error enabling MFA', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -224,23 +248,29 @@ export class UserRepository {
    */
   async disableMfa(userId: UUID): Promise<void> {
     try {
-      await this.db.query(`
+      await this.db.query(
+        `
         UPDATE users
         SET mfa_enabled = false
         WHERE user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       // Also remove MFA secrets
-      await this.db.query(`
+      await this.db.query(
+        `
         DELETE FROM user_mfa_secrets
         WHERE user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       this.logger.info('MFA disabled for user', { userId });
     } catch (error) {
       this.logger.error('Error disabling MFA', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -251,11 +281,14 @@ export class UserRepository {
    */
   async isUserLocked(userId: UUID): Promise<boolean> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         SELECT locked_until
         FROM users
         WHERE user_id = $1
-      `, [userId]);
+      `,
+        [userId]
+      );
 
       if (result.rows.length === 0) {
         return false;
@@ -266,7 +299,7 @@ export class UserRepository {
     } catch (error) {
       this.logger.error('Error checking if user is locked', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return false;
     }
@@ -277,19 +310,22 @@ export class UserRepository {
    */
   async getPasswordHistory(userId: UUID, limit: number = 12): Promise<string[]> {
     try {
-      const result = await this.db.query(`
+      const result = await this.db.query(
+        `
         SELECT password_hash
         FROM password_history
         WHERE user_id = $1
         ORDER BY created_at DESC
         LIMIT $2
-      `, [userId, limit]);
+      `,
+        [userId, limit]
+      );
 
-      return result.rows.map(row => row.password_hash);
+      return result.rows.map((row) => row.password_hash);
     } catch (error) {
       this.logger.error('Error getting password history', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return [];
     }
@@ -311,7 +347,7 @@ export class UserRepository {
       lastLoginAt: row.last_login_at,
       mfaEnabled: row.mfa_enabled || false,
       createdAt: row.created_at,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
     };
   }
 }

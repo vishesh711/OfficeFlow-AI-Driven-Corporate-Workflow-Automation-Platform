@@ -5,18 +5,21 @@ The Identity Service is a node executor for the OfficeFlow platform that handles
 ## Features
 
 ### OAuth2 Integration Framework
+
 - Generic OAuth2 client implementation
 - Encrypted credential storage with automatic token refresh
 - Support for multiple identity providers
 - Provider-specific API adapters
 
 ### Supported Identity Providers
+
 - **Google Workspace**: User and group management via Admin SDK
 - **Office 365**: User and group management via Microsoft Graph API
 - **Okta**: (Planned)
 - **Active Directory**: (Planned)
 
 ### Account Provisioning Operations
+
 - User account creation with role-based group assignment
 - Account updates and modifications
 - Account deactivation and cleanup procedures
@@ -24,6 +27,7 @@ The Identity Service is a node executor for the OfficeFlow platform that handles
 - Group membership management
 
 ### Audit Logging and Compliance
+
 - Comprehensive audit trail for all identity operations
 - Compliance reporting (access reviews, provisioning audits)
 - Integration with central audit service
@@ -80,6 +84,7 @@ LOG_FORMAT=json
 ### Provider Setup
 
 #### Google Workspace
+
 1. Create a project in Google Cloud Console
 2. Enable the Admin SDK API
 3. Create OAuth2 credentials
@@ -90,6 +95,7 @@ LOG_FORMAT=json
    - `https://www.googleapis.com/auth/admin.directory.orgunit`
 
 #### Office 365
+
 1. Register an application in Azure AD
 2. Configure API permissions for Microsoft Graph:
    - `User.ReadWrite.All`
@@ -101,6 +107,7 @@ LOG_FORMAT=json
 ## API Endpoints
 
 ### Node Execution
+
 ```http
 POST /execute
 Content-Type: application/json
@@ -132,11 +139,13 @@ Content-Type: application/json
 ```
 
 ### Audit Trail
+
 ```http
 GET /audit/{organizationId}?startDate=2024-01-01&endDate=2024-01-31&limit=100&offset=0
 ```
 
 ### Compliance Reports
+
 ```http
 POST /compliance-report
 Content-Type: application/json
@@ -153,6 +162,7 @@ Content-Type: application/json
 ## Node Parameters
 
 ### Provision Action
+
 ```json
 {
   "provider": "google_workspace",
@@ -168,6 +178,7 @@ Content-Type: application/json
 ```
 
 ### Deprovision Action
+
 ```json
 {
   "provider": "google_workspace",
@@ -177,6 +188,7 @@ Content-Type: application/json
 ```
 
 ### Update Action
+
 ```json
 {
   "provider": "google_workspace",
@@ -188,6 +200,7 @@ Content-Type: application/json
 ```
 
 ### Assign Groups Action
+
 ```json
 {
   "provider": "google_workspace",
@@ -210,18 +223,21 @@ Run the migrations in the `migrations/` directory to set up the required schema.
 ## Development
 
 ### Running Locally
+
 ```bash
 npm install
 npm run dev
 ```
 
 ### Running Tests
+
 ```bash
 npm test
 npm run test:watch
 ```
 
 ### Building
+
 ```bash
 npm run build
 npm start
@@ -239,6 +255,7 @@ npm start
 ## Monitoring and Observability
 
 The service provides:
+
 - Structured JSON logging with correlation IDs
 - Health check endpoint (`/health`)
 - Prometheus metrics (planned)
@@ -264,6 +281,7 @@ The service provides:
 ### Logs
 
 Check the service logs for detailed error information:
+
 ```bash
 tail -f logs/identity-service.log
 ```
@@ -271,6 +289,7 @@ tail -f logs/identity-service.log
 ### Health Check
 
 Verify service health:
+
 ```bash
 curl http://localhost:3003/health
 ```

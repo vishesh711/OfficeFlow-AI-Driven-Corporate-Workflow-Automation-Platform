@@ -33,8 +33,7 @@ async function setupTopics() {
     // List all topics for verification
     const topics = await topicManager.listTopics();
     console.log(`\nCreated ${topics.length} topics:`);
-    topics.sort().forEach(topic => console.log(`  - ${topic}`));
-
+    topics.sort().forEach((topic) => console.log(`  - ${topic}`));
   } catch (error) {
     console.error('Failed to setup Kafka topics:', error);
     process.exit(1);

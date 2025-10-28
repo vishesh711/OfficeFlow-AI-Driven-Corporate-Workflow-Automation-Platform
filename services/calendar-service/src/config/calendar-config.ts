@@ -11,7 +11,8 @@ export const getCalendarConfig = (): CalendarServiceConfig => {
       config: {
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        redirectUri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3004/auth/google/callback',
+        redirectUri:
+          process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3004/auth/google/callback',
       },
       isDefault: true,
     });
@@ -26,7 +27,8 @@ export const getCalendarConfig = (): CalendarServiceConfig => {
         clientId: process.env.MICROSOFT_CLIENT_ID,
         clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
         tenantId: process.env.MICROSOFT_TENANT_ID || 'common',
-        redirectUri: process.env.MICROSOFT_REDIRECT_URI || 'http://localhost:3004/auth/microsoft/callback',
+        redirectUri:
+          process.env.MICROSOFT_REDIRECT_URI || 'http://localhost:3004/auth/microsoft/callback',
       },
       isDefault: !providers.length,
     });
@@ -39,9 +41,9 @@ export const getCalendarConfig = (): CalendarServiceConfig => {
     workingHours: {
       start: process.env.WORKING_HOURS_START || '09:00',
       end: process.env.WORKING_HOURS_END || '17:00',
-      days: process.env.WORKING_DAYS ? 
-        process.env.WORKING_DAYS.split(',').map(d => parseInt(d)) : 
-        [1, 2, 3, 4, 5], // Monday to Friday
+      days: process.env.WORKING_DAYS
+        ? process.env.WORKING_DAYS.split(',').map((d) => parseInt(d))
+        : [1, 2, 3, 4, 5], // Monday to Friday
     },
     meetingDefaults: {
       duration: parseInt(process.env.DEFAULT_MEETING_DURATION || '30'),

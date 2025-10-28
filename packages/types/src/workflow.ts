@@ -67,7 +67,7 @@ export interface ExecutionCondition {
   logicalOperator?: 'AND' | 'OR';
 }
 
-export type NodeType = 
+export type NodeType =
   | 'identity.provision'
   | 'identity.deprovision'
   | 'email.send'

@@ -33,7 +33,7 @@ export class RedisClusterManager {
   async getClusterHealth(): Promise<ClusterHealth> {
     try {
       const connectionHealth = await this.stateManager.getConnectionHealth();
-      
+
       if (connectionHealth.status !== 'connected') {
         return {
           status: 'unhealthy',
@@ -54,13 +54,15 @@ export class RedisClusterManager {
         connectedNodes: 1,
         masterNodes: 1,
         slaveNodes: 0,
-        nodes: [{
-          id: 'single-node',
-          host: 'localhost',
-          port: 6379,
-          role: 'master',
-          status: 'connected',
-        }],
+        nodes: [
+          {
+            id: 'single-node',
+            host: 'localhost',
+            port: 6379,
+            role: 'master',
+            status: 'connected',
+          },
+        ],
         warnings: [],
       };
 
@@ -97,7 +99,7 @@ export class RedisClusterManager {
   }> {
     try {
       const connectionHealth = await this.stateManager.getConnectionHealth();
-      
+
       // This would be expanded with actual Redis INFO command parsing
       return {
         operationsPerSecond: 0,
@@ -175,7 +177,7 @@ export class RedisClusterManager {
 
     try {
       const health = await this.getClusterHealth();
-      
+
       if (health.status === 'unhealthy') {
         issues.push('Cluster is in unhealthy state');
       }
@@ -189,7 +191,7 @@ export class RedisClusterManager {
       }
 
       const stats = await this.stateManager.getWorkflowStats();
-      
+
       if (stats.totalActiveWorkflows > 1000) {
         recommendations.push('High number of active workflows - consider scaling');
       }
@@ -215,24 +217,28 @@ export class RedisClusterManager {
   /**
    * Get workflow distribution across cluster nodes
    */
-  async getWorkflowDistribution(): Promise<{
-    nodeId: string;
-    activeWorkflows: number;
-    scheduledRetries: number;
-    memoryUsage: string;
-  }[]> {
+  async getWorkflowDistribution(): Promise<
+    {
+      nodeId: string;
+      activeWorkflows: number;
+      scheduledRetries: number;
+      memoryUsage: string;
+    }[]
+  > {
     try {
       // This would be implemented for actual cluster setups
       // For now, return single node stats
       const stats = await this.stateManager.getWorkflowStats();
       const health = await this.stateManager.getConnectionHealth();
 
-      return [{
-        nodeId: 'single-node',
-        activeWorkflows: stats.totalActiveWorkflows,
-        scheduledRetries: stats.totalScheduledRetries,
-        memoryUsage: health.memoryUsage || '0B',
-      }];
+      return [
+        {
+          nodeId: 'single-node',
+          activeWorkflows: stats.totalActiveWorkflows,
+          scheduledRetries: stats.totalScheduledRetries,
+          memoryUsage: health.memoryUsage || '0B',
+        },
+      ];
     } catch (error) {
       console.error('Failed to get workflow distribution:', error);
       return [];
@@ -250,7 +256,7 @@ export class RedisClusterManager {
     try {
       // This would implement actual workflow rebalancing logic
       // For single-node setups, this is a no-op
-      
+
       return {
         success: true,
         movedWorkflows: 0,

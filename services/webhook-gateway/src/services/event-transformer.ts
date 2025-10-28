@@ -1,5 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { WebhookPayload, NormalizedLifecycleEvent, EmployeeData, EventMetadata, TransformationRule } from '../types/webhook-types';
+import {
+  WebhookPayload,
+  NormalizedLifecycleEvent,
+  EmployeeData,
+  EventMetadata,
+  TransformationRule,
+} from '../types/webhook-types';
 import { logger } from '../utils/logger';
 
 export class EventTransformer {
@@ -34,10 +40,10 @@ export class EventTransformer {
     rules?: TransformationRule[]
   ): NormalizedLifecycleEvent[] {
     const events: NormalizedLifecycleEvent[] = [];
-    
+
     // Workday can send multiple events in one payload
     const workdayEvents = Array.isArray(payload.data.events) ? payload.data.events : [payload.data];
-    
+
     for (const event of workdayEvents) {
       const eventType = this.mapWorkdayEventType(event.eventType || payload.eventType);
       if (!eventType) continue;
@@ -78,24 +84,26 @@ export class EventTransformer {
     const employee = this.extractSuccessFactorsEmployeeData(payload.data, rules);
     if (!employee.id) return [];
 
-    return [{
-      type: eventType,
-      organizationId: payload.organizationId,
-      employeeId: employee.id,
-      payload: {
-        employee,
-        metadata: {
-          source: 'successfactors',
-          sourceEventId: payload.data.eventId,
-          sourceEventType: payload.eventType,
-          processedAt: new Date(),
-          version: '1.0',
+    return [
+      {
+        type: eventType,
+        organizationId: payload.organizationId,
+        employeeId: employee.id,
+        payload: {
+          employee,
+          metadata: {
+            source: 'successfactors',
+            sourceEventId: payload.data.eventId,
+            sourceEventType: payload.eventType,
+            processedAt: new Date(),
+            version: '1.0',
+          },
         },
+        timestamp: new Date(payload.timestamp),
+        source: 'successfactors',
+        correlationId: uuidv4(),
       },
-      timestamp: new Date(payload.timestamp),
-      source: 'successfactors',
-      correlationId: uuidv4(),
-    }];
+    ];
   }
 
   private static transformBambooHREvent(
@@ -108,24 +116,26 @@ export class EventTransformer {
     const employee = this.extractBambooHREmployeeData(payload.data, rules);
     if (!employee.id) return [];
 
-    return [{
-      type: eventType,
-      organizationId: payload.organizationId,
-      employeeId: employee.id,
-      payload: {
-        employee,
-        metadata: {
-          source: 'bamboohr',
-          sourceEventId: payload.data.id,
-          sourceEventType: payload.eventType,
-          processedAt: new Date(),
-          version: '1.0',
+    return [
+      {
+        type: eventType,
+        organizationId: payload.organizationId,
+        employeeId: employee.id,
+        payload: {
+          employee,
+          metadata: {
+            source: 'bamboohr',
+            sourceEventId: payload.data.id,
+            sourceEventType: payload.eventType,
+            processedAt: new Date(),
+            version: '1.0',
+          },
         },
+        timestamp: new Date(payload.timestamp),
+        source: 'bamboohr',
+        correlationId: uuidv4(),
       },
-      timestamp: new Date(payload.timestamp),
-      source: 'bamboohr',
-      correlationId: uuidv4(),
-    }];
+    ];
   }
 
   private static transformGenericEvent(
@@ -138,24 +148,26 @@ export class EventTransformer {
     const employee = this.extractGenericEmployeeData(payload.data, rules);
     if (!employee.id) return [];
 
-    return [{
-      type: eventType,
-      organizationId: payload.organizationId,
-      employeeId: employee.id,
-      payload: {
-        employee,
-        metadata: {
-          source: 'generic',
-          sourceEventId: payload.data.id || uuidv4(),
-          sourceEventType: payload.eventType,
-          processedAt: new Date(),
-          version: '1.0',
+    return [
+      {
+        type: eventType,
+        organizationId: payload.organizationId,
+        employeeId: employee.id,
+        payload: {
+          employee,
+          metadata: {
+            source: 'generic',
+            sourceEventId: payload.data.id || uuidv4(),
+            sourceEventType: payload.eventType,
+            processedAt: new Date(),
+            version: '1.0',
+          },
         },
+        timestamp: new Date(payload.timestamp),
+        source: 'generic',
+        correlationId: uuidv4(),
       },
-      timestamp: new Date(payload.timestamp),
-      source: 'generic',
-      correlationId: uuidv4(),
-    }];
+    ];
   }
 
   private static mapWorkdayEventType(eventType: string): NormalizedLifecycleEvent['type'] | null {
@@ -170,7 +182,9 @@ export class EventTransformer {
     return mapping[eventType.toLowerCase()] || null;
   }
 
-  private static mapSuccessFactorsEventType(eventType: string): NormalizedLifecycleEvent['type'] | null {
+  private static mapSuccessFactorsEventType(
+    eventType: string
+  ): NormalizedLifecycleEvent['type'] | null {
     const mapping: Record<string, NormalizedLifecycleEvent['type']> = {
       'employee.hired': 'employee.onboard',
       'employee.terminated': 'employee.exit',
@@ -191,95 +205,116 @@ export class EventTransformer {
 
   private static mapGenericEventType(eventType: string): NormalizedLifecycleEvent['type'] | null {
     const mapping: Record<string, NormalizedLifecycleEvent['type']> = {
-      'onboard': 'employee.onboard',
-      'hire': 'employee.onboard',
-      'exit': 'employee.exit',
-      'terminate': 'employee.exit',
-      'transfer': 'employee.transfer',
-      'update': 'employee.update',
+      onboard: 'employee.onboard',
+      hire: 'employee.onboard',
+      exit: 'employee.exit',
+      terminate: 'employee.exit',
+      transfer: 'employee.transfer',
+      update: 'employee.update',
     };
     return mapping[eventType.toLowerCase()] || null;
   }
 
   private static extractWorkdayEmployeeData(data: any, rules?: TransformationRule[]): EmployeeData {
     const worker = data.worker || data;
-    return this.applyTransformationRules({
-      id: worker.workerId || worker.id,
-      email: worker.email || worker.workEmail,
-      firstName: worker.firstName || worker.givenName,
-      lastName: worker.lastName || worker.familyName,
-      department: worker.department || worker.organizationUnit,
-      jobTitle: worker.jobTitle || worker.position,
-      managerId: worker.managerId || worker.supervisorId,
-      startDate: worker.startDate ? new Date(worker.startDate) : undefined,
-      endDate: worker.endDate ? new Date(worker.endDate) : undefined,
-      location: worker.location || worker.workLocation,
-      employeeType: worker.employeeType || worker.workerType,
-      status: this.mapStatus(worker.status || 'active'),
-    }, rules);
+    return this.applyTransformationRules(
+      {
+        id: worker.workerId || worker.id,
+        email: worker.email || worker.workEmail,
+        firstName: worker.firstName || worker.givenName,
+        lastName: worker.lastName || worker.familyName,
+        department: worker.department || worker.organizationUnit,
+        jobTitle: worker.jobTitle || worker.position,
+        managerId: worker.managerId || worker.supervisorId,
+        startDate: worker.startDate ? new Date(worker.startDate) : undefined,
+        endDate: worker.endDate ? new Date(worker.endDate) : undefined,
+        location: worker.location || worker.workLocation,
+        employeeType: worker.employeeType || worker.workerType,
+        status: this.mapStatus(worker.status || 'active'),
+      },
+      rules
+    );
   }
 
-  private static extractSuccessFactorsEmployeeData(data: any, rules?: TransformationRule[]): EmployeeData {
-    return this.applyTransformationRules({
-      id: data.userId || data.employeeId,
-      email: data.email || data.workEmail,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      department: data.department,
-      jobTitle: data.jobTitle || data.title,
-      managerId: data.managerId,
-      startDate: data.startDate ? new Date(data.startDate) : undefined,
-      endDate: data.endDate ? new Date(data.endDate) : undefined,
-      location: data.location,
-      employeeType: data.employeeType,
-      status: this.mapStatus(data.status || 'active'),
-    }, rules);
+  private static extractSuccessFactorsEmployeeData(
+    data: any,
+    rules?: TransformationRule[]
+  ): EmployeeData {
+    return this.applyTransformationRules(
+      {
+        id: data.userId || data.employeeId,
+        email: data.email || data.workEmail,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        department: data.department,
+        jobTitle: data.jobTitle || data.title,
+        managerId: data.managerId,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
+        location: data.location,
+        employeeType: data.employeeType,
+        status: this.mapStatus(data.status || 'active'),
+      },
+      rules
+    );
   }
 
-  private static extractBambooHREmployeeData(data: any, rules?: TransformationRule[]): EmployeeData {
-    return this.applyTransformationRules({
-      id: data.id || data.employeeId,
-      email: data.workEmail || data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      department: data.department,
-      jobTitle: data.jobTitle,
-      managerId: data.supervisorId,
-      startDate: data.hireDate ? new Date(data.hireDate) : undefined,
-      endDate: data.terminationDate ? new Date(data.terminationDate) : undefined,
-      location: data.location,
-      employeeType: data.employmentStatus,
-      status: this.mapStatus(data.status || 'active'),
-    }, rules);
+  private static extractBambooHREmployeeData(
+    data: any,
+    rules?: TransformationRule[]
+  ): EmployeeData {
+    return this.applyTransformationRules(
+      {
+        id: data.id || data.employeeId,
+        email: data.workEmail || data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        department: data.department,
+        jobTitle: data.jobTitle,
+        managerId: data.supervisorId,
+        startDate: data.hireDate ? new Date(data.hireDate) : undefined,
+        endDate: data.terminationDate ? new Date(data.terminationDate) : undefined,
+        location: data.location,
+        employeeType: data.employmentStatus,
+        status: this.mapStatus(data.status || 'active'),
+      },
+      rules
+    );
   }
 
   private static extractGenericEmployeeData(data: any, rules?: TransformationRule[]): EmployeeData {
-    return this.applyTransformationRules({
-      id: data.id || data.employeeId,
-      email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      department: data.department,
-      jobTitle: data.jobTitle,
-      managerId: data.managerId,
-      startDate: data.startDate ? new Date(data.startDate) : undefined,
-      endDate: data.endDate ? new Date(data.endDate) : undefined,
-      location: data.location,
-      employeeType: data.employeeType,
-      status: this.mapStatus(data.status || 'active'),
-    }, rules);
+    return this.applyTransformationRules(
+      {
+        id: data.id || data.employeeId,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        department: data.department,
+        jobTitle: data.jobTitle,
+        managerId: data.managerId,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
+        location: data.location,
+        employeeType: data.employeeType,
+        status: this.mapStatus(data.status || 'active'),
+      },
+      rules
+    );
   }
 
-  private static applyTransformationRules(employee: EmployeeData, rules?: TransformationRule[]): EmployeeData {
+  private static applyTransformationRules(
+    employee: EmployeeData,
+    rules?: TransformationRule[]
+  ): EmployeeData {
     if (!rules || rules.length === 0) return employee;
 
     const transformed = { ...employee };
-    
+
     for (const rule of rules) {
       const sourceValue = (employee as any)[rule.sourceField];
       if (sourceValue !== undefined) {
         let transformedValue = sourceValue;
-        
+
         switch (rule.transformation) {
           case 'uppercase':
             transformedValue = String(sourceValue).toUpperCase();
@@ -294,7 +329,7 @@ export class EventTransformer {
             transformedValue = Boolean(sourceValue);
             break;
         }
-        
+
         (transformed as any)[rule.targetField] = transformedValue;
       } else if (rule.defaultValue !== undefined) {
         (transformed as any)[rule.targetField] = rule.defaultValue;

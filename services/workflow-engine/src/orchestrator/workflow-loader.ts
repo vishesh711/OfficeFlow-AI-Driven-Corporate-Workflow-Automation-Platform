@@ -2,12 +2,7 @@
  * Workflow loading and version management service
  */
 
-import { 
-  WorkflowDefinition, 
-  WorkflowRepository, 
-  WorkflowEntity,
-  UUID 
-} from '@officeflow/types';
+import { WorkflowDefinition, WorkflowRepository, WorkflowEntity, UUID } from '@officeflow/types';
 import { WorkflowParser, ParsedWorkflow } from './workflow-parser';
 import { mapWorkflowEntityToDefinition } from '../utils/entity-mappers';
 
@@ -33,28 +28,23 @@ export class WorkflowLoader {
   private workflowCache = new Map<string, { workflow: ParsedWorkflow; timestamp: number }>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  constructor(
-    private workflowRepo: WorkflowRepository
-  ) {}
+  constructor(private workflowRepo: WorkflowRepository) {}
 
   /**
    * Load and parse workflow by ID
    */
-  async loadWorkflow(
-    workflowId: UUID, 
-    options: WorkflowLoadOptions = {}
-  ): Promise<ParsedWorkflow> {
+  async loadWorkflow(workflowId: UUID, options: WorkflowLoadOptions = {}): Promise<ParsedWorkflow> {
     const cacheKey = `${workflowId}:${options.version || 'active'}`;
-    
+
     // Check cache first
     const cached = this.workflowCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < this.CACHE_TTL) {
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       return cached.workflow;
     }
 
     // Load from database
     let workflowEntity: WorkflowEntity | null;
-    
+
     if (options.version) {
       workflowEntity = await this.loadWorkflowVersion(workflowId, options.version);
     } else {
@@ -72,12 +62,12 @@ export class WorkflowLoader {
 
     // Convert entity to definition and parse
     const workflowDefinition = mapWorkflowEntityToDefinition(workflowEntity);
-    
+
     if (options.validateOnly) {
       // Only validate, don't cache
       const errors = WorkflowParser.validateWorkflowDefinition(workflowDefinition);
       if (errors.length > 0) {
-        throw new Error(`Workflow validation failed: ${errors.map(e => e.message).join(', ')}`);
+        throw new Error(`Workflow validation failed: ${errors.map((e) => e.message).join(', ')}`);
       }
       // Return minimal parsed workflow for validation
       return {
@@ -87,7 +77,7 @@ export class WorkflowLoader {
         exitNodes: [],
         nodeMap: new Map(),
         edgeMap: new Map(),
-        dependencyMap: new Map()
+        dependencyMap: new Map(),
       };
     }
 
@@ -96,7 +86,7 @@ export class WorkflowLoader {
     // Cache the result
     this.workflowCache.set(cacheKey, {
       workflow: parsedWorkflow,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     return parsedWorkflow;
@@ -110,17 +100,17 @@ export class WorkflowLoader {
     organizationId?: UUID
   ): Promise<ParsedWorkflow[]> {
     const workflowEntities = await this.workflowRepo.findByEventTrigger(eventTrigger);
-    
+
     // Filter by organization if specified
-    const filteredEntities = organizationId 
-      ? workflowEntities.filter(w => w.org_id === organizationId)
+    const filteredEntities = organizationId
+      ? workflowEntities.filter((w) => w.org_id === organizationId)
       : workflowEntities;
 
     // Only include active workflows
-    const activeEntities = filteredEntities.filter(w => w.is_active);
+    const activeEntities = filteredEntities.filter((w) => w.is_active);
 
     const parsedWorkflows: ParsedWorkflow[] = [];
-    
+
     for (const entity of activeEntities) {
       try {
         const definition = mapWorkflowEntityToDefinition(entity);
@@ -142,21 +132,23 @@ export class WorkflowLoader {
     // This would require a more sophisticated query to get all versions
     // For now, we'll work with the current schema
     const workflow = await this.workflowRepo.findById(workflowId);
-    
+
     if (!workflow) {
       throw new Error(`Workflow not found: ${workflowId}`);
     }
 
     return {
       workflowId,
-      versions: [{
-        version: workflow.version,
-        isActive: workflow.is_active,
-        createdAt: workflow.created_at,
-        createdBy: workflow.created_by
-      }],
+      versions: [
+        {
+          version: workflow.version,
+          isActive: workflow.is_active,
+          createdAt: workflow.created_at,
+          createdBy: workflow.created_by,
+        },
+      ],
       activeVersion: workflow.is_active ? workflow.version : undefined,
-      latestVersion: workflow.version
+      latestVersion: workflow.version,
     };
   }
 
@@ -164,12 +156,12 @@ export class WorkflowLoader {
    * Activate workflow version
    */
   async activateWorkflowVersion(
-    workflowId: UUID, 
+    workflowId: UUID,
     version: number,
     activatedBy?: UUID
   ): Promise<void> {
     const workflow = await this.loadWorkflowVersion(workflowId, version);
-    
+
     if (!workflow) {
       throw new Error(`Workflow version not found: ${workflowId} v${version}`);
     }
@@ -177,25 +169,29 @@ export class WorkflowLoader {
     // Validate workflow before activation
     const definition = mapWorkflowEntityToDefinition(workflow);
     const errors = WorkflowParser.validateWorkflowDefinition(definition);
-    
+
     if (errors.length > 0) {
-      throw new Error(`Cannot activate invalid workflow: ${errors.map(e => e.message).join(', ')}`);
+      throw new Error(
+        `Cannot activate invalid workflow: ${errors.map((e) => e.message).join(', ')}`
+      );
     }
 
     // In a real implementation, you would:
     // 1. Deactivate all other versions of this workflow
     // 2. Activate the specified version
     // 3. Log the activation event
-    
-    await this.workflowRepo.update(workflowId, { 
+
+    await this.workflowRepo.update(workflowId, {
       is_active: true,
-      updated_at: new Date()
+      updated_at: new Date(),
     });
 
     // Clear cache for this workflow
     this.clearWorkflowCache(workflowId);
 
-    console.log(`Activated workflow ${workflowId} version ${version} by ${activatedBy || 'system'}`);
+    console.log(
+      `Activated workflow ${workflowId} version ${version} by ${activatedBy || 'system'}`
+    );
   }
 
   /**
@@ -203,14 +199,14 @@ export class WorkflowLoader {
    */
   async deactivateWorkflow(workflowId: UUID, deactivatedBy?: UUID): Promise<void> {
     const workflow = await this.workflowRepo.findById(workflowId);
-    
+
     if (!workflow) {
       throw new Error(`Workflow not found: ${workflowId}`);
     }
 
-    await this.workflowRepo.update(workflowId, { 
+    await this.workflowRepo.update(workflowId, {
       is_active: false,
-      updated_at: new Date()
+      updated_at: new Date(),
     });
 
     // Clear cache for this workflow
@@ -228,7 +224,7 @@ export class WorkflowLoader {
     createdBy?: UUID
   ): Promise<WorkflowDefinition> {
     const baseWorkflow = await this.workflowRepo.findById(baseWorkflowId);
-    
+
     if (!baseWorkflow) {
       throw new Error(`Base workflow not found: ${baseWorkflowId}`);
     }
@@ -236,12 +232,12 @@ export class WorkflowLoader {
     // Validate new definition
     const errors = WorkflowParser.validateWorkflowDefinition(updatedDefinition);
     if (errors.length > 0) {
-      throw new Error(`Invalid workflow definition: ${errors.map(e => e.message).join(', ')}`);
+      throw new Error(`Invalid workflow definition: ${errors.map((e) => e.message).join(', ')}`);
     }
 
     // Create new version (increment version number)
     const newVersion = baseWorkflow.version + 1;
-    
+
     const newWorkflowEntity: Omit<WorkflowEntity, 'created_at' | 'updated_at'> = {
       workflow_id: baseWorkflowId, // Use the same ID for versioning
       org_id: baseWorkflow.org_id,
@@ -251,7 +247,7 @@ export class WorkflowLoader {
       version: newVersion,
       is_active: false, // New versions start inactive
       definition: updatedDefinition.definition,
-      created_by: createdBy
+      created_by: createdBy,
     };
 
     const createdEntity = await this.workflowRepo.create(newWorkflowEntity);
@@ -269,15 +265,17 @@ export class WorkflowLoader {
       const errors = WorkflowParser.validateWorkflowDefinition(definition);
       return {
         isValid: errors.length === 0,
-        errors
+        errors,
       };
     } catch (error) {
       return {
         isValid: false,
-        errors: [{
-          code: 'VALIDATION_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown validation error'
-        }]
+        errors: [
+          {
+            code: 'VALIDATION_ERROR',
+            message: error instanceof Error ? error.message : 'Unknown validation error',
+          },
+        ],
       };
     }
   }
@@ -303,9 +301,10 @@ export class WorkflowLoader {
   clearWorkflowCache(workflowId?: UUID): void {
     if (workflowId) {
       // Clear specific workflow cache entries
-      const keysToDelete = Array.from(this.workflowCache.keys())
-        .filter(key => key.startsWith(`${workflowId}:`));
-      
+      const keysToDelete = Array.from(this.workflowCache.keys()).filter((key) =>
+        key.startsWith(`${workflowId}:`)
+      );
+
       for (const key of keysToDelete) {
         this.workflowCache.delete(key);
       }
@@ -325,27 +324,30 @@ export class WorkflowLoader {
     const now = Date.now();
     const entries = Array.from(this.workflowCache.entries()).map(([key, value]) => ({
       key,
-      age: now - value.timestamp
+      age: now - value.timestamp,
     }));
 
     return {
       size: this.workflowCache.size,
-      entries
+      entries,
     };
   }
 
   /**
    * Load specific workflow version (helper method)
    */
-  private async loadWorkflowVersion(workflowId: UUID, version: number): Promise<WorkflowEntity | null> {
+  private async loadWorkflowVersion(
+    workflowId: UUID,
+    version: number
+  ): Promise<WorkflowEntity | null> {
     // In the current schema, we don't have version-specific queries
     // This would need to be implemented based on your versioning strategy
     const workflow = await this.workflowRepo.findById(workflowId);
-    
+
     if (workflow && workflow.version === version) {
       return workflow;
     }
-    
+
     return null;
   }
 
@@ -357,7 +359,7 @@ export class WorkflowLoader {
     const expiredKeys: string[] = [];
 
     for (const [key, value] of this.workflowCache.entries()) {
-      if ((now - value.timestamp) > this.CACHE_TTL) {
+      if (now - value.timestamp > this.CACHE_TTL) {
         expiredKeys.push(key);
       }
     }

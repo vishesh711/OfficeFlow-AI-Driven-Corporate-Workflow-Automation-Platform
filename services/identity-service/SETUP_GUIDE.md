@@ -24,6 +24,7 @@
 **Missing:** PostgreSQL database with tables
 
 **What you need to do:**
+
 ```bash
 # 1. Install PostgreSQL
 brew install postgresql  # macOS
@@ -45,6 +46,7 @@ psql -d officeflow -f services/identity-service/migrations/003_identity_audit_ev
 **What you need to do:**
 
 ### Google Workspace Setup:
+
 ```bash
 # 1. Go to Google Cloud Console
 # 2. Create new project or select existing
@@ -58,6 +60,7 @@ export GOOGLE_REDIRECT_URI="http://localhost:3003/auth/google/callback"
 ```
 
 ### Office 365 Setup:
+
 ```bash
 # 1. Go to Azure AD Portal
 # 2. Register new application
@@ -76,6 +79,7 @@ export OFFICE365_REDIRECT_URI="http://localhost:3003/auth/office365/callback"
 **Missing:** Environment variables file
 
 **Create `.env` file:**
+
 ```bash
 # Database
 DB_HOST=localhost
@@ -104,6 +108,7 @@ ENABLE_CENTRAL_AUDIT=false
 **Missing:** Node.js packages
 
 **What you need to do:**
+
 ```bash
 cd services/identity-service
 
@@ -122,6 +127,7 @@ npm install express cors helmet compression winston joi axios jsonwebtoken crypt
 **Current Status:** I've created custom type declarations that mock these packages, so the code compiles and runs without them.
 
 **What they would contain:**
+
 - `@officeflow/types`: Common TypeScript interfaces
 - `@officeflow/shared`: Utility functions
 - `@officeflow/config`: Configuration management
@@ -183,23 +189,27 @@ Identity Service
 ### **Key Components Explained**
 
 #### 🎯 **Identity Node Executor**
+
 - **Purpose**: Main orchestrator that handles all identity operations
 - **Actions**: provision, deprovision, update, assign_groups
 - **Validation**: Uses Joi schemas to validate input
 - **Audit**: Automatically logs all operations
 
 #### 🔐 **OAuth2 Framework**
+
 - **Purpose**: Handles authentication with identity providers
 - **Security**: Encrypts tokens at rest using AES encryption
 - **Auto-refresh**: Automatically renews expired tokens
 - **Multi-provider**: Works with Google, Microsoft, Okta, etc.
 
 #### 🏢 **Provider Adapters**
+
 - **Google Workspace**: Uses Google Admin SDK for user management
 - **Office 365**: Uses Microsoft Graph API for user management
 - **Extensible**: Easy to add new providers (Okta, Active Directory)
 
 #### 📊 **Audit System**
+
 - **Database**: Stores immutable audit records in PostgreSQL
 - **Kafka**: Publishes events for real-time monitoring
 - **Compliance**: Supports SOX, GDPR, SOC 2, HIPAA requirements
@@ -209,12 +219,14 @@ Identity Service
 ## 🚀 **Getting Started (Step by Step)**
 
 ### Step 1: Install Dependencies
+
 ```bash
 cd services/identity-service
 npm install express winston joi axios pg googleapis
 ```
 
 ### Step 2: Setup Database
+
 ```bash
 # Create PostgreSQL database
 createdb officeflow
@@ -225,6 +237,7 @@ psql -d officeflow -f migrations/003_identity_audit_events.sql
 ```
 
 ### Step 3: Configure Environment
+
 ```bash
 # Create .env file with your credentials
 cp .env.example .env
@@ -232,16 +245,19 @@ cp .env.example .env
 ```
 
 ### Step 4: Setup OAuth2 Providers
+
 - Create Google Cloud project and OAuth2 credentials
 - Create Azure AD application and client secret
 - Add credentials to .env file
 
 ### Step 5: Start the Service
+
 ```bash
 npm run dev
 ```
 
 ### Step 6: Test the Service
+
 ```bash
 # Health check
 curl http://localhost:3003/health
@@ -255,6 +271,7 @@ curl http://localhost:3003/schema
 ## 🔧 **What's Working vs What Needs Setup**
 
 ### ✅ **Already Working**
+
 - TypeScript compilation
 - Code structure and logic
 - Type safety and validation
@@ -263,6 +280,7 @@ curl http://localhost:3003/schema
 - API endpoint definitions
 
 ### 🔄 **Needs Your Setup**
+
 - Database connection (PostgreSQL)
 - OAuth2 provider credentials
 - Environment variables
@@ -270,6 +288,7 @@ curl http://localhost:3003/schema
 - Actual API testing with real providers
 
 ### 🎯 **Ready for Production After Setup**
+
 - Encrypted credential storage
 - Comprehensive audit logging
 - Multi-provider support

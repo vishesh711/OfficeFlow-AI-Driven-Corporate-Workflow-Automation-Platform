@@ -16,10 +16,7 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
     this.logger = logger;
   }
 
-  async createUser(
-    tokens: OAuth2Token,
-    userInfo: UserAccount
-  ): Promise<ProvisioningResult> {
+  async createUser(tokens: OAuth2Token, userInfo: UserAccount): Promise<ProvisioningResult> {
     try {
       const auth = this.createAuthClient(tokens);
       const admin = google.admin({ version: 'directory_v1', auth });
@@ -29,29 +26,29 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
         name: {
           givenName: userInfo.firstName,
           familyName: userInfo.lastName,
-          fullName: `${userInfo.firstName} ${userInfo.lastName}`
+          fullName: `${userInfo.firstName} ${userInfo.lastName}`,
         },
         password: this.generateTemporaryPassword(),
         changePasswordAtNextLogin: true,
         orgUnitPath: userInfo.department ? `/Departments/${userInfo.department}` : '/',
         suspended: false,
-        includeInGlobalAddressList: true
+        includeInGlobalAddressList: true,
       };
 
       // Add custom attributes if provided
       if (userInfo.customAttributes) {
         userResource.customSchemas = {
-          Employee: userInfo.customAttributes
+          Employee: userInfo.customAttributes,
         };
       }
 
       const response = await admin.users.insert({
-        requestBody: userResource
+        requestBody: userResource,
       });
 
       this.logger.info('Google Workspace user created successfully', {
         email: userInfo.email,
-        userId: response.data.id
+        userId: response.data.id,
       });
 
       return {
@@ -61,18 +58,18 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
         metadata: {
           orgUnitPath: response.data.orgUnitPath,
           suspended: response.data.suspended,
-          creationTime: response.data.creationTime
-        }
+          creationTime: response.data.creationTime,
+        },
       };
     } catch (error) {
       this.logger.error('Failed to create Google Workspace user', {
         email: userInfo.email,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -92,9 +89,10 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
         userResource.name = {
           givenName: updates.firstName,
           familyName: updates.lastName,
-          fullName: updates.firstName && updates.lastName 
-            ? `${updates.firstName} ${updates.lastName}` 
-            : undefined
+          fullName:
+            updates.firstName && updates.lastName
+              ? `${updates.firstName} ${updates.lastName}`
+              : undefined,
         };
       }
 
@@ -104,18 +102,18 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
 
       if (updates.customAttributes) {
         userResource.customSchemas = {
-          Employee: updates.customAttributes
+          Employee: updates.customAttributes,
         };
       }
 
       const response = await admin.users.update({
         userKey: userId,
-        requestBody: userResource
+        requestBody: userResource,
       });
 
       this.logger.info('Google Workspace user updated successfully', {
         userId,
-        email: response.data.primaryEmail
+        email: response.data.primaryEmail,
       });
 
       return {
@@ -125,18 +123,18 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
         metadata: {
           orgUnitPath: response.data.orgUnitPath,
           suspended: response.data.suspended,
-          lastLoginTime: response.data.lastLoginTime
-        }
+          lastLoginTime: response.data.lastLoginTime,
+        },
       };
     } catch (error) {
       this.logger.error('Failed to update Google Workspace user', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -151,12 +149,12 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
         userKey: userId,
         requestBody: {
           suspended: true,
-          suspensionReason: 'Employee departure'
-        }
+          suspensionReason: 'Employee departure',
+        },
       });
 
       this.logger.info('Google Workspace user suspended successfully', {
-        userId
+        userId,
       });
 
       return {
@@ -165,18 +163,18 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
         email: '',
         metadata: {
           suspended: true,
-          suspensionReason: 'Employee departure'
-        }
+          suspensionReason: 'Employee departure',
+        },
       };
     } catch (error) {
       this.logger.error('Failed to suspend Google Workspace user', {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -198,33 +196,33 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
             groupKey: groupEmail,
             requestBody: {
               email: userId, // Can use userId or email
-              role: 'MEMBER'
-            }
+              role: 'MEMBER',
+            },
           });
 
           results.push({ group: groupEmail, success: true });
-          
+
           this.logger.debug('User added to Google Workspace group', {
             userId,
-            group: groupEmail
+            group: groupEmail,
           });
         } catch (error) {
-          results.push({ 
-            group: groupEmail, 
-            success: false, 
-            error: error instanceof Error ? error.message : 'Unknown error'
+          results.push({
+            group: groupEmail,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
-          
+
           this.logger.warn('Failed to add user to Google Workspace group', {
             userId,
             group: groupEmail,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
         }
       }
 
-      const successCount = results.filter(r => r.success).length;
-      
+      const successCount = results.filter((r) => r.success).length;
+
       return {
         success: successCount > 0,
         userId,
@@ -232,19 +230,19 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
         metadata: {
           groupAssignments: results,
           successCount,
-          totalCount: groups.length
-        }
+          totalCount: groups.length,
+        },
       };
     } catch (error) {
       this.logger.error('Failed to assign Google Workspace groups', {
         userId,
         groups,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -264,32 +262,32 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
         try {
           await admin.members.delete({
             groupKey: groupEmail,
-            memberKey: userId
+            memberKey: userId,
           });
 
           results.push({ group: groupEmail, success: true });
-          
+
           this.logger.debug('User removed from Google Workspace group', {
             userId,
-            group: groupEmail
+            group: groupEmail,
           });
         } catch (error) {
-          results.push({ 
-            group: groupEmail, 
-            success: false, 
-            error: error instanceof Error ? error.message : 'Unknown error'
+          results.push({
+            group: groupEmail,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
-          
+
           this.logger.warn('Failed to remove user from Google Workspace group', {
             userId,
             group: groupEmail,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
         }
       }
 
-      const successCount = results.filter(r => r.success).length;
-      
+      const successCount = results.filter((r) => r.success).length;
+
       return {
         success: successCount > 0,
         userId,
@@ -297,19 +295,19 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
         metadata: {
           groupRemovals: results,
           successCount,
-          totalCount: groups.length
-        }
+          totalCount: groups.length,
+        },
       };
     } catch (error) {
       this.logger.error('Failed to remove Google Workspace groups', {
         userId,
         groups,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -321,21 +319,21 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
 
       const response = await admin.groups.list({
         domain: this.extractDomainFromConfig(),
-        maxResults: 200
+        maxResults: 200,
       });
 
       const groups = response.data.groups || [];
-      
+
       return groups.map((group: any) => ({
         id: group.id!,
         name: group.name!,
         email: group.email!,
         description: group.description || '',
-        memberCount: parseInt(group.directMembersCount || '0')
+        memberCount: parseInt(group.directMembersCount || '0'),
       }));
     } catch (error) {
       this.logger.error('Failed to list Google Workspace groups', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
     }
@@ -352,7 +350,7 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
       access_token: tokens.accessToken,
       refresh_token: tokens.refreshToken,
       token_type: tokens.tokenType,
-      expiry_date: tokens.expiresAt.getTime()
+      expiry_date: tokens.expiresAt.getTime(),
     });
 
     return oauth2Client;
@@ -362,11 +360,11 @@ export class GoogleWorkspaceAdapter implements IdentityProviderAdapter {
     // Generate a secure temporary password
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let password = '';
-    
+
     for (let i = 0; i < 16; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     return password;
   }
 

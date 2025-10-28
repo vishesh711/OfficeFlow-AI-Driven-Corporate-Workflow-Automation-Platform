@@ -3,15 +3,15 @@
  */
 
 import { Logger } from 'winston';
-import { 
-  NodeExecutor, 
-  NodeInput, 
-  NodeResult, 
-  NodeSchema, 
+import {
+  NodeExecutor,
+  NodeInput,
+  NodeResult,
+  NodeSchema,
   IdentityNodeParams,
   ValidationResult,
   ErrorDetails,
-  ExecutionMetadata
+  ExecutionMetadata,
 } from '@officeflow/types';
 import Joi from 'joi';
 import { CredentialManager } from './credentials/credential-manager';
@@ -36,14 +36,14 @@ export class IdentityNodeExecutor implements NodeExecutor {
 
   async execute(input: NodeInput): Promise<NodeResult> {
     const startTime = Date.now();
-    
+
     try {
       this.logger.info('Executing identity node', {
         nodeId: input.nodeId,
         runId: input.runId,
         organizationId: input.organizationId,
         employeeId: input.employeeId,
-        attempt: input.attempt
+        attempt: input.attempt,
       });
 
       // Validate input parameters
@@ -58,9 +58,9 @@ export class IdentityNodeExecutor implements NodeExecutor {
         );
       }
 
-      const params = input.params as IdentityNodeParams;      
-  
-    // Get credentials for the provider
+      const params = input.params as IdentityNodeParams;
+
+      // Get credentials for the provider
       const credentials = await this.credentialManager.getCredentials(
         input.organizationId,
         params.provider
@@ -80,33 +80,33 @@ export class IdentityNodeExecutor implements NodeExecutor {
       if (this.credentialManager.isTokenExpiringSoon(credentials.tokens)) {
         this.logger.warn('Access token is expiring soon', {
           provider: params.provider,
-          expiresAt: credentials.tokens.expiresAt
+          expiresAt: credentials.tokens.expiresAt,
         });
       }
 
       // Get provider adapter
       const adapter = this.providerFactory.getAdapter(params.provider);
-      
+
       // Execute the requested action
       let result: ProvisioningResult;
-      
+
       switch (params.action) {
         case 'provision':
           result = await this.provisionUser(adapter, credentials.tokens, params, input);
           break;
-        
+
         case 'deprovision':
           result = await this.deprovisionUser(adapter, credentials.tokens, params, input);
           break;
-        
+
         case 'update':
           result = await this.updateUser(adapter, credentials.tokens, params, input);
           break;
-        
+
         case 'assign_groups':
           result = await this.assignGroups(adapter, credentials.tokens, params, input);
           break;
-        
+
         default:
           return this.createErrorResult(
             'UNSUPPORTED_ACTION',
@@ -130,7 +130,7 @@ export class IdentityNodeExecutor implements NodeExecutor {
       this.logger.error('Identity node execution failed', {
         nodeId: input.nodeId,
         error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       });
 
       return this.createErrorResult(
@@ -145,7 +145,9 @@ export class IdentityNodeExecutor implements NodeExecutor {
 
   validate(params: Record<string, any>): ValidationResult {
     const schema = Joi.object({
-      provider: Joi.string().valid('okta', 'google_workspace', 'office365', 'active_directory').required(),
+      provider: Joi.string()
+        .valid('okta', 'google_workspace', 'office365', 'active_directory')
+        .required(),
       action: Joi.string().valid('provision', 'deprovision', 'update', 'assign_groups').required(),
       userEmail: Joi.string().email().required(),
       groups: Joi.array().items(Joi.string()).optional(),
@@ -155,7 +157,7 @@ export class IdentityNodeExecutor implements NodeExecutor {
       lastName: Joi.string().when('action', { is: 'provision', then: Joi.string().required() }),
       department: Joi.string().optional(),
       title: Joi.string().optional(),
-      manager: Joi.string().email().optional()
+      manager: Joi.string().email().optional(),
     });
 
     const { error } = schema.validate(params, { abortEarly: false });
@@ -163,7 +165,7 @@ export class IdentityNodeExecutor implements NodeExecutor {
     if (error) {
       return {
         isValid: false,
-        errors: error.details.map(detail => `${detail.path.join('.')}: ${detail.message}`)
+        errors: error.details.map((detail) => `${detail.path.join('.')}: ${detail.message}`),
       };
     }
 
@@ -183,8 +185,8 @@ export class IdentityNodeExecutor implements NodeExecutor {
           description: 'Identity provider to use',
           required: true,
           validation: {
-            enum: ['okta', 'google_workspace', 'office365', 'active_directory']
-          }
+            enum: ['okta', 'google_workspace', 'office365', 'active_directory'],
+          },
         },
         {
           name: 'action',
@@ -192,8 +194,8 @@ export class IdentityNodeExecutor implements NodeExecutor {
           description: 'Action to perform',
           required: true,
           validation: {
-            enum: ['provision', 'deprovision', 'update', 'assign_groups']
-          }
+            enum: ['provision', 'deprovision', 'update', 'assign_groups'],
+          },
         },
         {
           name: 'userEmail',
@@ -201,26 +203,26 @@ export class IdentityNodeExecutor implements NodeExecutor {
           description: 'User email address',
           required: true,
           validation: {
-            pattern: '^[^@]+@[^@]+\\.[^@]+$'
-          }
-        }
+            pattern: '^[^@]+@[^@]+\\.[^@]+$',
+          },
+        },
       ],
       outputs: [
         {
           name: 'userId',
           type: 'string',
-          description: 'Created or updated user ID'
+          description: 'Created or updated user ID',
         },
         {
           name: 'email',
           type: 'string',
-          description: 'User email address'
-        }
+          description: 'User email address',
+        },
       ],
-      examples: []
+      examples: [],
     };
-  } 
- private async provisionUser(
+  }
+  private async provisionUser(
     adapter: any,
     tokens: any,
     params: IdentityNodeParams,
@@ -232,11 +234,11 @@ export class IdentityNodeExecutor implements NodeExecutor {
       lastName: (params as any).lastName || input.context.variables.lastName || '',
       department: (params as any).department || input.context.variables.department,
       title: (params as any).title || input.context.variables.title,
-      manager: (params as any).manager || input.context.variables.manager
+      manager: (params as any).manager || input.context.variables.manager,
     };
 
     const result = await adapter.createUser(tokens, userInfo);
-    
+
     if (result.success && params.groups && params.groups.length > 0) {
       const groupResult = await adapter.assignGroups(tokens, result.userId!, params.groups);
       if (result.metadata) {
@@ -265,12 +267,12 @@ export class IdentityNodeExecutor implements NodeExecutor {
   ): Promise<ProvisioningResult> {
     const userId = params.userEmail;
     const updates: Partial<UserAccount> = {};
-    
+
     if ((params as any).firstName) updates.firstName = (params as any).firstName;
     if ((params as any).lastName) updates.lastName = (params as any).lastName;
     if ((params as any).department) updates.department = (params as any).department;
     if ((params as any).title) updates.title = (params as any).title;
-    
+
     return await adapter.updateUser(tokens, userId, updates);
   }
 
@@ -281,14 +283,14 @@ export class IdentityNodeExecutor implements NodeExecutor {
     input: NodeInput
   ): Promise<ProvisioningResult> {
     const userId = params.userEmail;
-    
+
     if (!params.groups || params.groups.length === 0) {
       return {
         success: false,
-        error: 'No groups specified for assignment'
+        error: 'No groups specified for assignment',
       };
     }
-    
+
     return await adapter.assignGroups(tokens, userId, params.groups);
   }
 
@@ -313,7 +315,7 @@ export class IdentityNodeExecutor implements NodeExecutor {
               firstName: (params as any).firstName,
               lastName: (params as any).lastName,
               department: (params as any).department,
-              title: (params as any).title
+              title: (params as any).title,
             },
             result,
             input.context.correlationId,
@@ -321,7 +323,7 @@ export class IdentityNodeExecutor implements NodeExecutor {
               nodeId: input.nodeId,
               runId: input.runId,
               executionTimeMs,
-              attempt: input.attempt
+              attempt: input.attempt,
             }
           );
           break;
@@ -340,7 +342,7 @@ export class IdentityNodeExecutor implements NodeExecutor {
               nodeId: input.nodeId,
               runId: input.runId,
               executionTimeMs,
-              attempt: input.attempt
+              attempt: input.attempt,
             }
           );
           break;
@@ -360,45 +362,45 @@ export class IdentityNodeExecutor implements NodeExecutor {
         resource: result.userId || params.userEmail,
         resourceType: 'user_account' as const,
         provider: params.provider,
-        status: result.success ? 'success' as const : 'failed' as const,
+        status: result.success ? ('success' as const) : ('failed' as const),
         details: {
           after: result.success ? result.metadata : undefined,
-          error: result.error ? {
-            code: 'PROVIDER_ERROR',
-            message: result.error
-          } : undefined,
-          duration: executionTimeMs
+          error: result.error
+            ? {
+                code: 'PROVIDER_ERROR',
+                message: result.error,
+              }
+            : undefined,
+          duration: executionTimeMs,
         },
         metadata: {
           nodeId: input.nodeId,
           runId: input.runId,
-          attempt: input.attempt
+          attempt: input.attempt,
         },
         timestamp: new Date(),
-        correlationId: input.context.correlationId
+        correlationId: input.context.correlationId,
       };
 
-      await this.centralAudit.publishAuditEvent(
-        auditEvent,
-        result.success ? 'medium' : 'high',
-        [`node:${input.nodeId}`, `workflow:${input.runId}`]
-      );
-
+      await this.centralAudit.publishAuditEvent(auditEvent, result.success ? 'medium' : 'high', [
+        `node:${input.nodeId}`,
+        `workflow:${input.runId}`,
+      ]);
     } catch (error) {
       this.logger.error('Failed to log audit event', {
         nodeId: input.nodeId,
         action: params.action,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
   private mapActionToAuditAction(action: string): string {
     const actionMap: Record<string, string> = {
-      'provision': 'account.create',
-      'deprovision': 'account.disable',
-      'update': 'account.update',
-      'assign_groups': 'group.assign'
+      provision: 'account.create',
+      deprovision: 'account.disable',
+      update: 'account.update',
+      assign_groups: 'group.assign',
     };
     return actionMap[action] || action;
   }
@@ -417,7 +419,7 @@ export class IdentityNodeExecutor implements NodeExecutor {
         code,
         message,
         details,
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       metadata: {
         executionId: input.nodeId,
@@ -425,8 +427,8 @@ export class IdentityNodeExecutor implements NodeExecutor {
         endTime: new Date(),
         duration: Date.now() - startTime,
         retryCount: input.attempt,
-        correlationId: input.context.correlationId
-      }
+        correlationId: input.context.correlationId,
+      },
     };
   }
 
@@ -443,7 +445,7 @@ export class IdentityNodeExecutor implements NodeExecutor {
         email: result.email,
         provider: params.provider,
         action: params.action,
-        metadata: result.metadata
+        metadata: result.metadata,
       },
       metadata: {
         executionId: input.nodeId,
@@ -451,8 +453,8 @@ export class IdentityNodeExecutor implements NodeExecutor {
         endTime: new Date(),
         duration: Date.now() - startTime,
         retryCount: input.attempt,
-        correlationId: input.context.correlationId
-      }
+        correlationId: input.context.correlationId,
+      },
     };
   }
 
@@ -469,7 +471,7 @@ export class IdentityNodeExecutor implements NodeExecutor {
         code: 'PROVIDER_ERROR',
         message: result.error || 'Unknown provider error',
         details: result.metadata,
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       metadata: {
         executionId: input.nodeId,
@@ -477,8 +479,8 @@ export class IdentityNodeExecutor implements NodeExecutor {
         endTime: new Date(),
         duration: Date.now() - startTime,
         retryCount: input.attempt,
-        correlationId: input.context.correlationId
-      }
+        correlationId: input.context.correlationId,
+      },
     };
   }
 }

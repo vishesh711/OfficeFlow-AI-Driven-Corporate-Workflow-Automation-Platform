@@ -182,32 +182,17 @@ export const CONSUMER_SUBSCRIPTIONS: Record<string, string[]> = {
     'node.execute.result',
   ],
 
-  'identity-service': [
-    'identity.provision.request',
-    'node.execute.request',
-  ],
+  'identity-service': ['identity.provision.request', 'node.execute.request'],
 
-  'email-service': [
-    'email.send.request',
-    'node.execute.request',
-  ],
+  'email-service': ['email.send.request', 'node.execute.request'],
 
-  'calendar-service': [
-    'calendar.schedule.request',
-    'node.execute.request',
-  ],
+  'calendar-service': ['calendar.schedule.request', 'node.execute.request'],
 
-  'slack-service': [
-    'node.execute.request',
-  ],
+  'slack-service': ['node.execute.request'],
 
-  'document-service': [
-    'node.execute.request',
-  ],
+  'document-service': ['node.execute.request'],
 
-  'ai-service': [
-    'node.execute.request',
-  ],
+  'ai-service': ['node.execute.request'],
 
   'audit-service': [
     'audit.events',

@@ -12,10 +12,7 @@ export const logger = winston.createLogger({
   defaultMeta: { service: 'email-service' },
   transports: [
     new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
+      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
     }),
   ],
 });
@@ -27,7 +24,7 @@ if (process.env.NODE_ENV === 'production') {
       level: 'error',
     })
   );
-  
+
   logger.add(
     new winston.transports.File({
       filename: 'logs/combined.log',

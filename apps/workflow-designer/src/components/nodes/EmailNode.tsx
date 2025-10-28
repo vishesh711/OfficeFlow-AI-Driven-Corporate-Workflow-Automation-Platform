@@ -1,11 +1,11 @@
-import { NodeProps } from 'reactflow'
-import { Mail } from 'lucide-react'
-import { BaseNode } from './BaseNode'
+import { NodeProps } from 'reactflow';
+import { Mail } from 'lucide-react';
+import { BaseNode } from './BaseNode';
 
 export function EmailNode({ data, selected }: NodeProps) {
-  const template = data.params?.template || 'welcome'
-  const recipients = data.params?.recipients || '{{employee.email}}'
-  
+  const template = data.params?.template || 'welcome';
+  const recipients = data.params?.recipients || '{{employee.email}}';
+
   return (
     <BaseNode
       data={data}
@@ -16,5 +16,5 @@ export function EmailNode({ data, selected }: NodeProps) {
       <div>Template: {template}</div>
       <div>To: {recipients}</div>
     </BaseNode>
-  )
+  );
 }

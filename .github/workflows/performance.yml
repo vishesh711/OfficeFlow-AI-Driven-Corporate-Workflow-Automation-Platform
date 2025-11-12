@@ -1,9 +1,9 @@
 name: Performance Testing
 
 on:
-  schedule:
-    # Run performance tests daily at 3 AM UTC
-    - cron: '0 3 * * *'
+  # schedule:
+  #   # Run performance tests daily at 3 AM UTC
+  #   - cron: '0 3 * * *'
   push:
     branches: [ main ]
     paths:

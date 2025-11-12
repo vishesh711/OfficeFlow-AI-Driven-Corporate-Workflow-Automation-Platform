@@ -418,16 +418,30 @@ Security features include:
 
 [License information to be added]
 
-## Documentation
+## 📚 Documentation
 
-📚 **[Complete Documentation](docs/README.md)** - Comprehensive guides and references
+**[Complete Documentation](docs/README.md)** - Comprehensive guides and references
 
-### Quick Links
+### 🚀 Quick Links
 
-- **[Getting Started](GETTING_STARTED.md)** - Quick start guide
+- **[Getting Started](docs/guides/GETTING_STARTED.md)** - Quick start guide
+- **[Start Here](docs/guides/START_HERE.md)** - Quick overview
 - **[Deployment Guide](DEPLOYMENT.md)** - Production deployment
+- **[Run Scripts](docs/guides/RUN_SCRIPTS.md)** - How to run the project
+
+### 📖 Core Documentation
+
+- **[Requirements](docs/REQUIREMENTS.md)** - System requirements
+- **[Server Side](docs/SERVER_SIDE.md)** - Backend architecture
+- **[Client Side](docs/CLIENT_SIDE.md)** - Frontend architecture
 - **[Observability](docs/OBSERVABILITY.md)** - Monitoring and logging
-- **[Feature Specs](.kiro/specs/)** - Detailed specifications
+
+### 🛠️ Development
+
+- **[Workflow Examples](docs/guides/WORKFLOW_EXAMPLES.md)** - Example workflows
+- **[Template Modification](docs/guides/TEMPLATE_MODIFICATION_GUIDE.md)** - Template customization
+- **[Troubleshooting](docs/troubleshooting/)** - Common issues and fixes
+- **[CI/CD](docs/cicd/)** - Continuous integration and deployment
 
 ## Support
 

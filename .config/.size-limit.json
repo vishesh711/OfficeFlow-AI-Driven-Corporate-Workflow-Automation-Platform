@@ -1,0 +1,7 @@
+[
+  {
+    "name": "Workflow Designer Bundle",
+    "path": "apps/workflow-designer/dist/assets/*.js",
+    "limit": "500 KB"
+  }
+]
